@@ -9,7 +9,12 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load(Biobase, 
                readxl,
                tidyverse,
-               testit)
+               testit,
+               BioQC,
+               pheatmap,
+               xCell,
+               MCPcounter,
+               EPIC)
 
 ```
 
@@ -28,23 +33,56 @@ Part 1 of the immune deconvolution benchmark: The Spillover analysis.
 * 10X genomics PBMC https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc8k
 
 
-## Build tissue 
+## Bulk tissue 
 * Fantom5 
 
+
+# Spillover analysis with fantom 5 samples
 ```{r}
 # load and rename fantom5 data
-load("./data/f5_expressionset.Rdata")
-f5_eset = expr.set
+load("../results/f5_eset.rda")
 
-# load annotation about cell types
-annotation = read_xlsx("./tables/fantom5_pdata.xlsx")
-assert("annotation files consistent", annotation$lib_id == rownames(pData(f5_eset)))
-
-pData(f5_eset)$cell_type = annotation$`cell type`
-
-f5_eset_fil = f5_eset[,!is.na(pData(f5_eset)$cell_type)]
+f5_eset = f5_eset[,!is.na(pData(f5_eset)$cell_type)]
 ```
 
+```{r bioqc, fig.width=7, fig.height=10}
+gmt = readGmt("../data/angelova_immune_cells.gmt")
+bioqc_res = wmwTest(f5_eset, gmt, col="hgnc_symbol")
+colnames(bioqc_res) = pData(f5_eset)$name
+
+pheatmap(absLog10p(bioqc_res), cluster_rows = FALSE, cluster_cols = FALSE)
+```
+
+```{r xcell, fig.width=7, fig.height=15}
+eset_mat = exprs(f5_eset)
+rownames(eset_mat) = fData(f5_eset)$hgnc_symbol
+
+xcell_res = xCellAnalysis(eset_mat)
+colnames(xcell_res) = pData(f5_eset)$name
+
+pheatmap(xcell_res, cluster_rows = FALSE, cluster_cols = FALSE)
+
+```
+
+```{r mcp_counter, , fig.width=7, fig.height=10}
+mcp_res = MCPcounter.estimate(eset_mat, "HUGO_symbols")
+
+colnames(mcp_res) = pData(f5_eset)$name
+
+pheatmap(mcp_res, cluster_rows = FALSE, cluster_cols = FALSE)
+
+```
+
+
+```{r epic, , fig.width=7, fig.height=10}
+epic_res_raw = EPIC(bulk=eset_mat)
+epic_res = t(epic_res_raw$cellFractions)
+
+colnames(epic_res) = pData(f5_eset)$name
+
+pheatmap(epic_res, cluster_rows = FALSE, cluster_cols = FALSE)
+
+```
 
 
 

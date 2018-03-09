@@ -1,6 +1,12 @@
 ---
 title: "Spillover"
-output: html_notebook
+output:
+  rmdformats::readthedown:
+    highlight: kate
+author: 
+  name: Gregor Sturm
+  email: sturm@pieris.com
+  affilation: Pieris Pharmaceuticals GmbH, Lise-Meitner-Straße 30, 85354 Freising, Germany
 ---
 
 
@@ -8,13 +14,15 @@ output: html_notebook
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(Biobase, 
                readxl,
+               MASS,
                tidyverse,
                testit,
                BioQC,
                pheatmap,
                xCell,
                MCPcounter,
-               EPIC)
+               EPIC,
+               withr)
 
 ```
 
@@ -45,6 +53,7 @@ load("../results/f5_eset.rda")
 f5_eset = f5_eset[,!is.na(pData(f5_eset)$cell_type)]
 ```
 
+## BioQC with Angelova Signatures
 ```{r bioqc, fig.width=7, fig.height=10}
 gmt = readGmt("../data/angelova_immune_cells.gmt")
 bioqc_res = wmwTest(f5_eset, gmt, col="hgnc_symbol")
@@ -53,6 +62,8 @@ colnames(bioqc_res) = pData(f5_eset)$name
 pheatmap(absLog10p(bioqc_res), cluster_rows = FALSE, cluster_cols = FALSE)
 ```
 
+
+## xCell
 ```{r xcell, fig.width=7, fig.height=15}
 eset_mat = exprs(f5_eset)
 rownames(eset_mat) = fData(f5_eset)$hgnc_symbol
@@ -64,6 +75,8 @@ pheatmap(xcell_res, cluster_rows = FALSE, cluster_cols = FALSE)
 
 ```
 
+
+## MCPcounter
 ```{r mcp_counter, , fig.width=7, fig.height=10}
 mcp_res = MCPcounter.estimate(eset_mat, "HUGO_symbols")
 
@@ -74,7 +87,8 @@ pheatmap(mcp_res, cluster_rows = FALSE, cluster_cols = FALSE)
 ```
 
 
-```{r epic, , fig.width=7, fig.height=10}
+## EPIC
+```{r epic, fig.width=7, fig.height=10}
 epic_res_raw = EPIC(bulk=eset_mat)
 epic_res = t(epic_res_raw$cellFractions)
 
@@ -86,5 +100,62 @@ pheatmap(epic_res, cluster_rows = FALSE, cluster_cols = FALSE)
 
 
 
+## TIMER
+```{r TIMER, fig.width=7, fig.height=10}
+# export data for timer
+write_tsv(as_tibble(eset_mat, rownames="gene_symbol"), path="../results/timer_input.tsv")
+
+preprocess_timer = function(df) {
+  df = as.data.frame(df)
+  rownames(df) = df$sampleID
+  df$sampleID = NULL
+  df = t(df)
+  colnames(df) = pData(f5_eset)$name
+  df
+}
+
+timer_acc = read_csv("../data/timer/score_matrix_ACC.csv") %>% preprocess_timer()
+timer_gbm = read_csv("../data/timer/score_matrix_GBM.csv") %>% preprocess_timer()
 
 
+pheatmap(timer_acc, cluster_rows = FALSE, cluster_cols = FALSE)
+pheatmap(timer_gbm, cluster_rows = FALSE, cluster_cols = FALSE)
+
+
+```
+
+
+## CIBERSORT
+```{r CIBERSORT, fig.width=7, fig.height=10}
+preprocess_cibersort = function(df) {
+  df = as.data.frame(df)
+  rownames(df) = df$`Input Sample`
+  df$`Input Sample` = NULL
+  df = t(df)
+  colnames(df) = pData(f5_eset)$name
+  df
+}
+
+cibersort_abs = read_tsv("../data/cibersort/CIBERSORT.Output_Abs_Job1.txt") %>% select(-`Pearson Correlation`, -`Absolute score`, -`P-value`) %>% preprocess_cibersort()
+cibersort_rel = read_tsv("../data/cibersort/CIBERSORT.Output_Job1.txt") %>% select(-`P-value`, -`Pearson Correlation`, -`RMSE`) %>% preprocess_cibersort()
+
+
+pheatmap(cibersort_abs, cluster_rows = FALSE, cluster_cols = FALSE)
+pheatmap(cibersort_rel, cluster_rows = FALSE, cluster_cols = FALSE)
+
+
+```
+
+## quanTIseq
+```{r quanTIseq, fig.width=7, fig.height=10}
+with_dir("../lib/quantiseq_decon", {
+  source("quanTIseq_decon.R")
+  qseq_res = quantiseq_decon(eset_mat) 
+  qseq_res %<>% as_tibble() %>% select(-Sample) %>% as.matrix() %>% t()
+})
+
+colnames(qseq_res) = pData(f5_eset)$name
+pheatmap(qseq_res, cluster_rows = FALSE, cluster_cols = FALSE)
+
+
+```

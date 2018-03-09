@@ -159,3 +159,38 @@ pheatmap(qseq_res, cluster_rows = FALSE, cluster_cols = FALSE)
 
 
 ```
+
+
+# Comparison
+```{r, fig.width=12, fig.height=5}
+range01 <- function(x){(x-min(x))/(max(x)-min(x))}
+
+mapping = read_excel("../tables/cell_type_mapping.xlsx", sheet = 1)
+
+results = list(
+  cibersort = cibersort_abs,
+  timer = timer_acc,
+  xcell = xcell_res,
+  mcpcounter = mcp_res,
+  quantiseq = qseq_res,
+  epic = epic_res
+)
+
+results2 = lapply(names(results), function(method) {
+  tmp_map = mapping %>% select(cell_type, !!method)
+  tmp_res = results[[method]] %>% range01() %>% as_tibble(rownames = "tmp_cell_type")
+  tmp_res %>% inner_join(tmp_map, by=c("tmp_cell_type"=method)) %>% select(-tmp_cell_type) %>%
+    mutate(method=method)
+})
+
+res_table = bind_rows(results2) %>% gather(sample, predicted_fraction, -method, -cell_type) %>% 
+  separate(sample, into=c("sample_cell_type", "sample_other_info"), sep=",")
+
+res_table %>% ggplot(aes(x=method, y=cell_type, fill=predicted_fraction)) +
+  geom_tile(colour="white") +
+  scale_fill_gradientn(colours=rev(brewer.pal(n = 7, name="RdYlBu"))) +
+  facet_wrap(~sample_cell_type, nrow=1) +
+  theme(axis.text.x=element_text(angle = -90, vjust = 0.5, hjust=0)) 
+
+
+```

@@ -5,20 +5,101 @@ output: html_notebook
 
 ```{r}
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(tidyverse)
+pacman::p_load(tidyverse,
+               cowplot,
+               Biobase,
+               MCPcounter,
+               pheatmap)
 ```
 
+Load and preprocess the data from Schelker et al. 
 ```{r}
 sc_normalized = read_csv("../data/single_cell_benchmark_publication_data/export/sc_data_normalized.csv")
+
 sample_id = read_csv("../data/single_cell_benchmark_publication_data/export/sample_id.csv") %>% 
   separate("Var1", into=c("source", "donor"))
+
 tsne = read_csv("../data/single_cell_benchmark_publication_data/export/tsne_merged.csv")
 
 cell_names = read_csv("../data/single_cell_benchmark_publication_data/export/cellnames.txt") %>%
-  rename(name=Var1) %>%
-  mutate(id=as.integer(row_number()-1))
+  rename(cell_type=Var1) %>%
+  mutate(cell_id=as.integer(row_number()-1))
 
 cell_types = read_csv("../data/single_cell_benchmark_publication_data/export/classified_data_donor_abc_12k_merged_tcell_celltype.csv") %>% 
-  rename(id=Var1) %>%
+  rename(cell_id=Var1) %>%
   inner_join(cell_names)
+
+expr = sc_normalized %>% select(-Row) %>% as.matrix()
+pdata = cbind(sample_id, tsne, cell_types) %>%
+  mutate(sample=colnames(expr)) %>%
+  column_to_rownames(var="sample")
+fdata = sc_normalized %>% select(Row) %>% rename(gene_symbol=Row)
+rownames(fdata) = fdata$gene_symbol
+rownames(expr) = fdata$gene_symbol
+
+sc_eset = ExpressionSet(expr,
+                        phenoData = new("AnnotatedDataFrame", data=pdata),
+                        featureData = new("AnnotatedDataFrame", data=fdata))
 ```
+
+Let's repreduce the tsne plot from the publication
+```{r, fig.width=10, fig.height=10}
+pData(sc_eset) %>% 
+  ggplot(aes(x=tsneX1, y=tsneX2, colour=cell_type)) +
+           geom_point(size=1) + 
+           theme(legend.position="bottom")
+
+```
+
+
+
+```{r}
+make_random_bulk = function(n=500) {
+  cell_ids = base::sample(dim(sc_eset)["Samples"], size=n)
+  reduced_eset = sc_eset[,cell_ids]
+  # simulated bulk tissue as sum of all selected single cells
+  expr = apply(exprs(reduced_eset), 1, sum) %>% as_tibble()
+  proportions = pData(reduced_eset) %>% 
+    select(cell_type) %>% 
+    group_by(cell_type) %>%
+    count() %>%
+    mutate(fraction=n/!!n) %>%
+    select(-n) %>%
+    right_join(cell_names[,"cell_type"], by="cell_type") %>%
+    mutate(fraction=ifelse(is.na(fraction),0,fraction))
+  return(list(expr=expr, proportions=proportions))
+}
+
+make_bulk_eset = function(n=100) {
+  bulk_samples = lapply(1:n, make_random_bulk)
+  expr = bind_cols(lapply(bulk_samples, function(x){x$expr})) %>% as.matrix()
+  pdata = bind_rows(lapply(bulk_samples, function(x) {
+    x$proportions %>% column_to_rownames(var="cell_type") %>% t() %>% as_tibble()
+  }))
+  rownames(pdata) = colnames(expr)
+  rownames(expr) = fData(sc_eset)$gene_symbol
+  ExpressionSet(expr, 
+                phenoData = new("AnnotatedDataFrame", data=pdata),
+                featureData = new("AnnotatedDataFrame", fData(sc_eset)))
+}
+
+
+```
+
+```{r}
+set.seed(42)
+bulk_eset = make_bulk_eset(n=10)
+
+
+```
+
+
+```{r mcp_counter, , fig.width=7, fig.height=10}
+mcp_res = MCPcounter.estimate(exprs(bulk_eset), "HUGO_symbols")
+pheatmap(mcp_res, cluster_rows = FALSE, cluster_cols = FALSE)
+pheatmap(data.matrix(t(pData(bulk_eset))), cluster_rows = FALSE, cluster_cols = FALSE)
+
+```
+
+```
+

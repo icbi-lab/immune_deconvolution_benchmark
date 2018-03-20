@@ -1,0 +1,24 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse)
+```
+
+```{r}
+sc_normalized = read_csv("../data/single_cell_benchmark_publication_data/export/sc_data_normalized.csv")
+sample_id = read_csv("../data/single_cell_benchmark_publication_data/export/sample_id.csv") %>% 
+  separate("Var1", into=c("source", "donor"))
+tsne = read_csv("../data/single_cell_benchmark_publication_data/export/tsne_merged.csv")
+
+cell_names = read_csv("../data/single_cell_benchmark_publication_data/export/cellnames.txt") %>%
+  rename(name=Var1) %>%
+  mutate(id=as.integer(row_number()-1))
+
+cell_types = read_csv("../data/single_cell_benchmark_publication_data/export/classified_data_donor_abc_12k_merged_tcell_celltype.csv") %>% 
+  rename(id=Var1) %>%
+  inner_join(cell_names)
+```

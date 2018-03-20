@@ -9,7 +9,9 @@ pacman::p_load(tidyverse,
                cowplot,
                Biobase,
                MCPcounter,
-               pheatmap)
+               pheatmap,
+               readxl,
+               EPIC)
 ```
 
 Load and preprocess the data from Schelker et al. 
@@ -40,6 +42,8 @@ rownames(expr) = fdata$gene_symbol
 sc_eset = ExpressionSet(expr,
                         phenoData = new("AnnotatedDataFrame", data=pdata),
                         featureData = new("AnnotatedDataFrame", data=fdata))
+
+cell_type_mapping = read_excel("../tables/cell_type_mapping.xlsx", sheet = 1)
 ```
 
 Let's repreduce the tsne plot from the publication
@@ -51,8 +55,14 @@ pData(sc_eset) %>%
 
 ```
 
+Summary of the cell types
+```{r}
+cell_types %>% group_by(cell_type) %>% count()
+
+```
 
 
+Function definitions to generate simulated bulk tissues. 
 ```{r}
 make_random_bulk = function(n=500) {
   cell_ids = base::sample(dim(sc_eset)["Samples"], size=n)
@@ -74,9 +84,15 @@ make_bulk_eset = function(n=100) {
   bulk_samples = lapply(1:n, make_random_bulk)
   expr = bind_cols(lapply(bulk_samples, function(x){x$expr})) %>% as.matrix()
   pdata = bind_rows(lapply(bulk_samples, function(x) {
-    x$proportions %>% column_to_rownames(var="cell_type") %>% t() %>% as_tibble()
+    # setting row names on a tibble is deprecated
+    suppressWarnings({
+      x$proportions %>% column_to_rownames(var="cell_type") %>% t() %>% as_tibble()
+    })
   }))
-  rownames(pdata) = colnames(expr)
+  # setting row names on a tibble is deprecated
+  suppressWarnings({
+      rownames(pdata) = colnames(expr)
+  })
   rownames(expr) = fData(sc_eset)$gene_symbol
   ExpressionSet(expr, 
                 phenoData = new("AnnotatedDataFrame", data=pdata),
@@ -88,16 +104,38 @@ make_bulk_eset = function(n=100) {
 
 ```{r}
 set.seed(42)
-bulk_eset = make_bulk_eset(n=10)
+bulk_eset = make_bulk_eset(n=100)
+```
+```{r}
+epic_res_raw = EPIC(bulk=exprs(bulk_eset))
+epic_res = t(epic_res_raw$cellFractions) %>% as_tibble(rownames="epic_cell_type") %>%
+  inner_join(cell_type_mapping %>%select(gold_standard, epic), by=c("epic_cell_type"="epic")) %>%
+  select(-epic_cell_type) %>% column_to_rownames("gold_standard") %>% as.matrix()
 
+cell_types = rownames(epic_res)
+gold_standard = t(pData(bulk_eset))
+
+sapply(cell_types, function(cell_type) { 
+  cor(epic_res[cell_type, ], gold_standard[cell_type, ], method = "pearson")
+})
 
 ```
 
 
 ```{r mcp_counter, , fig.width=7, fig.height=10}
-mcp_res = MCPcounter.estimate(exprs(bulk_eset), "HUGO_symbols")
-pheatmap(mcp_res, cluster_rows = FALSE, cluster_cols = FALSE)
-pheatmap(data.matrix(t(pData(bulk_eset))), cluster_rows = FALSE, cluster_cols = FALSE)
+mcp_res = MCPcounter.estimate(exprs(bulk_eset), "HUGO_symbols") %>% as_tibble(rownames="mcp_cell_type") %>%
+  inner_join(cell_type_mapping %>% select(gold_standard, mcpcounter) %>% drop_na(), by=c("mcp_cell_type"="mcpcounter")) %>%
+  select(-mcp_cell_type) %>%
+  column_to_rownames("gold_standard") %>%
+  as.matrix()
+
+cell_types = rownames(mcp_res)
+gold_standard = t(pData(bulk_eset))
+
+sapply(cell_types, function(cell_type) { 
+  cor(mcp_res[cell_type, ], gold_standard[cell_type, ], method = "pearson")
+})
+
 
 ```
 

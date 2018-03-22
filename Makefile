@@ -24,7 +24,7 @@ upload-book: book
 .PHONY: clean
 clean:
 	rm -rfv _book/*
-	rm -rfv _bookdown_files/*_files
+	rm -rfv notebooks/_bookdown_files/*_files
 	rm -fv notebooks/_main*
 
 .PHONY: wipe

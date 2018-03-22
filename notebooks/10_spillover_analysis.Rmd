@@ -150,7 +150,7 @@ pheatmap(cibersort_rel, cluster_rows = FALSE, cluster_cols = FALSE)
 ```{r quanTIseq, fig.width=7, fig.height=10}
 with_dir("../lib/quantiseq_decon", {
   source("quanTIseq_decon.R")
-  qseq_res = quantiseq_decon(eset_mat) 
+  qseq_res = deconvolute_quantiseq(eset_mat) 
   qseq_res %<>% as_tibble() %>% select(-Sample) %>% as.matrix() %>% t()
 })
 

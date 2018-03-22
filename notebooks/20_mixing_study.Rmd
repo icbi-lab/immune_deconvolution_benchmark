@@ -8,136 +8,87 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse,
                cowplot,
                Biobase,
-               MCPcounter,
                pheatmap,
-               readxl,
-               EPIC)
+               magrittr)
 ```
 
-Load and preprocess the data from Schelker et al. 
+Load dataset from schelker et al. 
 ```{r}
-sc_normalized = read_csv("../data/single_cell_benchmark_publication_data/export/sc_data_normalized.csv")
-
-sample_id = read_csv("../data/single_cell_benchmark_publication_data/export/sample_id.csv") %>% 
-  separate("Var1", into=c("source", "donor"))
-
-tsne = read_csv("../data/single_cell_benchmark_publication_data/export/tsne_merged.csv")
-
-cell_names = read_csv("../data/single_cell_benchmark_publication_data/export/cellnames.txt") %>%
-  rename(cell_type=Var1) %>%
-  mutate(cell_id=as.integer(row_number()-1))
-
-cell_types = read_csv("../data/single_cell_benchmark_publication_data/export/classified_data_donor_abc_12k_merged_tcell_celltype.csv") %>% 
-  rename(cell_id=Var1) %>%
-  inner_join(cell_names)
-
-expr = sc_normalized %>% select(-Row) %>% as.matrix()
-pdata = cbind(sample_id, tsne, cell_types) %>%
-  mutate(sample=colnames(expr)) %>%
-  column_to_rownames(var="sample")
-fdata = sc_normalized %>% select(Row) %>% rename(gene_symbol=Row)
-rownames(fdata) = fdata$gene_symbol
-rownames(expr) = fdata$gene_symbol
-
-sc_eset = ExpressionSet(expr,
-                        phenoData = new("AnnotatedDataFrame", data=pdata),
-                        featureData = new("AnnotatedDataFrame", data=fdata))
-
-cell_type_mapping = read_excel("../tables/cell_type_mapping.xlsx", sheet = 1)
+load("../data/single_cell_schelker.rda")
 ```
 
 Let's repreduce the tsne plot from the publication
 ```{r, fig.width=10, fig.height=10}
-pData(sc_eset) %>% 
+pData(single_cell_schelker) %>% 
   ggplot(aes(x=tsneX1, y=tsneX2, colour=cell_type)) +
            geom_point(size=1) + 
            theme(legend.position="bottom")
-
 ```
 
 Summary of the cell types
 ```{r}
-cell_types %>% group_by(cell_type) %>% count()
+pData(single_cell_schelker) %>% group_by(cell_type) %>% count()
 
 ```
 
 
-Function definitions to generate simulated bulk tissues. 
+
 ```{r}
-make_random_bulk = function(n=500) {
-  cell_ids = base::sample(dim(sc_eset)["Samples"], size=n)
-  reduced_eset = sc_eset[,cell_ids]
-  # simulated bulk tissue as sum of all selected single cells
-  expr = apply(exprs(reduced_eset), 1, sum) %>% as_tibble()
-  proportions = pData(reduced_eset) %>% 
-    select(cell_type) %>% 
-    group_by(cell_type) %>%
-    count() %>%
-    mutate(fraction=n/!!n) %>%
-    select(-n) %>%
-    right_join(cell_names[,"cell_type"], by="cell_type") %>%
-    mutate(fraction=ifelse(is.na(fraction),0,fraction))
-  return(list(expr=expr, proportions=proportions))
-}
-
-make_bulk_eset = function(n=100) {
-  bulk_samples = lapply(1:n, make_random_bulk)
-  expr = bind_cols(lapply(bulk_samples, function(x){x$expr})) %>% as.matrix()
-  pdata = bind_rows(lapply(bulk_samples, function(x) {
-    # setting row names on a tibble is deprecated
-    suppressWarnings({
-      x$proportions %>% column_to_rownames(var="cell_type") %>% t() %>% as_tibble()
-    })
-  }))
-  # setting row names on a tibble is deprecated
-  suppressWarnings({
-      rownames(pdata) = colnames(expr)
-  })
-  rownames(expr) = fData(sc_eset)$gene_symbol
-  ExpressionSet(expr, 
-                phenoData = new("AnnotatedDataFrame", data=pdata),
-                featureData = new("AnnotatedDataFrame", fData(sc_eset)))
-}
-
-
+devtools::load_all("/storage/home/sturm/projects/immune_deconvolution_methods")
 ```
+
 
 ```{r}
 set.seed(42)
-bulk_eset = make_bulk_eset(n=100)
+bulk_eset = make_bulk_eset(n=100, eset=single_cell_schelker)
 ```
+
+
+## run all methods and aggreate the results ina single table
+```{r, fig.width=15, fig.height=5}
+all_results = lapply(immunedeconv::deconvolution_methods, function(method) {
+  res = deconvolute(bulk_eset, method, column="gene_symbol") 
+
+  # summarise cell_types from the method that only map to a single cell_type in the reference dataset (namely monocytes and macrophages)
+  res2 = res %>% map_results_to_dataset("single_cell_schelker") %>% 
+            group_by(single_cell_schelker) %>%   
+            summarise_all(funs(sum)) %>% 
+            mutate(method=method)
+  return(res2)
+})
+
+all_results %<>% bind_rows() %>%
+  rename(cell_type = single_cell_schelker) %>%
+  gather(sample, estimate, -cell_type, -method)
+
+gold_standard = pData(bulk_eset) %>%
+  rownames_to_column("sample") %>%
+  gather(cell_type, true_fraction, -sample)
+
+results_with_gold_standard = all_results %>%
+  inner_join(gold_standard, by=c("sample", "cell_type"))
+```
+
+
+## correlation plot
 ```{r}
-epic_res_raw = EPIC(bulk=exprs(bulk_eset))
-epic_res = t(epic_res_raw$cellFractions) %>% as_tibble(rownames="epic_cell_type") %>%
-  inner_join(cell_type_mapping %>%select(gold_standard, epic), by=c("epic_cell_type"="epic")) %>%
-  select(-epic_cell_type) %>% column_to_rownames("gold_standard") %>% as.matrix()
-
-cell_types = rownames(epic_res)
-gold_standard = t(pData(bulk_eset))
-
-sapply(cell_types, function(cell_type) { 
-  cor(epic_res[cell_type, ], gold_standard[cell_type, ], method = "pearson")
-})
-
+results_with_gold_standard %>%
+  ggplot(aes(x=true_fraction, y=estimate)) +
+  facet_grid(method ~ cell_type, scales="free_y") +
+  geom_point() +
+  stat_smooth()
 ```
 
 
-```{r mcp_counter, , fig.width=7, fig.height=10}
-mcp_res = MCPcounter.estimate(exprs(bulk_eset), "HUGO_symbols") %>% as_tibble(rownames="mcp_cell_type") %>%
-  inner_join(cell_type_mapping %>% select(gold_standard, mcpcounter) %>% drop_na(), by=c("mcp_cell_type"="mcpcounter")) %>%
-  select(-mcp_cell_type) %>%
-  column_to_rownames("gold_standard") %>%
-  as.matrix()
+## Calculate correlations for each method and cell type
+```{r}
+correlations = full_tab %>% group_by(cell_type, method) %>% summarise(pearson=cor(estimate, true_fraction, method="pearson"))
 
-cell_types = rownames(mcp_res)
-gold_standard = t(pData(bulk_eset))
-
-sapply(cell_types, function(cell_type) { 
-  cor(mcp_res[cell_type, ], gold_standard[cell_type, ], method = "pearson")
-})
-
-
+correlations %>% ggplot(aes(x=method, y=pearson)) +
+  geom_bar(stat="identity") +
+  facet_wrap(~cell_type) + 
+  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
-```
+
 

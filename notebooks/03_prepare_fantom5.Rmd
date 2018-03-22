@@ -1,0 +1,89 @@
+Loading Fantom 5 into an Expression Set
+========================================================
+
+```{r}
+library(Biobase)
+library(testit)
+library(tidyverse)
+library(magrittr)
+library(readxl)
+```
+
+
+### Load Gene Expression data from the Fantom5 Dataset
+```{r}
+hgnc_symbols = read_tsv("../data/hgnc_symbols.txt")
+colnames(hgnc_symbols) = c("hgnc_id", "hgnc_symbol")
+
+data.file = file.path("../data/hg19.cage_peak_phase1and2combined_tpm_ann.osc.txt")
+data.tab = read_tsv(data.file, col_names=TRUE, comment="#")
+
+# skip statistics
+data.tab = data.tab[3:nrow(data.tab),]
+
+# remove all lines that don't have a gene symbol
+data.tab %<>% filter(!is.na(hgnc_id))
+
+# split up into multiple lines if therer are multipe gene symbols per row
+data.tab %<>% separate_rows(short_description, sep=",") %>% 
+  separate(short_description, sep="@", into=c("p", "hgnc_symbol")) %>%
+  select(-p) %>% 
+  semi_join(hgnc_symbols)
+
+exprs.mat = as.matrix(data.tab[,8:ncol(data.tab)])
+
+# save(data.tab, file="../results/data.tab.rda")
+
+exprs_mat_collapsed = exprs.mat %>%
+  as_tibble() %>%
+  cbind(data.tab[,"hgnc_symbol"]) %>%
+  group_by(hgnc_symbol) %>%
+  summarise_all(sum)
+
+fdata = exprs_mat_collapsed[,"hgnc_symbol"]
+exprs_mat = exprs_mat_collapsed %>%
+  select(-hgnc_symbol) %>%
+  as.matrix()
+
+assert("didn't get all rows", nrow(exprs_mat)==17507)
+assert("didn't get all cols", ncol(exprs_mat)==1829)
+
+# set the colnames to a 'primary' key
+lib_ids = regmatches(colnames(exprs.mat), regexpr("CNhs(\\d+)", colnames(exprs.mat)))
+colnames(exprs_mat) = lib_ids
+```
+
+### Annotation of the features (genes)
+```{r}
+fdata.annotated = new("AnnotatedDataFrame", data=as.data.frame(fdata))
+```
+
+### Load phenotypic data (covariates per Sample, such as sex, age, ...). 
+```{r}
+pdata.file = file.path("../tables/fantom5_pdata.xlsx")
+pdata.tab = data.frame(read_excel(pdata.file))
+rownames(pdata.tab) = pdata.tab$lib_id
+
+assert("sample keys do not match", all(rownames(pdata.tab) == colnames(exprs.mat)))
+
+summary(pdata.tab)
+```
+
+Create more extensive column description as metadata
+```{r}
+# Convert to AnnotatedDataFrame for the ExpressionSet
+pdata.annotated = new("AnnotatedDataFrame", data=pdata.tab)
+```
+
+
+### Assemble the ExpressionSet
+```{r}
+experimentData = new("MIAME",
+                     title="FANTOM5 human expression data. ")
+f5_eset = ExpressionSet(assayData=exprs_mat, 
+                         phenoData=pdata.annotated,
+                         experimentData=experimentData,
+                         featureData=fdata.annotated)
+
+save(expr.set, file="../results/f5_eset.rda")
+```

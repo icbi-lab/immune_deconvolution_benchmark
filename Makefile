@@ -10,11 +10,11 @@ CWD= $(shell pwd)
 
 .PHONY: book
 book: $(RMD_FILES)
-	Rscript -e "bookdown::render_book('notebooks/index.Rmd', 'bookdown::gitbook')"
+	cd notebooks && Rscript -e "bookdown::render_book('index.Rmd', 'bookdown::gitbook')"
 
 .PHONY: upload-book
-	upload-book: book
-	cd gh-pages && cp -R ../_book/* ./ && git add --all * && git commit --allow-empty -m "update docs" && git push origin gh-pages
+upload-book: book
+	cd gh-pages && cp -R ../_book/* ./ && git add --all * && git commit --allow-empty -m "update docs" && git push github gh-pages
 
 # render a chapter only by calling `make chapter1.Rmd.preview`
 .PHONY: $(PREVIEW_FILES)
@@ -22,14 +22,13 @@ book: $(RMD_FILES)
 	Rscript -e "bookdown::preview_chapter('$<', 'bookdown::gitbook')"
 
 .PHONY: clean
-	clean:
-	rm -rfv *_book
+clean:
+	rm -rfv _book/*
 	rm -rfv _bookdown_files/*_files
-	rm -fv _main*
-	rm -rfv _notebooks/*
+	rm -fv notebooks/_main*
 
 .PHONY: wipe
-	wipe: clean
+wipe: clean
 	rm -rfv _bookdown_files
 
 

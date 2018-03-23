@@ -5,11 +5,14 @@ output: html_notebook
 
 ```{r}
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(tidyverse,
+pacman::p_load(knitr,
+               tidyverse,
                cowplot,
                Biobase,
                pheatmap,
-               magrittr)
+               magrittr,
+               assertthat,
+               testthat)
 ```
 
 Load dataset from schelker et al. 
@@ -27,8 +30,42 @@ pData(single_cell_schelker) %>%
 
 Summary of the cell types
 ```{r}
-pData(single_cell_schelker) %>% group_by(cell_type) %>% count()
+pData(single_cell_schelker) %>% group_by(cell_type) %>% count() %>% knitr::kable()
+```
 
+Remove cells of Unknown type for downstream analysis
+```{r}
+valid_cells = which(pData(single_cell_schelker)$cell_type!="Unknown")
+
+single_cell_schelker2 = single_cell_schelker[,valid_cells]
+
+assert_that(!any(pData(single_cell_schelker2)$cell_type == "Unknown"))
+
+available_cell_types = pData(single_cell_schelker2) %>% select(cell_type) %>% distinct() %>% pull(cell_type)
+
+```
+
+
+To obtain representatitive simulated samples, we are interested in the average fraction of tumour cells vs immune cells in a mixture. 
+
+```{r}
+cell_type_table = pData(single_cell_schelker2) %>%
+  filter(source %in% c("melanoma", "ascites")) %>%
+  mutate(sample=paste(source, donor, sep="_")) %>% 
+  group_by(source, sample, cell_type) %>% 
+  summarise(n=n()) %>%
+  mutate(freq=n/sum(n))
+
+ggplot(cell_type_table, aes(x=sample, y=freq)) +
+  geom_bar(aes(fill=cell_type), stat="identity") + 
+  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1))
+
+
+cancer_cells = cell_type_table %>% 
+  filter(cell_type %in% c("Melanoma cells", "Ovarian carcinoma cells")) 
+
+
+cancer_cell_param = MASS::fitdistr(cancer_cells$freq, "normal")
 ```
 
 
@@ -37,14 +74,41 @@ pData(single_cell_schelker) %>% group_by(cell_type) %>% count()
 devtools::load_all("/storage/home/sturm/projects/immune_deconvolution_methods")
 ```
 
-
 ```{r}
 set.seed(42)
-bulk_eset = make_bulk_eset(n=100, eset=single_cell_schelker)
+
+cancer_cells = c("Melanoma cells", "Ovarian carcinoma cells")
+immune_cells = available_cell_types[!(available_cell_types %in% cancer_cells)]
+
+cell_fractions = lapply(1:100, function(i) {
+  cancer_fraction = rnorm(1, mean=cancer_cell_param$estimate[1], sd=cancer_cell_param$estimate[2])
+  cancer_fraction = ifelse(cancer_fraction < 0, 0, cancer_fraction)
+  cancer_fraction = ifelse(cancer_fraction > 1, 1, cancer_fraction)
+  
+  # associate fraction randomly ot Melanoma or Ovarian
+  cancer_fractions = sample(c(cancer_fraction, 0), replace=FALSE) %>% as.list()
+  names(cancer_fractions) = cancer_cells
+  
+  # compute random fractions for other cells
+  remaining_fraction = 1 - cancer_fraction
+  rnd = sample(0:100, length(immune_cells), TRUE)
+  tmp_fractions = (remaining_fraction * rnd) / sum(rnd)
+  names(tmp_fractions) = immune_cells
+  
+  c(cancer_fractions, tmp_fractions)
+}) %>% bind_rows()
+
+testthat::test_that("all fractions sum up to 1", expect_true(all(round(apply(cell_fractions, 1, sum), 3) == 1)))
 ```
 
 
-## run all methods and aggreate the results ina single table
+```{r}
+set.seed(42)
+bulk_eset = make_bulk_eset(eset=single_cell_schelker2, cell_fractions = cell_fractions, n_cells=500)
+```
+
+
+## run all methods and aggreate the results in a single table
 ```{r, fig.width=15, fig.height=5}
 all_results = lapply(immunedeconv::deconvolution_methods, function(method) {
   res = deconvolute(bulk_eset, method, column="gene_symbol") 

@@ -4,6 +4,16 @@ PREVIEW_FILES = $(patsubst %,%.preview,$(RMD_FILES))
 SHELL= /bin/bash
 CWD= $(shell pwd)
 
+
+help:
+	@echo "The following commands are available:"
+	@echo "    book              render all Rmarkdown documents to a gitbook (bookdown)"
+	@echo "    upload-book       publish book on github-pages"
+	@echo "    <file>.Rmd.preview     only render a single Rmd file as preview (bookdown)"
+	@echo "    clean             clean bookdown results"
+	@echo "    wipe              clean + erase cache"
+
+
 ####################################
 # Render Rmarkdown documents
 ####################################
@@ -29,7 +39,7 @@ clean:
 
 .PHONY: wipe
 wipe: clean
-	rm -rfv _bookdown_files
+	rm -rfv notebooks/_bookdown_files
 
 
 ####################################

@@ -82,7 +82,9 @@ results_with_gold_standard %>%
 
 ## Calculate correlations for each method and cell type
 ```{r}
-correlations = full_tab %>% group_by(cell_type, method) %>% summarise(pearson=cor(estimate, true_fraction, method="pearson"))
+correlations = results_with_gold_standard %>%
+  group_by(cell_type, method) %>%
+  summarise(pearson=cor(estimate, true_fraction, method="pearson"))
 
 correlations %>% ggplot(aes(x=method, y=pearson)) +
   geom_bar(stat="identity") +

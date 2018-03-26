@@ -1,9 +1,12 @@
 ---
-title: "R Notebook"
+title: "Mixing study"
 output: html_notebook
 ---
 
-```{r}
+In this chapter, we will use single cell data from [@Schekler2017] to create simulated bulk RNAseq samples 
+of which we know the true cell proportions. We futher use these samples to benchmark the performance of different recently published immune deconvolution tools. 
+
+```{r setup, include=FALSE}
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(knitr,
                tidyverse,
@@ -15,7 +18,7 @@ pacman::p_load(knitr,
                testthat)
 ```
 
-Load dataset from schelker et al. 
+### Summary of the dataset
 ```{r}
 load("../data/single_cell_schelker.rda")
 ```
@@ -33,7 +36,7 @@ Summary of the cell types
 pData(single_cell_schelker) %>% group_by(cell_type) %>% count() %>% knitr::kable()
 ```
 
-Remove cells of Unknown type for downstream analysis
+Remove cells of `Unknown` type for downstream analysis
 ```{r}
 valid_cells = which(pData(single_cell_schelker)$cell_type!="Unknown")
 
@@ -45,7 +48,7 @@ available_cell_types = pData(single_cell_schelker2) %>% select(cell_type) %>% di
 
 ```
 
-
+### Average fraction of tumour cells
 To obtain representatitive simulated samples, we are interested in the average fraction of tumour cells vs immune cells in a mixture. 
 
 ```{r}
@@ -70,9 +73,16 @@ cancer_cell_param = MASS::fitdistr(cancer_cells$freq, "normal")
 
 
 
+### Create simulated bulk tissues
 ```{r}
 devtools::load_all("/storage/home/sturm/projects/immune_deconvolution_methods")
 ```
+
+The fractions of a sample are randomly assigned in the following procedure: 
+
+1. Draw a random tumour cell content from the distribution fitted above
+2. The first half of the samples will use melanoma cells, the second half ovarian cancer cells. 
+3. Assign the remaining fraction (=not cancer cells)  randomly to the remaining cell types (`r avilable_cell_types`)
 
 ```{r}
 set.seed(42)
@@ -113,7 +123,8 @@ bulk_eset = make_bulk_eset(eset=single_cell_schelker2, cell_fractions = cell_fra
 ```
 
 
-## run all methods and aggreate the results in a single table
+## Run the deconvolution
+We first run all methods that are integrated in the `immune_deconvolution_methods` are package automatically in a loop. 
 ```{r, fig.width=15, fig.height=5}
 all_results = lapply(immunedeconv::deconvolution_methods, function(method) {
   deconvolute(bulk_eset, method, column="gene_symbol") %>%
@@ -121,7 +132,10 @@ all_results = lapply(immunedeconv::deconvolution_methods, function(method) {
 })
 ```
 
-# run methods that require special "treatment"
+### run CIBERSORT
+We could not include CIBERSORT [@CIBERSORT2016] into the package due to licensing restrictions. 
+In the following, we run CIBERSORT both in "normal" and "absolute" mode. 
+
 ```{r}
 eset_mat = eset_to_matrix(bulk_eset, "gene_symbol")
 res_cibersort = immunedeconv::deconvolute_cibersort(eset_mat, 
@@ -136,6 +150,11 @@ res_cibersort_abs = immunedeconv::deconvolute_cibersort(eset_mat,
 res_cibersort_abs %<>% mutate(method="cibersort_abs")
 ```
 
+### run TIMER
+TIMER [@TIMER2016] is only available as a web resource. Moreover, the algorithm is adapted for each cancer type, so that we have to choose the corresponding option (Melanoma/Ovarian) when running the algorithm. 
+
+We therefore export the data required to run the algorithm and re-import the results obtained from the web-tool. 
+
 ```{r}
 eset_mat = eset_to_matrix(bulk_eset, "gene_symbol")
 immunedeconv::export_for_timer(eset_mat[,is_melanoma], path="../results/timer_input_melanoma.tsv")
@@ -147,8 +166,10 @@ res_timer = inner_join(res_timer_melanoma, res_timer_ovarian, by="cell_type") %>
   mutate(method="timer")
 ```
 
+## Results
 
-
+Here, we map the results back to the "gold standard". We aggregate the results of the different methods
+into a single table and clean it up for further processing. 
 ```{r}
 all_results %<>% 
   c(list(res_cibersort)) %>%
@@ -178,7 +199,7 @@ results_with_gold_standard = all_results_tidy %>%
 
 ```
 
-## correlation plot
+### Correlation plots
 ```{r, fig.width=12, fig.height=8}
 results_with_gold_standard %>%
   ggplot(aes(x=true_fraction, y=estimate)) +
@@ -188,7 +209,7 @@ results_with_gold_standard %>%
 ```
 
 
-## Calculate correlations for each method and cell type
+### Calculate correlations for each method and cell type
 ```{r}
 correlations = results_with_gold_standard %>%
   group_by(cell_type, method) %>%

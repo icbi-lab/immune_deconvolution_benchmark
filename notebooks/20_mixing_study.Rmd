@@ -79,14 +79,19 @@ set.seed(42)
 
 cancer_cells = c("Melanoma cells", "Ovarian carcinoma cells")
 immune_cells = available_cell_types[!(available_cell_types %in% cancer_cells)]
+is_melanoma = c(rep(TRUE, 50), rep(FALSE, 50))
 
-cell_fractions = lapply(1:100, function(i) {
+cell_fractions = lapply(is_melanoma, function(melanoma) {
   cancer_fraction = rnorm(1, mean=cancer_cell_param$estimate[1], sd=cancer_cell_param$estimate[2])
   cancer_fraction = ifelse(cancer_fraction < 0, 0, cancer_fraction)
   cancer_fraction = ifelse(cancer_fraction > 1, 1, cancer_fraction)
   
   # associate fraction randomly ot Melanoma or Ovarian
-  cancer_fractions = sample(c(cancer_fraction, 0), replace=FALSE) %>% as.list()
+  if(melanoma) {
+    cancer_fractions = list(cancer_fraction, 0)
+  } else {
+    cancer_fractions = list(0, cancer_fraction)
+  }
   names(cancer_fractions) = cancer_cells
   
   # compute random fractions for other cells
@@ -98,7 +103,7 @@ cell_fractions = lapply(1:100, function(i) {
   c(cancer_fractions, tmp_fractions)
 }) %>% bind_rows()
 
-testthat::test_that("all fractions sum up to 1", expect_true(all(round(apply(cell_fractions, 1, sum), 3) == 1)))
+testthat::test_that("all fractions sum up to 1", expect_equal(apply(cell_fractions, 1, sum), rep(1, 100)))
 ```
 
 
@@ -111,36 +116,75 @@ bulk_eset = make_bulk_eset(eset=single_cell_schelker2, cell_fractions = cell_fra
 ## run all methods and aggreate the results in a single table
 ```{r, fig.width=15, fig.height=5}
 all_results = lapply(immunedeconv::deconvolution_methods, function(method) {
-  res = deconvolute(bulk_eset, method, column="gene_symbol") 
+  deconvolute(bulk_eset, method, column="gene_symbol") %>%
+    mutate(method=method)
+})
+```
 
-  # summarise cell_types from the method that only map to a single cell_type in the reference dataset (namely monocytes and macrophages)
-  res2 = res %>% map_results_to_dataset("single_cell_schelker") %>% 
-            group_by(single_cell_schelker) %>%   
-            summarise_all(funs(sum)) %>% 
-            mutate(method=method)
-  return(res2)
+# run methods that require special "treatment"
+```{r}
+eset_mat = eset_to_matrix(bulk_eset, "gene_symbol")
+res_cibersort = immunedeconv::deconvolute_cibersort(eset_mat, 
+                                                    "../lib/CIBERSORT/CIBERSORT.R",
+                                                    "../lib/CIBERSORT/LM22.txt") 
+res_cibersort %<>% mutate(method="cibersort")
+
+res_cibersort_abs = immunedeconv::deconvolute_cibersort(eset_mat, 
+                                                    "../lib/CIBERSORT/CIBERSORT.R",
+                                                    "../lib/CIBERSORT/LM22.txt",
+                                                    absolute = TRUE) 
+res_cibersort_abs %<>% mutate(method="cibersort_abs")
+```
+
+```{r}
+eset_mat = eset_to_matrix(bulk_eset, "gene_symbol")
+immunedeconv::export_for_timer(eset_mat[,is_melanoma], path="../results/timer_input_melanoma.tsv")
+immunedeconv::export_for_timer(eset_mat[,!is_melanoma], path="../results/timer_input_ovarian.tsv")
+
+res_timer_melanoma = immunedeconv::import_from_timer("../data/timer/timer_result_melanoma.csv")
+res_timer_ovarian = immunedeconv::import_from_timer("../data/timer/timer_result_ovarian.csv")
+res_timer = inner_join(res_timer_melanoma, res_timer_ovarian, by="cell_type") %>%
+  mutate(method="timer")
+```
+
+
+
+```{r}
+all_results %<>% 
+  c(list(res_cibersort)) %>%
+  c(list(res_cibersort_abs)) %>% 
+  c(list(res_timer))
+
+# summarise cell_types from the method that only map to a single cell_type in the reference dataset (namely monocytes and macrophages)
+all_results2 = lapply(all_results, function(res) {
+  res %>% 
+    map_results_to_dataset("single_cell_schelker") %>% 
+    group_by(method, single_cell_schelker) %>%   
+    summarise_all(funs(sum)) 
 })
 
-all_results %<>% bind_rows() %>%
+all_results_tidy = all_results2 %>%
+  bind_rows() %>%
   rename(cell_type = single_cell_schelker) %>%
-  gather(sample, estimate, -cell_type, -method)
+  gather(sample, estimate, -cell_type, -method) %>%
+  arrange(method, cell_type, sample)
 
 gold_standard = pData(bulk_eset) %>%
   rownames_to_column("sample") %>%
   gather(cell_type, true_fraction, -sample)
 
-results_with_gold_standard = all_results %>%
+results_with_gold_standard = all_results_tidy %>%
   inner_join(gold_standard, by=c("sample", "cell_type"))
+
 ```
 
-
 ## correlation plot
-```{r}
+```{r, fig.width=12, fig.height=8}
 results_with_gold_standard %>%
   ggplot(aes(x=true_fraction, y=estimate)) +
   facet_grid(method ~ cell_type, scales="free_y") +
   geom_point() +
-  stat_smooth()
+  stat_smooth(method="lm")
 ```
 
 

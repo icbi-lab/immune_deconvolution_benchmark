@@ -1,1 +1,15 @@
-# Immune Deconvolution Bechmark
+---
+title: "Immune Deconvolution Benchmark"
+author: Gregor Sturm 
+date: "`r Sys.Date()`"
+documentclass: book 
+bibliography: bibliography.bib
+biblio-style: apalike
+link-citations: yes
+colorlinks: yes
+description: Systematic Evaluation of state-of-the-art Immune deconvolution methods.  
+---
+
+# Introduction
+
+(TODO)

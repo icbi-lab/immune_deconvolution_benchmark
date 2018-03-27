@@ -1,0 +1,38 @@
+---
+title: "Marker gene drilldown"
+output: html_notebook
+---
+
+```{r}
+library(BioQC)
+
+```
+
+
+```{r}
+
+
+```
+
+```{r}
+lm22 = read_tsv("../lib/CIBERSORT/LM22.txt")
+
+gene_symbols = lm22 %>% pull(`Gene symbol`)
+lm22 %<>% select(-`Gene symbol`)
+cell_types = colnames(lm22)
+gini_res = apply(lm22, 1, gini)
+rowwise_max = lm22 %>% 
+  apply( 1, function(row) {
+    colnames(lm22)[order(row, decreasing=TRUE)[1:3]]
+  }) %>% t() %>% as.tibble()
+
+signatures = sapply(cell_types, function(cell_type) {
+  ind = sapply(1:nrow(rowwise_max), function(i) {
+    return(gini_res[i] > .8 & cell_type %in% rowwise_max[i,])
+  })
+  gene_symbols[ind]
+})
+
+```
+
+

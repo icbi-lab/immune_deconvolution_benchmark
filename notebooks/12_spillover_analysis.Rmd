@@ -1,0 +1,165 @@
+---
+title: "Spillover analysis"
+output: html_notebook
+---
+
+In this chapter, we will use single cell data from [@Schelker2017] to create simulated pure immune cell RNA samples (and pure RNA samples from other studies (tbd)). We will then evaluate, if predictions of a certain immune cell type correlate with another. 
+
+```{r setup, include=FALSE}
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(knitr,
+               tidyverse,
+               cowplot,
+               Biobase,
+               pheatmap,
+               magrittr,
+               assertthat,
+               testthat)
+
+devtools::load_all("/storage/home/sturm/projects/immune_deconvolution_methods")
+```
+
+### Summary of the dataset
+```{r}
+load("../data/single_cell_schelker/single_cell_schelker.rda")
+```
+
+Summary of the cell types
+```{r}
+pData(single_cell_schelker) %>% group_by(cell_type) %>% count() %>% knitr::kable()
+```
+
+Remove cells of `Unknown` type for downstream analysis
+```{r}
+valid_cells = which(pData(single_cell_schelker)$cell_type!="Unknown")
+
+single_cell_schelker2 = single_cell_schelker[,valid_cells]
+
+assert_that(!any(pData(single_cell_schelker2)$cell_type == "Unknown"))
+
+available_cell_types = pData(single_cell_schelker2) %>% select(cell_type) %>% distinct() %>% pull(cell_type)
+
+cancer_cells = c("Melanoma cells", "Ovarian carcinoma cells")
+immune_cells = available_cell_types[!(available_cell_types %in% cancer_cells)]
+```
+
+
+
+
+
+```{r}
+set.seed(42)
+
+cell_fractions = lapply(available_cell_types, function(cell_type) {
+  vec = as.list(rep(0., length(available_cell_types)))
+  vec[[which(available_cell_types == cell_type)]] = 1.
+  names(vec) = available_cell_types
+  vec
+}) %>% bind_rows()
+
+testthat::test_that("all fractions sum up to 1", expect_equal(apply(cell_fractions, 1, sum), rep(1, length(available_cell_types))))
+```
+
+
+```{r, cache=TRUE}
+set.seed(42)
+bulk_eset = make_bulk_eset(eset=single_cell_schelker2, cell_fractions = cell_fractions, n_cells=500)
+```
+
+
+## Run the deconvolution
+We first run all methods that are integrated in the `immune_deconvolution_methods` are package automatically in a loop. 
+```{r, cache=TRUE}
+all_results = lapply(immunedeconv::deconvolution_methods, function(method) {
+  print(sprintf("Running %s...", method))
+  deconvolute(bulk_eset, method, column="gene_symbol") %>%
+    mutate(method=method)
+})
+```
+
+### run CIBERSORT
+We could not include CIBERSORT [@CIBERSORT2016] into the package due to licensing restrictions. 
+In the following, we run CIBERSORT both in "normal" and "absolute" mode. 
+
+```{r, cache=TRUE}
+eset_mat = eset_to_matrix(bulk_eset, "gene_symbol")
+res_cibersort = immunedeconv::deconvolute_cibersort(eset_mat, 
+                                                    "../lib/CIBERSORT/CIBERSORT.R",
+                                                    "../lib/CIBERSORT/LM22.txt") 
+res_cibersort %<>% mutate(method="cibersort")
+
+res_cibersort_abs = immunedeconv::deconvolute_cibersort(eset_mat, 
+                                                    "../lib/CIBERSORT/CIBERSORT.R",
+                                                    "../lib/CIBERSORT/LM22.txt",
+                                                    absolute = TRUE) 
+res_cibersort_abs %<>% mutate(method="cibersort_abs")
+```
+
+### run TIMER
+TIMER [@TIMER2016] is only available as a web resource. Moreover, the algorithm is adapted for each cancer type, so that we have to choose the corresponding option (Melanoma/Ovarian) when running the algorithm. 
+
+We therefore export the data required to run the algorithm and re-import the results obtained from the web-tool. 
+
+```{r, cache=TRUE}
+eset_mat = eset_to_matrix(bulk_eset, "gene_symbol")
+immunedeconv::export_for_timer(eset_mat, "../results/timer_spillover.csv")
+
+res_timer = immunedeconv::import_from_timer("../data/timer/timer_result_spillover.csv") %>%
+  mutate(method="timer")
+```
+
+## Results
+
+Here, we map the results back to the "gold standard". We aggregate the results of the different methods
+into a single table and clean it up for further processing. 
+```{r, cache=TRUE}
+all_results %<>% 
+  c(list(res_cibersort)) %>%
+  c(list(res_cibersort_abs)) %>% 
+  c(list(res_timer))
+
+gold_standard = tibble(sample=colnames(eset_mat), true_cell_type=available_cell_types) %>% 
+  filter(!true_cell_type %in% cancer_cells)
+
+# # summarise cell_types from the method that only map to a single cell_type in the reference dataset (namely monocytes and macrophages)
+all_results2 = lapply(all_results, function(res) {
+  res %>%
+    map_results_to_dataset("single_cell_schelker") %>%
+    group_by(method, single_cell_schelker) %>%
+    summarise_all(funs(sum))
+})
+
+all_results_tidy = all_results2 %>%
+  bind_rows() %>%
+  rename(cell_type = single_cell_schelker) %>%
+  gather(sample, estimate, -cell_type, -method) %>%
+  inner_join(gold_standard, by="sample") %>%
+  arrange(method, cell_type, sample)
+```
+
+
+```{r, fig.width=10, fig.height=10}
+all_results_tidy %>%
+  group_by(method, cell_type) %>%
+  mutate(estimate_scaled = (estimate - min(estimate)) / (max(estimate) - min(estimate))) %>%
+  ggplot(aes(x=cell_type, y=true_cell_type)) +
+  geom_tile(aes(fill=estimate_scaled)) + 
+  facet_wrap(~method) + 
+  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1))
+
+```
+
+
+### Calculate signal to noise ratio for each cell type
+```{r}
+all_results_tidy %>%
+  group_by(method, true_cell_type) %>%
+  mutate(signal_to_noise = estimate/(sum(estimate))) %>%
+  filter(cell_type == true_cell_type) %>%
+  ggplot(aes(x=method, y=signal_to_noise)) + 
+    geom_bar(stat='identity') + 
+    facet_wrap(~true_cell_type) + 
+    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1))
+
+```
+

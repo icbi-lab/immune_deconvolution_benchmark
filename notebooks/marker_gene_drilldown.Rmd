@@ -3,18 +3,8 @@ title: "Marker gene drilldown"
 output: html_notebook
 ---
 
-```{r}
-library(BioQC)
 
-```
-
-
-```{r}
-
-
-```
-
-```{r}
+```{r, include=FALSE}
 lm22 = read_tsv("../lib/CIBERSORT/LM22.txt")
 
 gene_symbols = lm22 %>% pull(`Gene symbol`)

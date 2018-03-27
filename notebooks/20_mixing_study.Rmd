@@ -3,52 +3,12 @@ title: "Mixing study"
 output: html_notebook
 ---
 
+# Mixing study
+
 In this chapter, we will use single cell data from [@Schelker2017] to create simulated bulk RNAseq samples 
 of which we know the true cell proportions. We futher use these samples to benchmark the performance of different recently published immune deconvolution tools. 
 
-```{r setup, include=FALSE}
-if (!require("pacman")) install.packages("pacman")
-pacman::p_load(knitr,
-               tidyverse,
-               cowplot,
-               Biobase,
-               pheatmap,
-               magrittr,
-               assertthat,
-               testthat)
-```
-
-### Summary of the dataset
-```{r}
-load("../data/single_cell_schelker/single_cell_schelker.rda")
-```
-
-Let's repreduce the tsne plot from the publication
-```{r, fig.width=10, fig.height=10}
-pData(single_cell_schelker) %>% 
-  ggplot(aes(x=tsneX1, y=tsneX2, colour=cell_type)) +
-           geom_point(size=1) + 
-           theme(legend.position="bottom")
-```
-
-Summary of the cell types
-```{r}
-pData(single_cell_schelker) %>% group_by(cell_type) %>% count() %>% knitr::kable()
-```
-
-Remove cells of `Unknown` type for downstream analysis
-```{r}
-valid_cells = which(pData(single_cell_schelker)$cell_type!="Unknown")
-
-single_cell_schelker2 = single_cell_schelker[,valid_cells]
-
-assert_that(!any(pData(single_cell_schelker2)$cell_type == "Unknown"))
-
-available_cell_types = pData(single_cell_schelker2) %>% select(cell_type) %>% distinct() %>% pull(cell_type)
-
-```
-
-### Average fraction of tumour cells
+## Average fraction of tumour cells
 To obtain representatitive simulated samples, we are interested in the average fraction of tumour cells vs immune cells in a mixture. 
 
 ```{r}
@@ -73,7 +33,7 @@ cancer_cell_param = MASS::fitdistr(cancer_cells$freq, "normal")
 
 
 
-### Create simulated bulk tissues
+## Create simulated bulk tissues
 ```{r}
 devtools::load_all("/storage/home/sturm/projects/immune_deconvolution_methods")
 ```

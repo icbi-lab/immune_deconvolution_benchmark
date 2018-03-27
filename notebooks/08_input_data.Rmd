@@ -1,0 +1,64 @@
+---
+title: "Materials and Methods"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(knitr,
+               tidyverse,
+               cowplot,
+               Biobase,
+               pheatmap,
+               magrittr,
+               assertthat,
+               testthat,
+               BioQC)
+
+devtools::load_all("/storage/home/sturm/projects/immune_deconvolution_methods")
+```
+
+
+# Input data
+
+```{r}
+load("../data/single_cell_schelker/single_cell_schelker.rda")
+```
+
+
+```{r, include=FALSE}
+valid_cells = which(pData(single_cell_schelker)$cell_type!="Unknown")
+
+single_cell_schelker2 = single_cell_schelker[,valid_cells]
+
+assert_that(!any(pData(single_cell_schelker2)$cell_type == "Unknown"))
+
+available_cell_types = pData(single_cell_schelker2) %>% select(cell_type) %>% distinct() %>% pull(cell_type)
+
+cancer_cells = c("Melanoma cells", "Ovarian carcinoma cells")
+other_cells = c("Cancer associated fibroblasts", "Endothelial cells")
+immune_cells = available_cell_types[!available_cell_types %in% c(cancer_cells, other_cells)]
+```
+
+In this study, we make use of the single cell dataset curated by [@Schelker2017]. They aggregated single cell sequencing data from different sources resulting in a set of ~12,000 single cells. They classified the cells using at set of 45 marker genes into `r length(available_cell_types)` categories:
+`r length(cancer_cells)` cancer types (`r str_c(cancer_cells, collapse=", ")`),
+`r length(immune_cells)` immune cells (`r str_c(immune_cells, collapse=", ")`),
+`r length(other_cells)` other cells (`r str_c(other_cells, collapse=", ")`) and 
+*Unknown cells* which could not have been classified unambiguously. 
+
+Unknown cells are excluded from the downstream analysis. 
+
+Table: the ~12,000 samples by cell type
+```{r, echo=FALSE}
+pData(single_cell_schelker) %>% group_by(cell_type) %>% count() %>% knitr::kable()
+```
+
+
+```{r, echo=FALSE, fig.width=10, fig.height=10, fig.cap="tSNE-clustering of the ~12000 single cells from [@Schelker2017]. "}
+pData(single_cell_schelker) %>% 
+  ggplot(aes(x=tsneX1, y=tsneX2, colour=cell_type)) +
+           geom_point(size=1) + 
+           theme(legend.position="bottom")
+```
+
+

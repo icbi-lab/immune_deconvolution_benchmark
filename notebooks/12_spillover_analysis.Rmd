@@ -3,48 +3,9 @@ title: "Spillover analysis"
 output: html_notebook
 ---
 
-In this chapter, we will use single cell data from [@Schelker2017] to create simulated pure immune cell RNA samples (and pure RNA samples from other studies (tbd)). We will then evaluate, if predictions of a certain immune cell type correlate with another. 
+# Spillover analysis
 
-```{r setup, include=FALSE}
-if (!require("pacman")) install.packages("pacman")
-pacman::p_load(knitr,
-               tidyverse,
-               cowplot,
-               Biobase,
-               pheatmap,
-               magrittr,
-               assertthat,
-               testthat)
-
-devtools::load_all("/storage/home/sturm/projects/immune_deconvolution_methods")
-```
-
-### Summary of the dataset
-```{r}
-load("../data/single_cell_schelker/single_cell_schelker.rda")
-```
-
-Summary of the cell types
-```{r}
-pData(single_cell_schelker) %>% group_by(cell_type) %>% count() %>% knitr::kable()
-```
-
-Remove cells of `Unknown` type for downstream analysis
-```{r}
-valid_cells = which(pData(single_cell_schelker)$cell_type!="Unknown")
-
-single_cell_schelker2 = single_cell_schelker[,valid_cells]
-
-assert_that(!any(pData(single_cell_schelker2)$cell_type == "Unknown"))
-
-available_cell_types = pData(single_cell_schelker2) %>% select(cell_type) %>% distinct() %>% pull(cell_type)
-
-cancer_cells = c("Melanoma cells", "Ovarian carcinoma cells")
-immune_cells = available_cell_types[!(available_cell_types %in% cancer_cells)]
-```
-
-
-
+In this chapter, we will use single cell data from [@Schelker2017] to create simulated pure immune cell RNA samples (and pure RNA samples from other studies (tbd)). We will then evaluate, if predictions of a certain immune cell type correlate with another.
 
 
 ```{r}
@@ -69,7 +30,7 @@ bulk_eset = make_bulk_eset(eset=single_cell_schelker2, cell_fractions = cell_fra
 
 ## Run the deconvolution
 We first run all methods that are integrated in the `immune_deconvolution_methods` are package automatically in a loop. 
-```{r, cache=TRUE}
+```{r, cache=TRUE, message=FALSE, results='hide'}
 all_results = lapply(immunedeconv::deconvolution_methods, function(method) {
   print(sprintf("Running %s...", method))
   deconvolute(bulk_eset, method, column="gene_symbol") %>%
@@ -100,7 +61,7 @@ TIMER [@TIMER2016] is only available as a web resource. Moreover, the algorithm 
 
 We therefore export the data required to run the algorithm and re-import the results obtained from the web-tool. 
 
-```{r, cache=TRUE}
+```{r, cache=TRUE, message=FALSE}
 eset_mat = eset_to_matrix(bulk_eset, "gene_symbol")
 immunedeconv::export_for_timer(eset_mat, "../results/timer_spillover.csv")
 

@@ -13,3 +13,13 @@ description: Systematic Evaluation of state-of-the-art Immune deconvolution meth
 # Introduction
 
 (TODO)
+
+## Conceptual differences between methods
+There are three conceptually different approaches to deconvolution. 
+
+First, one can try to achieve scores suitable for inter-sample comparison. In that case, one can ask "Do I have more T cells in sample A than in sample B", but one cannot ask "Do I have more B cells than T cells in sample A.".
+This approach is used by GSEA-based methods like MCP counter. 
+
+Second, one can try to build scores suitable for intra-sample comparison. In that case, one can ask "Do I have more B cells than T cells in sample A", however one cannot draw conclusions about the abundance of T cells in sample A versus B, given there could also be other, unknown cell types in the sample (e.g. cancer cells). This approach is used by the default version of CIBERSORT)
+
+Last, ideally, one can build a score, that reflects the absolute quantity of a certain cell type in the sample. This approach allows both intra- and inter-sample comparisons. 

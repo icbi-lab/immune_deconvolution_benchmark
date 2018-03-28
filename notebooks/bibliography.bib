@@ -54,3 +54,53 @@ volume = {17},
 year = {2016}
 }
 
+
+@article{Zheng,
+abstract = {Benchmarking is an essential step in the development of computational tools. We take this opportunity to pitch in our opinions on tool benchmarking, in light of two correspondence articles published in Genome Biology.},
+author = {Zheng, Siyuan},
+doi = {10.1186/s13059-017-1258-3},
+file = {:C$\backslash$:/Users/sturm/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Zheng - Unknown - Benchmarking contexts and details matter.pdf:pdf},
+issn = {1474-760X},
+journal = {Genome Biology},
+mendeley-groups = {work/pieris/deconvolution},
+month = {dec},
+number = {1},
+pages = {129},
+title = {{Benchmarking: contexts and details matter}},
+url = {https://genomebiology.biomedcentral.com/track/pdf/10.1186/s13059-017-1258-3?site=genomebiology.biomedcentral.com http://genomebiology.biomedcentral.com/articles/10.1186/s13059-017-1258-3},
+volume = {18},
+year = {2017}
+}
+@article{Li,
+abstract = {We have recently published a statistical deconvolution method to study infiltrating immune cells using tumor RNA-seq data [1]. One of the goals in that work was to understand how proportions of different cell types co-vary across different cancer tissues. To this end, we esti-mated the abundance of six cell types over 9000 tumor samples across 23 cancer types, and then assessed the correlations of these estimated proportions across the different samples within a cancer type. In particular we compared our method (TIMER) with CIBERSORT [2], a previously published deconvolution approach, for their ability to assess such correlations. To our surprise, we found many non-biological negative correlations be-tween CIBERSORT estimates, and we believed that this artifact was, to a large extent, due to the incorporation of highly similar features in the linear model, or statis-tical collinearity. Newman et al., the authors of CIBER-SORT, have raised concerns that these correlations were due to data normalization, instead of collinearity [3]. While we agree with Newman and coauthors that the forced normalization indeed introduces unwanted nega-tive correlations, we will show in this response that the inclusion of highly similar features contributes as signifi-cantly as normalization, if not more, to the observed artificial negative correlations among the estimates obtained by CIBERSORT. Highly correlated features (covariates) in linear regres-sion models can lead to many technical difficulties, such as high estimation variances, non-robustness, and non-identifiability. Furthermore, it is often misleading to interpret their coefficients at their face value. For example, it is very easy to create examples where when only one of the two highly similar features is included in a regression model, its coefficient is highly significant and positive; whereas when both are included, none of the coefficients is significant or one is positively significant and the other is negative. This issue is a fundamental statistical problem due to lack of information and is unlikely to be solved simply by regularization employed by the CIBERSORT method. To evaluate how CIBERSORT estimations are affected by the incorporation of similar features, we conducted two in silico experiments. In the first one, we selected two unrelated cell types, CD8 T cells and neutrophils, from the CIBERSORT feature set, LM22 matrix. The Pearson correlation of the expression levels of the two cell types is 0.009. We generated 500 mixtures by randomly apportioning the population consisting of these two cell types only: Y = Y i , i = 1,2,{\ldots}500, where: Y i ¼ f 1 ; i {\^{A}} X1 þ f 2 ; i {\^{A}} X2 þ $\epsilon$i},
+author = {Li, Bo and Liu, Jun Shirley and Liu, X Shirley},
+doi = {10.1186/s13059-017-1256-5},
+file = {:C$\backslash$:/Users/sturm/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Li, Liu, Liu - Unknown - Revisit linear regression-based deconvolution methods for tumor gene expression data.pdf:pdf},
+issn = {1474-760X},
+journal = {Genome Biology},
+mendeley-groups = {work/pieris/deconvolution},
+month = {dec},
+number = {1},
+pages = {127},
+title = {{Revisit linear regression-based deconvolution methods for tumor gene expression data}},
+url = {https://genomebiology.biomedcentral.com/track/pdf/10.1186/s13059-017-1256-5?site=genomebiology.biomedcentral.com http://genomebiology.biomedcentral.com/articles/10.1186/s13059-017-1256-5},
+volume = {18},
+year = {2017}
+}
+@article{Newman,
+abstract = {In a recently published article in Genome Biology, Li and colleagues introduced TIMER, a gene expression deconvolution approach for studying tumor-infiltrating leukocytes (TILs) in 23 cancer types profiled by The Cancer Genome Atlas. Methods to characterize TIL biology are increasingly important, and the authors offer several arguments in favor of their strategy. Several of these claims warrant further discussion and highlight the critical importance of data normalization in gene expression deconvolution applications. Computational approaches for enumerating cell subsets from bulk tissue expression profiles have significant potential for studying tumor cellular ecosystems, includ-ing tumor-infiltrating leukocytes (TILs) [1–3]. We there-fore read with interest the recent Genome Biology article by Li and colleagues in which they introduce TIMER, an in silico method for TIL deconvolution [4]. TIMER relies on prior knowledge of immune signature genes as input and consists of three major steps: (1) gene expression normalization across platforms and sample types; (2) selection of immune signature genes that are negatively correlated with tumor purity; and (3) deconvolution of RNA admixtures using a previously described technique for iterative linear least squares regression (LLSR) [5]. They apply TIMER to the inference of six distinct immune subsets (B cells, CD4 T cells, CD8 T cells, neutrophils, macrophages, and dendritic cells) in The Cancer Genome Atlas (TCGA) bulk tumor expression profiles and investigate links between TIL heterogeneity, tumor genomic features, and survival in 23 cancer types. Several groups, including ours, have also proposed methods for gene expression deconvolution [1, 3, 5, 6]. We recently described CIBERSORT, an in silico tissue dis-section approach that is robust to noise, unknown mixture content, and closely related cell types (collinearity) [6].},
+author = {Li, Bo and Liu, Jun S. and Liu, X. Shirley},
+doi = {10.1186/s13059-017-1256-5},
+file = {:C$\backslash$:/Users/sturm/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Newman et al. - Unknown - Data normalization considerations for digital tumor dissection.pdf:pdf},
+issn = {1474-760X},
+journal = {Genome Biology},
+mendeley-groups = {work/pieris/deconvolution},
+month = {dec},
+number = {1},
+pages = {127},
+title = {{Revisit linear regression-based deconvolution methods for tumor gene expression data}},
+url = {www.dx.doi.org/10.1186/s13059-017-1256-5 www.dx.doi.org/10.1186/s13059-017-1258-3 http://genomebiology.biomedcentral.com/articles/10.1186/s13059-017-1256-5},
+volume = {18},
+year = {2017}
+}
+

@@ -6,4 +6,6 @@ output: html_notebook
 # Materials and Methods
 
 ## Data acquisition
-For the single cell dataset by [@Schelker2017], we obtained the MATLAB source code [deposited on figshare](https://figshare.com/s/711d3fb2bd3288c8483a) and used it to re-produced the dataset. The final dataset was exported to `csv` format in order to continue the main analysis in `R`. 
+For the single cell dataset by @Schelker2017, we obtained the MATLAB source code [deposited on figshare](https://figshare.com/s/711d3fb2bd3288c8483a) and used it to re-produced the dataset. The final dataset was exported to `csv` format in order to continue the main analysis in `R`. 
+
+We obtained the 3 matched ovarian cancer bulk RNA samples from @Schelker2017 (personal communication).

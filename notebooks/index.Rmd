@@ -12,7 +12,9 @@ description: Systematic Evaluation of state-of-the-art Immune deconvolution meth
 
 # Introduction
 
-(TODO)
+There is urgent need for an unbiased comparison of existing immune deconvolution methods. 
+We focus on RNA-seq only in this review, as current data, including large public efforts like TCGA, are likely generated using this technology. 
+
 
 ## Conceptual differences between methods
 There are three conceptually different approaches to deconvolution. 

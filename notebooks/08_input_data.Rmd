@@ -13,7 +13,8 @@ pacman::p_load(knitr,
                magrittr,
                assertthat,
                testthat,
-               BioQC)
+               BioQC,
+               readxl)
 
 devtools::load_all("/storage/home/sturm/projects/immune_deconvolution_methods")
 ```

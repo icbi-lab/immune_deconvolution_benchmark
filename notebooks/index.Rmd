@@ -15,6 +15,25 @@ description: Systematic Evaluation of state-of-the-art Immune deconvolution meth
 There is urgent need for an unbiased comparison of existing immune deconvolution methods. 
 We focus on RNA-seq only in this review, as current data, including large public efforts like TCGA, are likely generated using this technology. 
 
+To our best knowlege, no such benchmark study has been performed yet, maybe due to the lack of an appropriate gold standard. Now, with the advent of large, publicly availble single-cell datasets this such a comparison becomes feasible. 
+
+Systematic, methodological comparisons of such methods are available [@Newman2016; @Finotello2018; @AvilaCobos2018]. Here, we focus on algorithms, specifically developed for tumour immune cell deconvolution shipping with the appropriate signature matrix. While other, generic deconvolution altorithms are available (also reviewd in @Finotello2018), we do not take them into account here, as the resulting performance depends at least as much on the signature as on the method. 
+
+The methods:
+MCPCounter [@Becht2016]
+
+xCell [@XCELL2017]
+
+CIBERSORT [@CIBERSORT2016]
+
+TIMER [@TIMER2016]
+
+EPIC [@EPIC2017]
+
+quanTIseq [@quantiseq2017]
+
+
+
 
 ## Conceptual differences between methods
 There are three conceptually different approaches to deconvolution. 
@@ -25,3 +44,20 @@ This approach is used by GSEA-based methods like MCP counter.
 Second, one can try to build scores suitable for intra-sample comparison. In that case, one can ask "Do I have more B cells than T cells in sample A", however one cannot draw conclusions about the abundance of T cells in sample A versus B, given there could also be other, unknown cell types in the sample (e.g. cancer cells). This approach is used by the default version of CIBERSORT)
 
 Last, ideally, one can build a score, that reflects the absolute quantity of a certain cell type in the sample. This approach allows both intra- and inter-sample comparisons. 
+
+### Gene-set based methods (allow comparison between samples, but not between cell types)
+
+* xCell (the authors apply some sort of normalization that makes xCell scores resemble percentages, although they advise doing this analysis with caution ([ref](https://github.com/dviraran/xCell#notes-for-correct-usage)). In this Benchmark, we will nonetheless try xCell both as "relative" and "absolute" method. 
+* MCPCounter (purely gene-expression based -> between cell type comparison is simply wrong)
+* TIMER ("not comparable between cancer types or different immune cells")
+
+### Deconvolution-based methods (relative fractions, allow comparisons between cell types, but not samples)
+"relative to the total immune content"
+* CIBERSORT (default mode)
+
+### Deconvolution-based methods (absolute fractions, allow comparisons between cell types and samples)
+
+* CIBERSORT absolute mode ("Absolute mode scales relative cellular fractions into a score of arbitrary units that reflects the absolute proportion of each cell type in a mixture. Although not currently expressed as a fraction, the absolute score can be directly compared across cell types (i.e., relative differences between cell types are maintained)" [cibersort FAQ])
+* quanTIseq (uses cell fractions)
+* EPIC (uses cell fractions)
+

@@ -74,7 +74,7 @@ res_timer = immunedeconv::import_from_timer("../data/timer/timer_result_spillove
 Here, we map the results back to the "gold standard". We aggregate the results of the different methods
 into a single table and clean it up for further processing. 
 ```{r, cache=TRUE}
-all_results %<>% 
+all_results2 = all_results %>% 
   c(list(res_cibersort)) %>%
   c(list(res_cibersort_abs)) %>% 
   c(list(res_timer))
@@ -83,44 +83,71 @@ gold_standard = tibble(sample=colnames(eset_mat), true_cell_type=available_cell_
   filter(!true_cell_type %in% cancer_cells)
 
 # # summarise cell_types from the method that only map to a single cell_type in the reference dataset (namely monocytes and macrophages)
-all_results2 = lapply(all_results, function(res) {
+all_results3 = lapply(all_results2, function(res) {
   res %>%
     map_results_to_dataset("single_cell_schelker") %>%
     group_by(method, single_cell_schelker) %>%
     summarise_all(funs(sum))
 })
 
-all_results_tidy = all_results2 %>%
+all_results_tidy = all_results3 %>%
   bind_rows() %>%
   rename(cell_type = single_cell_schelker) %>%
   gather(sample, estimate, -cell_type, -method) %>%
   inner_join(gold_standard, by="sample") %>%
+  group_by(method, sample) %>%
+  mutate(estimate_scaled = (estimate - min(estimate)) / (max(estimate) - min(estimate)), # add scaled estimate
+         estimate_fraction = estimate/sum(estimate)) %>%
+  mutate(signal = ifelse(sum(cell_type==true_cell_type)==1,estimate_fraction[cell_type==true_cell_type],NA),            # add signal and noise
+         noise = sum(estimate_fraction[cell_type!=true_cell_type]),
+         abs_noise = sum(estimate[cell_type!=true_cell_type])) %>% 
+  ungroup() %>% 
   arrange(method, cell_type, sample)
 ```
 
 
 ```{r, fig.width=10, fig.height=10}
 all_results_tidy %>%
-  group_by(method, cell_type) %>%
-  mutate(estimate_scaled = (estimate - min(estimate)) / (max(estimate) - min(estimate))) %>%
   ggplot(aes(x=cell_type, y=true_cell_type)) +
-  geom_tile(aes(fill=estimate_scaled)) + 
+  geom_tile(aes(fill=estimate_fraction)) + 
   facet_wrap(~method) + 
-  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1))
-
+  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+  ggtitle("Spillover by Method") + 
+  theme(panel.background=element_rect(fill="lightgrey"))
 ```
-
+```{r, fig.width=10, fig.height=10}
+all_results_tidy %>%
+  ggplot(aes(x=cell_type, y=method)) +
+  geom_tile(aes(fill=estimate_fraction)) + 
+  facet_wrap(~true_cell_type) + 
+  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+  ggtitle("Spillover by cell type") + 
+  theme(panel.background=element_rect(fill="lightgrey"))
+```
 
 ### Calculate signal to noise ratio for each cell type
 ```{r}
 all_results_tidy %>%
-  group_by(method, true_cell_type) %>%
-  mutate(signal_to_noise = estimate/(sum(estimate))) %>%
-  filter(cell_type == true_cell_type) %>%
+  select(method, true_cell_type, signal, noise) %>%
+  distinct() %>% 
+  mutate(signal_to_noise = signal/(signal+noise)) %>% 
   ggplot(aes(x=method, y=signal_to_noise)) + 
-    geom_bar(stat='identity') + 
+    geom_bar(aes(fill=method), stat='identity') + 
     facet_wrap(~true_cell_type) + 
-    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1))
+    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) +
+    scale_fill_manual(values=color_scales$methods)
 
 ```
 
+```{r}
+all_results_tidy %>%
+  select(method, true_cell_type, abs_noise) %>%
+  distinct() %>% 
+  filter(method %in% c("xcell", "quantiseq", "epic", "cibersort")) %>% 
+  ggplot(aes(x=method, y=abs_noise)) + 
+    geom_bar(aes(fill=method), stat='identity') + 
+    facet_wrap(~true_cell_type) + 
+    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) +
+    scale_fill_manual(values=color_scales$methods)
+
+```

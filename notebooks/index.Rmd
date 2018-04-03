@@ -34,6 +34,10 @@ quanTIseq [@quantiseq2017]
 
 
 
+TODO refer schelker paper
+
+
+
 
 ## Conceptual differences between methods
 There are three conceptually different approaches to deconvolution. 
@@ -53,6 +57,7 @@ Last, ideally, one can build a score, that reflects the absolute quantity of a c
 
 ### Deconvolution-based methods (relative fractions, allow comparisons between cell types, but not samples)
 "relative to the total immune content"
+
 * CIBERSORT (default mode)
 
 ### Deconvolution-based methods (absolute fractions, allow comparisons between cell types and samples)
@@ -60,4 +65,6 @@ Last, ideally, one can build a score, that reflects the absolute quantity of a c
 * CIBERSORT absolute mode ("Absolute mode scales relative cellular fractions into a score of arbitrary units that reflects the absolute proportion of each cell type in a mixture. Although not currently expressed as a fraction, the absolute score can be directly compared across cell types (i.e., relative differences between cell types are maintained)" [cibersort FAQ])
 * quanTIseq (uses cell fractions)
 * EPIC (uses cell fractions)
+
+As CIBERSORT absolute scores are expressed in arbitrary units and not fractions, estimating the abundance of "Other cells" can be misleading. We will still try...
 

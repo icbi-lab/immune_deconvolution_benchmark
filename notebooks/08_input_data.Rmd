@@ -17,6 +17,16 @@ pacman::p_load(knitr,
                readxl)
 
 devtools::load_all("/storage/home/sturm/projects/immune_deconvolution_methods")
+
+# from colorbrewer2.org
+color_scales = list(methods=c("cibersort"='#e41a1c',
+                              "cibersort_abs"='#377eb8',
+                              "timer"='#4daf4a',
+                              "xcell"='#984ea3',
+                              "mcp_counter"='#ff7f00',
+                              "quantiseq" = '#ffff33',
+                              "epic" = '#a65628',
+                              "backup" = '#f781bf'))
 ```
 
 

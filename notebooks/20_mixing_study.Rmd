@@ -127,6 +127,11 @@ res_timer = inner_join(res_timer_melanoma, res_timer_ovarian, by="cell_type") %>
   mutate(method="timer")
 ```
 
+```{r}
+abs_methods = c("cibersort_abs", "epic", "quantiseq", "xcell")
+```
+
+
 ## Results
 
 Here, we map the results back to the "gold standard". We aggregate the results of the different methods
@@ -154,25 +159,52 @@ all_results_tidy = all_results3 %>%
 gold_standard = pData(bulk_eset) %>%
   rownames_to_column("sample") %>%
   gather(cell_type, true_fraction, -sample)
+```
 
-results_with_gold_standard = all_results_tidy %>%
-  inner_join(gold_standard, by=c("sample", "cell_type"))
+### Calculate "Other cells" for all absolute methods
+```{r}
+other_cells_estimates = all_results_tidy %>% 
+  filter(method %in% abs_methods) %>%
+  group_by(method, sample) %>% 
+  summarise(cell_type="Other", estimate=max(0, 1-sum(estimate)))
+
+other_cells_true_fractions = gold_standard %>%
+  inner_join(all_results_tidy %>% select(method, sample) %>% distinct(), by=c("sample")) %>%
+  anti_join(all_results_tidy, by=c("sample", "cell_type", "method")) %>% 
+  group_by(method, sample) %>% 
+  summarise(cell_type="Other", true_fraction=sum(true_fraction))
+```
+
+
+```{r}
+all_results_tidy2 = bind_rows(all_results_tidy, other_cells_estimates)
+
+# we need to add the methods (full join) to each cell type as 
+# the "Other" fractions are method specific
+# (all cell types that are not predicted by the method)
+gold_standard2 = gold_standard %>%
+  crossing(method=unique(all_results_tidy$method)) %>% 
+  bind_rows(other_cells_true_fractions)
+
+results_with_gold_standard = all_results_tidy2 %>%
+  inner_join(gold_standard2, by=c("sample", "cell_type", "method"))
 
 ```
 
 ### Correlation plots
-```{r, fig.width=12, fig.height=8}
+```{r, fig.width=14, fig.height=8}
 results_with_gold_standard %>%
   ggplot(aes(x=true_fraction, y=estimate)) +
-  facet_grid(method ~ cell_type, scales="free_y") +
+  facet_grid(method ~ cell_type, scales="free") +
   geom_point() +
   stat_smooth(aes(color=method), method="lm") + 
-  scale_color_manual(values=color_scales$methods)
+  scale_color_manual(values=color_scales$methods) + 
+  scale_x_continuous(breaks=c(.2, .5))
 ```
 
 
 ### Calculate correlations for each method and cell type
-```{r}
+```{r, fig.width=6, fig.height=5}
 make_cor = function(estimate, true_fraction) {
   test_res = cor.test(estimate, true_fraction, method="pearson")
   data.frame(
@@ -189,15 +221,15 @@ correlations = results_with_gold_standard %>%
 correlations %>% ggplot(aes(x=method, y=pearson)) +
   geom_bar(aes(fill=method), stat="identity") +
   geom_errorbar(aes(ymin=conf_int_lower, ymax=conf_int_upper), width=.2) + 
-  facet_wrap(~cell_type) + 
-  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  facet_wrap(~cell_type, nrow=2) + 
+  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position="top") +
   scale_fill_manual(values=color_scales$methods)
 ```
 
 
 ### Absolute error for all qualifying methods
 ```{r, fig.width=10, fig.height=4}
-abs_methods = c("cibersort_abs", "epic", "quantiseq", "xcell")
 
 results_with_gold_standard %>% 
   filter(method %in% abs_methods) %>% 

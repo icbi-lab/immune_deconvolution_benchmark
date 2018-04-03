@@ -21,7 +21,8 @@ cell_type_table = pData(single_cell_schelker2) %>%
 
 ggplot(cell_type_table, aes(x=sample, y=freq)) +
   geom_bar(aes(fill=cell_type), stat="identity") + 
-  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1))
+  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+  scale_fill_manual(values=color_scales$cell_types)
 
 
 cancer_cells = cell_type_table %>% 
@@ -131,20 +132,20 @@ res_timer = inner_join(res_timer_melanoma, res_timer_ovarian, by="cell_type") %>
 Here, we map the results back to the "gold standard". We aggregate the results of the different methods
 into a single table and clean it up for further processing. 
 ```{r, cache=TRUE}
-all_results %<>% 
+all_results2 = all_results %>% 
   c(list(res_cibersort)) %>%
   c(list(res_cibersort_abs)) %>% 
   c(list(res_timer))
 
 # summarise cell_types from the method that only map to a single cell_type in the reference dataset (namely monocytes and macrophages)
-all_results2 = lapply(all_results, function(res) {
+all_results3 = lapply(all_results2, function(res) {
   res %>% 
     map_results_to_dataset("single_cell_schelker") %>% 
     group_by(method, single_cell_schelker) %>%   
     summarise_all(funs(sum)) 
 })
 
-all_results_tidy = all_results2 %>%
+all_results_tidy = all_results3 %>%
   bind_rows() %>%
   rename(cell_type = single_cell_schelker) %>%
   gather(sample, estimate, -cell_type, -method) %>%
@@ -165,21 +166,47 @@ results_with_gold_standard %>%
   ggplot(aes(x=true_fraction, y=estimate)) +
   facet_grid(method ~ cell_type, scales="free_y") +
   geom_point() +
-  stat_smooth(method="lm")
+  stat_smooth(aes(color=method), method="lm") + 
+  scale_color_manual(values=color_scales$methods)
 ```
 
 
 ### Calculate correlations for each method and cell type
 ```{r}
+make_cor = function(estimate, true_fraction) {
+  test_res = cor.test(estimate, true_fraction, method="pearson")
+  data.frame(
+    pearson=test_res$estimate,
+    conf_int_lower=test_res$conf.int[1],
+    conf_int_upper=test_res$conf.int[2]
+  )
+}
+
 correlations = results_with_gold_standard %>%
   group_by(cell_type, method) %>%
-  summarise(pearson=cor(estimate, true_fraction, method="pearson"))
+  do(make_cor(.$estimate, .$true_fraction))
 
 correlations %>% ggplot(aes(x=method, y=pearson)) +
-  geom_bar(stat="identity") +
+  geom_bar(aes(fill=method), stat="identity") +
+  geom_errorbar(aes(ymin=conf_int_lower, ymax=conf_int_upper), width=.2) + 
   facet_wrap(~cell_type) + 
-  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1))
+  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  scale_fill_manual(values=color_scales$methods)
 ```
 
 
+### Absolute error for all qualifying methods
+```{r, fig.width=10, fig.height=4}
+abs_methods = c("cibersort_abs", "epic", "quantiseq", "xcell")
+
+results_with_gold_standard %>% 
+  filter(method %in% abs_methods) %>% 
+  mutate(error=abs(estimate-true_fraction)) %>%
+  ggplot(aes(x=method, y=error)) + 
+    facet_wrap(~cell_type, nrow=1) + 
+    geom_boxplot(aes(fill=method), width=1, position="dodge") +
+    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) +
+    scale_fill_manual(values=color_scales$methods) 
+
+```
 

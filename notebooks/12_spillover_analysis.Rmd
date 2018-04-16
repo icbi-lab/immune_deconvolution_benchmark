@@ -9,31 +9,30 @@ In this chapter, we will use single cell data from [@Schelker2017] to create sim
 
 
 ```{r}
-set.seed(42)
+immune_cell_samples = read_tsv("../data/immune_cell_reference_profiles/immune_cell_reference_tidy.tsv")
 
-cell_fractions = lapply(available_cell_types, function(cell_type) {
-  vec = as.list(rep(0., length(available_cell_types)))
-  vec[[which(available_cell_types == cell_type)]] = 1.
-  names(vec) = available_cell_types
-  vec
-}) %>% bind_rows()
+sample_description = immune_cell_samples %>% select(sample, CellType, Study) %>% distinct()
 
-testthat::test_that("all fractions sum up to 1", expect_equal(apply(cell_fractions, 1, sum), rep(1, length(available_cell_types))))
+expr = immune_cell_samples %>%
+  select(sample, hgnc_id, TPM) %>%
+  group_by(sample, hgnc_id) %>%
+  summarise(TPM = sum(TPM)) %>%
+  spread(sample, TPM)
+
+expr_mat = expr %>%
+  as.data.frame() %>%
+  column_to_rownames("hgnc_id") %>% 
+  as.matrix() %>% 
+  .[, sample_description$sample]
+
 ```
-
-
-```{r, cache=TRUE}
-set.seed(42)
-bulk_eset = make_bulk_eset(eset=single_cell_schelker2, cell_fractions = cell_fractions, n_cells=500)
-```
-
 
 ## Run the deconvolution
 We first run all methods that are integrated in the `immune_deconvolution_methods` are package automatically in a loop. 
 ```{r, cache=TRUE, message=FALSE, results='hide'}
 all_results = lapply(immunedeconv::deconvolution_methods, function(method) {
   print(sprintf("Running %s...", method))
-  deconvolute(bulk_eset, method, column="gene_symbol") %>%
+  deconvolute(expr_mat, method) %>%
     mutate(method=method)
 })
 ```
@@ -43,13 +42,12 @@ We could not include CIBERSORT [@CIBERSORT2016] into the package due to licensin
 In the following, we run CIBERSORT both in "normal" and "absolute" mode. 
 
 ```{r, cache=TRUE}
-eset_mat = eset_to_matrix(bulk_eset, "gene_symbol")
-res_cibersort = immunedeconv::deconvolute_cibersort(eset_mat, 
+res_cibersort = immunedeconv::deconvolute_cibersort(expr_mat, 
                                                     "../lib/CIBERSORT/CIBERSORT.R",
                                                     "../lib/CIBERSORT/LM22.txt") 
 res_cibersort %<>% mutate(method="cibersort")
 
-res_cibersort_abs = immunedeconv::deconvolute_cibersort(eset_mat, 
+res_cibersort_abs = immunedeconv::deconvolute_cibersort(expr_mat, 
                                                     "../lib/CIBERSORT/CIBERSORT.R",
                                                     "../lib/CIBERSORT/LM22.txt",
                                                     absolute = TRUE) 
@@ -62,8 +60,7 @@ TIMER [@TIMER2016] is only available as a web resource. Moreover, the algorithm 
 We therefore export the data required to run the algorithm and re-import the results obtained from the web-tool. 
 
 ```{r, cache=TRUE, message=FALSE}
-eset_mat = eset_to_matrix(bulk_eset, "gene_symbol")
-immunedeconv::export_for_timer(eset_mat, "../results/timer_spillover.csv")
+immunedeconv::export_for_timer(expr_mat, "../results/timer_input_spillover.tsv")
 
 res_timer = immunedeconv::import_from_timer("../data/timer/timer_result_spillover.csv") %>%
   mutate(method="timer")
@@ -74,25 +71,24 @@ res_timer = immunedeconv::import_from_timer("../data/timer/timer_result_spillove
 Here, we map the results back to the "gold standard". We aggregate the results of the different methods
 into a single table and clean it up for further processing. 
 ```{r, cache=TRUE}
+gold_standard = sample_description %>% select(sample, true_cell_type=CellType)
+
 all_results2 = all_results %>% 
   c(list(res_cibersort)) %>%
   c(list(res_cibersort_abs)) %>% 
   c(list(res_timer))
 
-gold_standard = tibble(sample=colnames(eset_mat), true_cell_type=available_cell_types) %>% 
-  filter(!true_cell_type %in% cancer_cells)
-
 # # summarise cell_types from the method that only map to a single cell_type in the reference dataset (namely monocytes and macrophages)
 all_results3 = lapply(all_results2, function(res) {
   res %>%
-    map_results_to_dataset("single_cell_schelker") %>%
-    group_by(method, single_cell_schelker) %>%
+    map_results_to_dataset("quantiseq_reference") %>%
+    group_by(method, quantiseq_reference) %>%
     summarise_all(funs(sum))
 })
 
 all_results_tidy = all_results3 %>%
   bind_rows() %>%
-  rename(cell_type = single_cell_schelker) %>%
+  rename(cell_type = quantiseq_reference) %>%
   gather(sample, estimate, -cell_type, -method) %>%
   inner_join(gold_standard, by="sample") %>%
   group_by(method, sample) %>%
@@ -132,7 +128,7 @@ all_results_tidy %>%
   distinct() %>% 
   mutate(signal_to_noise = signal/(signal+noise)) %>% 
   ggplot(aes(x=method, y=signal_to_noise)) + 
-    geom_bar(aes(fill=method), stat='identity') + 
+    geom_boxplot(aes(fill=method), position = "dodge") + 
     facet_wrap(~true_cell_type) + 
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) +
     scale_fill_manual(values=color_scales$methods)
@@ -145,7 +141,7 @@ all_results_tidy %>%
   distinct() %>% 
   filter(method %in% c("xcell", "quantiseq", "epic", "cibersort")) %>% 
   ggplot(aes(x=method, y=abs_noise)) + 
-    geom_bar(aes(fill=method), stat='identity') + 
+    geom_boxplot(aes(fill=method), position="dodge") + 
     facet_wrap(~true_cell_type) + 
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) +
     scale_fill_manual(values=color_scales$methods)

@@ -1,0 +1,131 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+
+# Evaulation of the Method
+We use simulated samples from single cell gene expression data. Does this approach make sense after all? 
+We have 3 samples of single cell samples matched to bulk RNA sequencing. 
+
+To test, we try:
+* correlation of the simulated gene expression with the measured bulk gene expression. 
+* correlation of the predicted fractions with all methods on bulk vs. simulated tissue. 
+
+
+```{r}
+ovarian_bulk_replicates = read_xls("../data/single_cell_schelker/ascites_bulk_samples.xls") 
+
+samples = list("7873M"=c("ascites_7873_1", "ascites_7873_2"),
+               "7882M"=c("ascites_7882_1", "ascites_7882_2"),
+               "7892M"=c("ascites_7892_1", "ascites_7892_2"))
+
+ovarian_bulk = lapply(samples, function(cols) {
+  apply(ovarian_bulk_replicates[,cols], 1, mean)
+}) %>% bind_cols() 
+
+ovarian_bulk %<>% 
+  mutate(gene_symbol = ovarian_bulk_replicates$Row)
+
+ovarian_bulk_mat = ovarian_bulk %>%
+  as.data.frame() %>%
+  column_to_rownames("gene_symbol") %>%
+  as.matrix()
+```
+
+Load the 'ground truth'
+```{r}
+true_cell_count = pData(single_cell_schelker2) %>% 
+  filter(source == "ascites", donor %in% colnames(ovarian_bulk)) %>% 
+  group_by(donor, cell_type) %>% 
+  count() %>% 
+  rename(cell_count=n) %>% 
+  group_by(donor) %>%
+  mutate(true_fraction=cell_count/sum(cell_count)) %>% 
+  arrange(cell_type, donor)
+
+total_cells = true_cell_count %>% 
+  group_by(donor) %>%
+  summarise(sum(cell_count))
+
+total_cells
+true_cell_count
+
+```
+
+## make simulated samples
+### randomized
+```{r}
+cell_fractions = true_cell_count %>%
+  select(donor, cell_type, true_fraction) %>%
+  complete(donor, cell_type=available_cell_types) %>%
+  mutate(true_fraction=ifelse(is.na(true_fraction), 0, true_fraction)) %>%
+  spread(cell_type, true_fraction) %>%
+  as.data.frame() %>%
+  column_to_rownames("donor")
+
+bulk_eset_rand = make_bulk_eset(eset=single_cell_schelker2, cell_fractions = cell_fractions, n_cells=500)
+bulk_rand = eset_to_matrix(bulk_eset_rand, column = "gene_symbol")
+colnames(bulk_rand) = names(samples)
+
+```
+
+### summing up all cells
+```{r}
+bulk_sum = sapply(names(samples), function(donor) {
+  ind = pData(single_cell_schelker2)$donor == donor
+  apply(exprs(single_cell_schelker2)[,ind], 1, sum)
+})
+```
+
+
+```{r}
+genes = intersect(rownames(bulk_sum), ovarian_bulk$gene_symbol)
+
+expr_all = bind_rows(
+  ovarian_bulk  %>% mutate(source="bulk"),
+  bulk_rand %>% as_tibble(rownames="gene_symbol") %>% mutate(source="rand"),
+  bulk_sum %>% as_tibble(rownames="gene_symbol") %>% mutate(source="sum")
+) %>% 
+  filter(gene_symbol %in% genes) %>%
+  gather(sample, tpm, -gene_symbol, -source) %>%
+  spread(source, tpm)
+```
+
+
+```{r}
+expr_all %>%
+  ggplot(aes(x=bulk, y=sum)) + geom_point() + stat_cor()
+
+```
+
+# Compare the predicted fractions
+```{r}
+all_results_bulk = lapply(immunedeconv::deconvolution_methods, function(method) {
+  deconvolute(ovarian_bulk_mat, method) %>%
+    mutate(method=method) %>%
+    mutate(source="bulk")
+})
+
+all_results_simulated = lapply(immunedeconv::deconvolution_methods, function(method) {
+  deconvolute(bulk_sum, method) %>%
+    mutate(method=method) %>%
+    mutate(source="sum")
+})
+
+all_results = bind_rows(all_results_bulk, all_results_simulated) %>%
+  gather(donor, fraction, -cell_type, -source, -method) %>%
+  spread(source, fraction)
+
+```
+
+```{r, fig.width=12, fig.height=8}
+all_results %>%
+  ggplot(aes(x = bulk, y=sum)) +
+    geom_point(aes(colour=cell_type)) + 
+    facet_wrap(~method, scales="free") + 
+    stat_cor()
+
+```
+
+

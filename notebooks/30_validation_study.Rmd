@@ -32,11 +32,14 @@ true_cell_count = pData(single_cell_schelker2) %>%
   filter(source == "ascites", donor %in% colnames(ovarian_bulk)) %>% 
   group_by(donor, cell_type) %>% 
   count() %>% 
+  rename(cell_count=n) %>% 
+  group_by(donor) %>%
+  mutate(true_fraction=cell_count/sum(cell_count)) %>% 
   arrange(cell_type, donor)
 
 total_cells = true_cell_count %>% 
   group_by(donor) %>%
-  summarise(sum(n))
+  summarise(sum(cell_count))
 
 total_cells
 true_cell_count
@@ -83,36 +86,62 @@ res_timer = immunedeconv::import_from_timer("../data/timer/timer_result_ovarian_
 ```
 
 ```{r, cache=TRUE}
-all_results %<>% 
+all_results2 = all_results %>% 
   c(list(res_cibersort)) %>%
   c(list(res_cibersort_abs)) %>% 
   c(list(res_timer))
 
 # summarise cell_types from the method that only map to a single cell_type in the reference dataset (namely monocytes and macrophages)
-all_results2 = lapply(all_results, function(res) {
+all_results3 = lapply(all_results2, function(res) {
   res %>% 
     map_results_to_dataset("single_cell_schelker") %>% 
     group_by(method, single_cell_schelker) %>%   
     summarise_all(funs(sum)) 
 })
 
-all_results_tidy = all_results2 %>%
+all_results_tidy = all_results3 %>%
   bind_rows() %>%
   rename(cell_type = single_cell_schelker) %>%
   gather(sample, estimate, -cell_type, -method) %>%
+  ungroup() %>%
   arrange(method, cell_type, sample)
+
+results_with_gold_standard = all_results_tidy %>% 
+  inner_join(true_cell_count, by=c("cell_type", "sample"="donor")) 
 ```
 
 
-CAUTION: this plot does not entirely make sense, as e.g. MCP counter cannot be compared *between cell_types* only *between-samples*. 
-```{r, fig.width=10, figh.height=10}
-all_results_tidy %>%
-  rbind(true_cell_count %>% mutate(method="TRUE") %>% rename(sample=donor, estimate=n)) %>%
-  group_by(method, sample) %>%
-  mutate(estimate_scaled = (estimate - min(estimate)) / (max(estimate) - min(estimate))) %>% 
-  ggplot(aes(x=sample, y=cell_type)) + 
-  geom_tile(aes(fill=estimate_scaled)) + 
-  facet_wrap(~method) + 
-  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1))
+```{r, fig.width=14, fig.height=8}
+results_with_gold_standard %>%
+  ggplot(aes(x=true_fraction, y=estimate)) +
+  facet_grid(method ~ cell_type, scales="free") +
+  geom_point() +
+  stat_smooth(aes(color=method), method="lm") + 
+  scale_color_manual(values=color_scales$methods) + 
+  ylim(c(0, 1))
+```
+
+
+### Plot of estimated and true values
+```{r}
+true_cell_count %>%
+  mutate(method="TRUE") %>%
+  select(method, cell_type, sample=donor, estimate=true_fraction) %>%
+  bind_rows(all_results_tidy %>% filter(method %in% abs_methods)) %>% 
+  ggplot(aes(x=method, y=estimate, fill=method)) +
+    geom_bar(stat='identity', position="dodge") + 
+    facet_wrap(~cell_type, nrow=2) + 
+    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+```{r}
+results_with_gold_standard %>% 
+  filter(method %in% abs_methods) %>% 
+  mutate(error=abs(estimate-true_fraction)) %>%
+  ggplot(aes(x=method, y=error)) + 
+    facet_wrap(~cell_type, nrow=1) + 
+    geom_boxplot(aes(fill=method), width=1, position="dodge") +
+    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) +
+    scale_fill_manual(values=color_scales$methods) 
 
 ```

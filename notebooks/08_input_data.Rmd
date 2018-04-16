@@ -14,10 +14,12 @@ pacman::p_load(knitr,
                assertthat,
                testthat,
                BioQC,
-               readxl)
+               readxl,
+               ggpubr)
 
 devtools::load_all("/storage/home/sturm/projects/immune_deconvolution_methods")
-
+set_cibersort_binary("../lib/CIBERSORT/CIBERSORT.R")
+set_cibersort_mat("../lib/CIBERSORT/LM22.txt")
 
 color_file = "../tables/color_scales.xlsx"
 color_scales = sapply(excel_sheets(color_file), function(sheet) {

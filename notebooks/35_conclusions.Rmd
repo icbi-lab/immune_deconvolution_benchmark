@@ -1,0 +1,13 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Conclusions
+
+Not sure if the methodology is valid after all?
+
+
+Anyway, conclusions:
+* Some cell types (CTL) are easier to detect that others (DC)
+* The deconvolution methodology is not the bottleneck, it's the availability of reliable signatures

@@ -93,24 +93,6 @@ all_results = lapply(immunedeconv::deconvolution_methods, function(method) {
 })
 ```
 
-### run CIBERSORT
-We could not include CIBERSORT [@CIBERSORT2016] into the package due to licensing restrictions. 
-In the following, we run CIBERSORT both in "normal" and "absolute" mode. 
-
-```{r, cache=TRUE}
-eset_mat = eset_to_matrix(bulk_eset, "gene_symbol")
-res_cibersort = immunedeconv::deconvolute_cibersort(eset_mat, 
-                                                    "../lib/CIBERSORT/CIBERSORT.R",
-                                                    "../lib/CIBERSORT/LM22.txt") 
-res_cibersort %<>% mutate(method="cibersort")
-
-res_cibersort_abs = immunedeconv::deconvolute_cibersort(eset_mat, 
-                                                    "../lib/CIBERSORT/CIBERSORT.R",
-                                                    "../lib/CIBERSORT/LM22.txt",
-                                                    absolute = TRUE) 
-res_cibersort_abs %<>% mutate(method="cibersort_abs")
-```
-
 ### run TIMER
 TIMER [@TIMER2016] is only available as a web resource. Moreover, the algorithm is adapted for each cancer type, so that we have to choose the corresponding option (Melanoma/Ovarian) when running the algorithm. 
 
@@ -138,8 +120,6 @@ Here, we map the results back to the "gold standard". We aggregate the results o
 into a single table and clean it up for further processing. 
 ```{r, cache=TRUE}
 all_results2 = all_results %>% 
-  c(list(res_cibersort)) %>%
-  c(list(res_cibersort_abs)) %>% 
   c(list(res_timer))
 
 # summarise cell_types from the method that only map to a single cell_type in the reference dataset (namely monocytes and macrophages)
@@ -234,7 +214,8 @@ correlations %>% ggplot(aes(x=method, y=pearson)) +
 results_with_gold_standard %>% 
   filter(method %in% abs_methods) %>% 
   mutate(error=abs(estimate-true_fraction)) %>%
-  ggplot(aes(x=method, y=error)) + 
+  mutate(square_error=error^2) %>% 
+  ggplot(aes(x=method, y=square_error)) + 
     facet_wrap(~cell_type, nrow=1) + 
     geom_boxplot(aes(fill=method), width=1, position="dodge") +
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) +

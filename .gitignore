@@ -7,3 +7,4 @@ CIBERSORT-Results.txt
 _main*
 .Rproj.user
 *.Rproj
+.Rhistory

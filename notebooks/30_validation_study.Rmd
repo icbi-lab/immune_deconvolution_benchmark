@@ -5,6 +5,17 @@ output: html_notebook
 
 # Validation with matched-bulk samples
 
+## Gathering datasets
+### Hoeck data
+8 PBMC, RNAseq+flow cytometry
+```{r}
+load("../data/hoeck/HoekPBMC_mixture.RData")
+hoeck_mixture = mix.mat
+load("../data/hoeck/HoekPBMC_gtruth.RData")
+hoeck_ref = RefData
+
+```
+
 Load the data and merge replicates
 ```{r}
 ovarian_bulk_replicates = read_xls("../data/single_cell_schelker/ascites_bulk_samples.xls") 
@@ -49,28 +60,11 @@ true_cell_count
 
 ## Run the deconvolution
 We first run all methods that are integrated in the `immune_deconvolution_methods` are package automatically in a loop. 
-```{r, cache=TRUE}
+```{r, cache=TRUE, eval=FALSE}
 all_results = lapply(immunedeconv::deconvolution_methods, function(method) {
   deconvolute(ovarian_bulk_mat, method) %>%
     mutate(method=method)
 })
-```
-
-### run CIBERSORT
-We could not include CIBERSORT [@CIBERSORT2016] into the package due to licensing restrictions. 
-In the following, we run CIBERSORT both in "normal" and "absolute" mode. 
-
-```{r, cache=TRUE}
-res_cibersort = immunedeconv::deconvolute_cibersort(ovarian_bulk_mat, 
-                                                    "../lib/CIBERSORT/CIBERSORT.R",
-                                                    "../lib/CIBERSORT/LM22.txt") 
-res_cibersort %<>% mutate(method="cibersort")
-
-res_cibersort_abs = immunedeconv::deconvolute_cibersort(ovarian_bulk_mat, 
-                                                    "../lib/CIBERSORT/CIBERSORT.R",
-                                                    "../lib/CIBERSORT/LM22.txt",
-                                                    absolute = TRUE) 
-res_cibersort_abs %<>% mutate(method="cibersort_abs")
 ```
 
 ### run TIMER
@@ -78,14 +72,14 @@ TIMER [@TIMER2016] is only available as a web resource. Moreover, the algorithm 
 
 We therefore export the data required to run the algorithm and re-import the results obtained from the web-tool. 
 
-```{r, cache=TRUE}
+```{r, cache=TRUE, eval=FALSE}
 immunedeconv::export_for_timer(ovarian_bulk_mat, path="../results/timer_input_ovarian_bulk.tsv")
 
 res_timer = immunedeconv::import_from_timer("../data/timer/timer_result_ovarian_bulk.csv") %>%
   mutate(method="timer")
 ```
 
-```{r, cache=TRUE}
+```{r, cache=TRUE, eval=FALSE}
 all_results2 = all_results %>% 
   c(list(res_cibersort)) %>%
   c(list(res_cibersort_abs)) %>% 
@@ -111,7 +105,7 @@ results_with_gold_standard = all_results_tidy %>%
 ```
 
 
-```{r, fig.width=14, fig.height=8}
+```{r, fig.width=14, fig.height=8, eval=FALSE}
 results_with_gold_standard %>%
   ggplot(aes(x=true_fraction, y=estimate)) +
   facet_grid(method ~ cell_type, scales="free") +
@@ -123,7 +117,7 @@ results_with_gold_standard %>%
 
 
 ### Plot of estimated and true values
-```{r}
+```{r, eval=FALSE}
 true_cell_count %>%
   mutate(method="TRUE") %>%
   select(method, cell_type, sample=donor, estimate=true_fraction) %>%

@@ -9,3 +9,33 @@ output: html_notebook
 For the single cell dataset by @Schelker2017, we obtained the MATLAB source code [deposited on figshare](https://figshare.com/s/711d3fb2bd3288c8483a) and used it to re-produced the dataset. The final dataset was exported to `csv` format in order to continue the main analysis in `R`. 
 
 We obtained the 3 matched ovarian cancer bulk RNA samples from @Schelker2017 (personal communication).
+
+
+## Validation datasets (Flow cytometry, scRNAseq, Imageing + matched RNA seq)\
+*only considering RNAseq datasets* 
+### Data from quantiseq
+from the study, not (yet) available:
+* 9 CRC, RNAseq + imaging (CD3, CD8, CD45RO, FOXP3, PD1)
+* 9 PBMC/PMN, RNAseq + FlowCytometry (B, Mono, Neu, NK, CD4, CD8, Treg, DC)
+
+External, available:
+* Hoeck et al., 8 PBMC, RNAseq+flow cytometry (T, B, NK, MDC, Mono, Neu) [4]
+
+
+### EPIC
+* 4 metastatic melanoma, RNAseq + flowCytometry (B, CD4, CD8, NK, Melanoma/other)
+* 31 melanoma patients, RNAseq + imaging (CD8, CD4, FOXP3+) 
+
+
+### Schelker
+* 3 ovarian cancer ascites, single cell/flow cytometry (CD8, CD4, B, NK, DC, Mono, ...)
+
+
+### Chung 2017
+* 11 BRCA, single cell, matched bulk/pooled RNAseq, IHC for T and B cells 
+
+
+
+
+### (Microarray)
+* Becht et al., in-vitro mixing, IHC, 38 CRC (CD8, CD4, CD68)

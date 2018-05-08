@@ -8,7 +8,7 @@ output: html_notebook
 In this chapter, we will use single cell data from [@Schelker2017] to create simulated pure immune cell RNA samples (and pure RNA samples from other studies (tbd)). We will then evaluate, if predictions of a certain immune cell type correlate with another.
 
 
-```{r, cache=TRUE}
+```{r, cache=TRUE, message=FALSE}
 immune_cell_samples = read_tsv("../data/immune_cell_reference_profiles/immune_cell_reference_tidy.tsv")
 
 sample_description = immune_cell_samples %>% select(sample, CellType, Study) %>% distinct()

@@ -138,48 +138,48 @@ all_results %>%
 
 ```
 
-### second dataset
-We have another dataset from Chung 2017 et al with single cell and matched bulk. 
-We do the same comparison. 
+<!-- ### second dataset -->
+<!-- We have another dataset from Chung 2017 et al with single cell and matched bulk.  -->
+<!-- We do the same comparison.  -->
 
 
-```{r, cache=TRUE}
-single_cell_chung = read_tsv("../data/single_cell_chung/GSE75688_GEO_processed_Breast_Cancer_raw_TPM_matrix.txt")
+<!-- ```{r, cache=TRUE} -->
+<!-- single_cell_chung = read_tsv("../data/single_cell_chung/GSE75688_GEO_processed_Breast_Cancer_raw_TPM_matrix.txt") -->
 
-single_cell_chung2 = single_cell_chung %>%
-  gather(sample, tpm, -gene_id, -gene_name, -gene_type) %>%
-  select(gene_name, sample, tpm) %>%
-  group_by(sample, gene_name) %>%
-  summarise(tpm=sum(tpm)) %>%
-  ungroup() %>% 
-  separate(sample, into=c("donor", "sample"), sep="_")
-```
+<!-- single_cell_chung2 = single_cell_chung %>% -->
+<!--   gather(sample, tpm, -gene_id, -gene_name, -gene_type) %>% -->
+<!--   select(gene_name, sample, tpm) %>% -->
+<!--   group_by(sample, gene_name) %>% -->
+<!--   summarise(tpm=sum(tpm)) %>% -->
+<!--   ungroup() %>%  -->
+<!--   separate(sample, into=c("donor", "sample"), sep="_") -->
+<!-- ``` -->
 
-### Overview of bulk samples
-```{r}
-single_cell_chung2 %>% 
-  select(donor, sample) %>%
-  distinct() %>%
-  filter(sample %in% c("Pooled", "Tumor"))
-```
+<!-- ### Overview of bulk samples -->
+<!-- ```{r} -->
+<!-- single_cell_chung2 %>%  -->
+<!--   select(donor, sample) %>% -->
+<!--   distinct() %>% -->
+<!--   filter(sample %in% c("Pooled", "Tumor")) -->
+<!-- ``` -->
 
 
-### Separate bulk and single cells
-```{r, cache=TRUE}
-chung_bulk = single_cell_chung2 %>%
-  filter(sample %in% c("Pooled", "Tumor")) %>%
-  filter(!(donor == "BC01" & sample == "Tumor")) %>% # remove double bulk reference for sample 1 %>%
-  mutate(source="bulk")
-  
-chung_sum = single_cell_chung2 %>%
-  filter(!sample %in% c("Pooled", "Tumor")) %>% 
-  group_by(donor, gene_name) %>%
-  summarise(tpm = sum(tpm)) %>%
-  ungroup() %>% 
-  mutate(source="sum")
+<!-- ### Separate bulk and single cells -->
+<!-- ```{r, cache=TRUE} -->
+<!-- chung_bulk = single_cell_chung2 %>% -->
+<!--   filter(sample %in% c("Pooled", "Tumor")) %>% -->
+<!--   filter(!(donor == "BC01" & sample == "Tumor")) %>% # remove double bulk reference for sample 1 %>% -->
+<!--   mutate(source="bulk") -->
 
-genes = intersect(chung_bulk$gene_name %>% unique(), chung_sum$gene_name %>% unique())
+<!-- chung_sum = single_cell_chung2 %>% -->
+<!--   filter(!sample %in% c("Pooled", "Tumor")) %>%  -->
+<!--   group_by(donor, gene_name) %>% -->
+<!--   summarise(tpm = sum(tpm)) %>% -->
+<!--   ungroup() %>%  -->
+<!--   mutate(source="sum") -->
 
-all_results_chung = bind_rows(chung_bulk, chung_sum) %>%
-  spread(source, tpm)
-```
+<!-- genes = intersect(chung_bulk$gene_name %>% unique(), chung_sum$gene_name %>% unique()) -->
+
+<!-- all_results_chung = bind_rows(chung_bulk, chung_sum) %>% -->
+<!--   spread(source, tpm) -->
+<!-- ``` -->

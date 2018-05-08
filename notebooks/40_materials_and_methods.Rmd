@@ -13,10 +13,4 @@ We obtained the 3 matched ovarian cancer bulk RNA samples from @Schelker2017 (pe
 
 ## Validation datasets (Flow cytometry, scRNAseq, Imageing + matched RNA seq)
 
-*only considering RNAseq datasets* 
-
-```{r}
-datasets = read_excel("../tables/validation-datasets.xlsx")
-kable(datasets)
-
-```
+*Describe how the datasets were obtained*

@@ -3,6 +3,9 @@ title: "R Notebook"
 output: html_notebook
 ---
 
+# Validation with real data
+We the curated datasets with gold standard as an additional validation on top of the mixing study. 
+
 ```{r}
 racle_bulk_mat = racle_expression %>% as.data.frame() %>% column_to_rownames("hgnc_symbol") %>% as.matrix()
 hoeck_bulk_mat = hoeck_mixture

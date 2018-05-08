@@ -35,10 +35,6 @@ cancer_cell_param = MASS::fitdistr(cancer_cells$freq, "normal")
 
 
 ## Create simulated bulk tissues
-```{r}
-devtools::load_all("/storage/home/sturm/projects/immune_deconvolution_methods")
-```
-
 The fractions of a sample are randomly assigned in the following procedure: 
 
 1. Draw a random tumour cell content from the distribution fitted above

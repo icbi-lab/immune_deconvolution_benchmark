@@ -3,139 +3,111 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-# Validation with matched-bulk samples
-
-## Gathering datasets
-### Hoeck data
-8 PBMC, RNAseq+flow cytometry
 ```{r}
-load("../data/hoeck/HoekPBMC_mixture.RData")
-hoeck_mixture = mix.mat
-load("../data/hoeck/HoekPBMC_gtruth.RData")
-hoeck_ref = RefData
-
-```
-
-Load the data and merge replicates
-```{r}
-ovarian_bulk_replicates = read_xls("../data/single_cell_schelker/ascites_bulk_samples.xls") 
-
-samples = list("7873M"=c("ascites_7873_1", "ascites_7873_2"),
-               "7882M"=c("ascites_7882_1", "ascites_7882_2"),
-               "7892M"=c("ascites_7892_1", "ascites_7892_2"))
-
-ovarian_bulk = lapply(samples, function(cols) {
-  apply(ovarian_bulk_replicates[,cols], 1, mean)
-}) %>% bind_cols() 
-
-ovarian_bulk %<>% 
-  mutate(gene_symbol = ovarian_bulk_replicates$Row)
-
-ovarian_bulk_mat = ovarian_bulk %>%
-  as.data.frame() %>%
-  column_to_rownames("gene_symbol") %>%
-  as.matrix()
-```
-
-Load the 'ground truth'
-```{r}
-true_cell_count = pData(single_cell_schelker2) %>% 
-  filter(source == "ascites", donor %in% colnames(ovarian_bulk)) %>% 
-  group_by(donor, cell_type) %>% 
-  count() %>% 
-  rename(cell_count=n) %>% 
-  group_by(donor) %>%
-  mutate(true_fraction=cell_count/sum(cell_count)) %>% 
-  arrange(cell_type, donor)
-
-total_cells = true_cell_count %>% 
-  group_by(donor) %>%
-  summarise(sum(cell_count))
-
-total_cells
-true_cell_count
-
+racle_bulk_mat = racle_expression %>% as.data.frame() %>% column_to_rownames("hgnc_symbol") %>% as.matrix()
+hoeck_bulk_mat = hoeck_mixture
+# ovarian_bulk_mat
 ```
 
 
 ## Run the deconvolution
 We first run all methods that are integrated in the `immune_deconvolution_methods` are package automatically in a loop. 
-```{r, cache=TRUE, eval=FALSE}
-all_results = lapply(immunedeconv::deconvolution_methods, function(method) {
-  deconvolute(ovarian_bulk_mat, method) %>%
-    mutate(method=method)
+```{r, cache=TRUE}
+all_results_racle = lapply(immunedeconv::deconvolution_methods, function(method) {
+  deconvolute(racle_bulk_mat, method) %>%
+    mutate(method=method) %>%
+    map_results_to_dataset("racle") %>% 
+    group_by(method, racle) %>%   
+    summarise_all(funs(sum)) 
 })
-```
-
-### run TIMER
-TIMER [@TIMER2016] is only available as a web resource. Moreover, the algorithm is adapted for each cancer type, so that we have to choose the corresponding option (Melanoma/Ovarian) when running the algorithm. 
-
-We therefore export the data required to run the algorithm and re-import the results obtained from the web-tool. 
-
-```{r, cache=TRUE, eval=FALSE}
-immunedeconv::export_for_timer(ovarian_bulk_mat, path="../results/timer_input_ovarian_bulk.tsv")
-
-res_timer = immunedeconv::import_from_timer("../data/timer/timer_result_ovarian_bulk.csv") %>%
-  mutate(method="timer")
-```
-
-```{r, cache=TRUE, eval=FALSE}
-all_results2 = all_results %>% 
-  c(list(res_cibersort)) %>%
-  c(list(res_cibersort_abs)) %>% 
-  c(list(res_timer))
-
-# summarise cell_types from the method that only map to a single cell_type in the reference dataset (namely monocytes and macrophages)
-all_results3 = lapply(all_results2, function(res) {
-  res %>% 
+all_results_hoeck = lapply(immunedeconv::deconvolution_methods, function(method) {
+  deconvolute(hoeck_bulk_mat, method) %>%
+    mutate(method=method) %>%
+    map_results_to_dataset("hoeck") %>% 
+    group_by(method, hoeck) %>%   
+    summarise_all(funs(sum)) 
+})
+all_results_schelker = lapply(immunedeconv::deconvolution_methods, function(method) {
+  deconvolute(ovarian_bulk_mat, method) %>%
+    mutate(method=method) %>%
     map_results_to_dataset("single_cell_schelker") %>% 
     group_by(method, single_cell_schelker) %>%   
     summarise_all(funs(sum)) 
 })
-
-all_results_tidy = all_results3 %>%
-  bind_rows() %>%
-  rename(cell_type = single_cell_schelker) %>%
-  gather(sample, estimate, -cell_type, -method) %>%
-  ungroup() %>%
-  arrange(method, cell_type, sample)
-
-results_with_gold_standard = all_results_tidy %>% 
-  inner_join(true_cell_count, by=c("cell_type", "sample"="donor")) 
 ```
 
 
-```{r, fig.width=14, fig.height=8, eval=FALSE}
-results_with_gold_standard %>%
-  ggplot(aes(x=true_fraction, y=estimate)) +
-  facet_grid(method ~ cell_type, scales="free") +
-  geom_point() +
-  stat_smooth(aes(color=method), method="lm") + 
+```{r, cache=TRUE, eval=FALSE}
+# immunedeconv::export_for_timer(ovarian_bulk_mat, path="../results/timer_input_ovarian_bulk.tsv")
+# 
+# res_timer = immunedeconv::import_from_timer("../data/timer/timer_result_ovarian_bulk.csv") %>%
+#   mutate(method="timer")
+```
+
+```{r, cache=TRUE}
+hoeck_ref2 = hoeck_ref %>% as_tibble(rownames="sample") %>% gather(cell_type, true_fraction, -sample)
+hoeck2 = bind_rows(all_results_hoeck) %>% gather(sample, estimate, -method, -hoeck) %>% mutate(dataset="hoeck") %>% rename(cell_type=hoeck) %>% inner_join(hoeck_ref2)
+
+racle_ref2 = racle_cyto %>% rename(sample=`donor ID`) %>% gather(cell_type, true_fraction, -sample) %>% mutate(true_fraction=true_fraction/100)
+racle2 = bind_rows(all_results_racle) %>% gather(sample, estimate, -method, -racle) %>% mutate(dataset="racle") %>% rename(cell_type=racle) %>% inner_join(racle_ref2)
+
+schelker_ref2 = schelker_ref
+schelker2 = bind_rows(all_results_schelker) %>% gather(sample, estimate, -method, -single_cell_schelker) %>% mutate(dataset="single_cell_schelker") %>% rename(cell_type=single_cell_schelker) %>% inner_join(schelker_ref2)
+
+
+all_results_tidy_val = bind_rows(hoeck2, racle2, schelker2) %>% ungroup()
+
+```
+
+
+```{r, fig.width=10, fig.height=6}
+all_results_tidy_val %>% filter(cell_type %in% c("B cells", "Bcells")) %>%
+  ggplot(aes(x=true_fraction, y=estimate)) + geom_point(aes(color=method, shape=dataset)) + 
   scale_color_manual(values=color_scales$methods) + 
-  ylim(c(0, 1))
+  facet_wrap(~method, scales = "free") + 
+  stat_cor() + 
+  ggtitle("B cells")
+
 ```
 
 
-### Plot of estimated and true values
-```{r, eval=FALSE}
-true_cell_count %>%
-  mutate(method="TRUE") %>%
-  select(method, cell_type, sample=donor, estimate=true_fraction) %>%
-  bind_rows(all_results_tidy %>% filter(method %in% abs_methods)) %>% 
-  ggplot(aes(x=method, y=estimate, fill=method)) +
-    geom_bar(stat='identity', position="dodge") + 
-    facet_wrap(~cell_type, nrow=2) + 
-    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1))
+```{r, fig.width=10, fig.height=6}
+all_results_tidy_val %>% filter(cell_type %in% c("Dendritic cells", "DC")) %>%
+  ggplot(aes(x=true_fraction, y=estimate)) + geom_point(aes(color=method, shape=dataset)) + 
+  scale_color_manual(values=color_scales$methods) + 
+  facet_wrap(~method, scales = "free") + 
+  stat_cor() + 
+  ggtitle("Dendritic cells")
+
 ```
 
-```{r}
-results_with_gold_standard %>% 
-  filter(method %in% abs_methods) %>% 
-  mutate(error=abs(estimate-true_fraction)) %>%
-  ggplot(aes(x=method, y=error)) + 
-    facet_wrap(~cell_type, nrow=1) + 
-    geom_boxplot(aes(fill=method), width=1, position="dodge") +
-    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) +
-    scale_fill_manual(values=color_scales$methods) 
+
+```{r, fig.width=10, fig.height=6}
+all_results_tidy_val %>% filter(cell_type %in% c("CD8+ T cells", "CD8 T cells")) %>%
+  ggplot(aes(x=true_fraction, y=estimate)) + geom_point(aes(color=method, shape=dataset)) + 
+  scale_color_manual(values=color_scales$methods) + 
+  facet_wrap(~method, scales = "free") + 
+  stat_cor() + 
+  ggtitle("CD8 T")
+
+```
+
+```{r, fig.width=10, fig.height=6}
+all_results_tidy_val %>% filter(cell_type %in% c("CD4+ T cells", "CD4 T cells")) %>%
+  ggplot(aes(x=true_fraction, y=estimate)) + geom_point(aes(color=method, shape=dataset)) + 
+  scale_color_manual(values=color_scales$methods) + 
+  facet_wrap(~method, scales = "free") + 
+  stat_cor() + 
+  ggtitle("CD4 T")
+
+```
+
+```{r, fig.width=10, fig.height=6}
+all_results_tidy_val %>% filter(cell_type %in% c("Natural killer cells", "NK", "NK cells")) %>%
+  ggplot(aes(x=true_fraction, y=estimate)) + geom_point(aes(color=method, shape=dataset)) + 
+  scale_color_manual(values=color_scales$methods) + 
+  facet_wrap(~method, scales = "free") + 
+  stat_cor() + 
+  ggtitle("NK")
 
 ```

@@ -15,7 +15,8 @@ pacman::p_load(knitr,
                testthat,
                BioQC,
                readxl,
-               ggpubr)
+               ggpubr,
+               stringr)
 
 devtools::load_all("/storage/home/sturm/projects/immune_deconvolution_methods")
 set_cibersort_binary("../lib/CIBERSORT/CIBERSORT.R")
@@ -32,6 +33,8 @@ color_scales = sapply(excel_sheets(color_file), function(sheet) {
 
 
 # Input data
+
+## Single cell data for simulated mixtures
 
 ```{r}
 load("../data/single_cell_schelker/single_cell_schelker.rda")
@@ -73,4 +76,87 @@ pData(single_cell_schelker) %>%
            theme(legend.position="bottom")
 ```
 
+## Validation data (RNAseq + matched gold standard)
+e.g. IHC, Flow cytometry, single cell
+
+```{r}
+datasets = read_excel("../tables/validation-datasets.xlsx")
+kable(datasets)
+
+```
+
+### Hoeck data
+8 PBMC, RNAseq+flow cytometry
+```{r}
+load("../data/hoeck/HoekPBMC_mixture.RData")
+hoeck_mixture = mix.mat
+load("../data/hoeck/HoekPBMC_gtruth.RData")
+hoeck_ref = RefData
+```
+
+
+### Schelker data
+Load the data and merge replicates
+```{r}
+ovarian_bulk_replicates = read_xls("../data/single_cell_schelker/ascites_bulk_samples.xls") 
+
+samples = list("7873M"=c("ascites_7873_1", "ascites_7873_2"),
+               "7882M"=c("ascites_7882_1", "ascites_7882_2"),
+               "7892M"=c("ascites_7892_1", "ascites_7892_2"))
+
+ovarian_bulk = lapply(samples, function(cols) {
+  apply(ovarian_bulk_replicates[,cols], 1, mean)
+}) %>% bind_cols() 
+
+ovarian_bulk %<>% 
+  mutate(gene_symbol = ovarian_bulk_replicates$Row)
+
+ovarian_bulk_mat = ovarian_bulk %>%
+  as.data.frame() %>%
+  column_to_rownames("gene_symbol") %>%
+  as.matrix()
+```
+
+Load the 'ground truth'
+```{r}
+true_cell_count = pData(single_cell_schelker2) %>% 
+  filter(source == "ascites", donor %in% colnames(ovarian_bulk)) %>% 
+  group_by(donor, cell_type) %>% 
+  count() %>% 
+  rename(cell_count=n) %>% 
+  group_by(donor) %>%
+  mutate(true_fraction=cell_count/sum(cell_count)) %>% 
+  arrange(cell_type, donor)
+
+total_cells = true_cell_count %>% 
+  group_by(donor) %>%
+  summarise(sum(cell_count))
+
+total_cells
+true_cell_count
+
+schelker_ref = true_cell_count %>% select(sample=donor, cell_type, true_fraction)
+
+```
+
+
+### Racle data
+```{r}
+ensg_hgnc = read_tsv("../data/ensemble_hgnc.txt") %>% 
+  rename(gene_id = `Gene stable ID`, hgnc_symbol=`HGNC symbol`)
+racle_cyto = read_excel("../data/racle/racle2017_flow_cytometry.xlsx")
+racle_files = list.files("../data/racle/GSE93722_RAW/", full.names = TRUE)
+racle_identifiers = str_extract(racle_files, "LAU\\d+")
+racle_expression_raw = lapply(list.files("../data/racle/GSE93722_RAW/", full.names = TRUE), read_tsv) 
+gene_ids = racle_expression_raw[[1]]$gene_id
+racle_tpm = sapply(racle_expression_raw, function(df) {pull(df, "TPM")}) %>% as.tibble()
+colnames(racle_tpm) = racle_identifiers
+racle_tpm$gene_id = gene_ids
+racle_expression = racle_tpm %>%
+  inner_join(ensg_hgnc) %>%
+  filter(!is.na(hgnc_symbol)) %>%
+  select(-gene_id) %>%
+  group_by(hgnc_symbol) %>%
+  summarise_all(sum)
+```
 

@@ -4,7 +4,7 @@ output: html_document
 ---
 
 
-# Evaulation of the Method
+# Validitiy of single cell RNA-seq as reference
 
 ## Validity of single cell sequencing for counting immune cells
 * Schelker et al have shown that measurements from single cell sequencing are highly consistent with flow cytometry. 
@@ -58,10 +58,9 @@ true_cell_count
 
 ```
 
-## make simulated samples
-### randomized
+### Compare simululated samplese to bulk samples
 
-
+randomized: 
 
 ```{r, cache=TRUE}
 cell_fractions = true_cell_count %>%
@@ -78,7 +77,7 @@ colnames(bulk_rand) = names(samples)
 
 ```
 
-### summing up all cells
+summing up all cells: 
 ```{r, cache=TRUE}
 bulk_sum = sapply(names(samples), function(donor) {
   ind = pData(single_cell_schelker2)$donor == donor
@@ -110,7 +109,7 @@ expr_all %>%
 
 ```
 
-# Compare the predicted fractions
+### Compare the predicted fractions
 ```{r, cache=TRUE}
 all_results_bulk = lapply(immunedeconv::deconvolution_methods, function(method) {
   deconvolute(ovarian_bulk_mat, method) %>%

@@ -14,8 +14,11 @@ We use simulated samples from single cell gene expression data. Does this approa
 We have 3 samples of single cell samples matched to bulk RNA sequencing. 
 
 To test, we try:
+
 * correlation of the simulated gene expression with the measured bulk gene expression. 
-* correlation of the predicted fractions with all methods on bulk vs. simulated tissue. 
+* correlation of the predicted fractions with all methods on bulk vs. simulated tissue.
+* correlation of the simulated gene expression with bulk gene expression from the same tissue. 
+
 
 
 ```{r, cache=TRUE}
@@ -137,6 +140,35 @@ all_results %>%
     stat_cor()
 
 ```
+
+
+## Correlated simulated samples with bulk of the same tissue. 
+```{r, fig.width=8, fig.height=8}
+# immune_cell_reference
+# immune_cell_expr_mat
+
+cell_fractions = diag(length(cell_types$immune_cells))
+cell_fractions = rbind(cell_fractions, cell_fractions, cell_fractions)
+colnames(cell_fractions) = cell_types$immune_cells
+rownames(cell_fractions) = unlist(lapply(1:3, function(i) {paste0(cell_types$immune_cells, "_", i)}))
+
+simulated_bulk = make_bulk_eset(eset=single_cell_schelker$expr, cell_fractions = cell_fractions, n_cells=500) %>% exprs() 
+simulated_bulk = log2(simulated_bulk+1)
+colnames(simulated_bulk) = rownames(cell_fractions)
+
+immune_bulk = log2(immune_cell_reference$expr_mat+1)
+colnames(immune_bulk) = paste(immune_cell_reference$sample_description$CellType, immune_cell_reference$sample_description$sample)
+
+common_symbols = intersect(rownames(simulated_bulk), rownames(immune_bulk))
+
+
+# all_samples = cbind(simulated_bulk[common_symbols,], immune_bulk[common_symbols, ])
+# pheatmap(all_samples, cluster_rows = FALSE, cluster_cols = TRUE, clustering_distance_cols="correlation")
+
+cor(simulated_bulk[common_symbols,], immune_bulk[common_symbols,]) %>% pheatmap()
+
+```
+
 
 <!-- ### second dataset -->
 <!-- We have another dataset from Chung 2017 et al with single cell and matched bulk.  -->

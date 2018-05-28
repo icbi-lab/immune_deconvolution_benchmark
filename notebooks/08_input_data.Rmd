@@ -37,44 +37,70 @@ color_scales = sapply(excel_sheets(color_file), function(sheet) {
 ## Single cell data for simulated mixtures
 
 ```{r}
-load("../data/single_cell_schelker/single_cell_schelker.rda")
+single_cell_schelker = new.env()
+load("../data/single_cell_schelker/single_cell_schelker.rda", envir=single_cell_schelker)
 ```
 
-
+Data will be stored in own environment. 
 ```{r, include=FALSE}
-valid_cells = which(pData(single_cell_schelker)$cell_type!="Unknown")
-
-single_cell_schelker2 = single_cell_schelker[,valid_cells]
-
-assert_that(!any(pData(single_cell_schelker2)$cell_type == "Unknown"))
-
-available_cell_types = pData(single_cell_schelker2) %>% select(cell_type) %>% distinct() %>% pull(cell_type)
-
-cancer_cells = c("Melanoma cells", "Ovarian carcinoma cells")
-other_cells = c("Cancer associated fibroblasts", "Endothelial cells")
-immune_cells = available_cell_types[!available_cell_types %in% c(cancer_cells, other_cells)]
+valid_cells = which(pData(single_cell_schelker$single_cell_schelker)$cell_type!="Unknown")
+single_cell_schelker$expr = single_cell_schelker$single_cell_schelker[,valid_cells]
+assert_that(!any(pData(single_cell_schelker$expr)$cell_type == "Unknown"))
+single_cell_schelker$single_cell_schelker = NULL
 ```
 
-In this study, we make use of the single cell dataset curated by [@Schelker2017]. They aggregated single cell sequencing data from different sources resulting in a set of ~12,000 single cells. They classified the cells using at set of 45 marker genes into `r length(available_cell_types)` categories:
-`r length(cancer_cells)` cancer types (`r str_c(cancer_cells, collapse=", ")`),
-`r length(immune_cells)` immune cells (`r str_c(immune_cells, collapse=", ")`),
-`r length(other_cells)` other cells (`r str_c(other_cells, collapse=", ")`) and 
+### Define cell type environment
+```{r}
+cell_types = as.environment(list(
+  available=pData(single_cell_schelker$expr) %>% select(cell_type) %>% distinct() %>% pull(cell_type),
+  cancer=c("Melanoma cells", "Ovarian carcinoma cells"),
+  other=c("Cancer associated fibroblasts", "Endothelial cells")
+))
+cell_types$immune_cells = cell_types$available[!cell_types$available %in% c(cell_types$cancer, cell_types$other)]
+```
+
+In this study, we make use of the single cell dataset curated by [@Schelker2017]. They aggregated single cell sequencing data from different sources resulting in a set of ~12,000 single cells. They classified the cells using at set of 45 marker genes into `r length(cell_types$available)` categories:
+`r length(cell_types$cancer)` cancer types (`r str_c(cell_types$cancer, collapse=", ")`),
+`r length(cell_types$immune)` immune cells (`r str_c(cell_types$immune, collapse=", ")`),
+`r length(cell_types$other)` other cells (`r str_c(cell_types$other, collapse=", ")`) and 
 *Unknown cells* which could not have been classified unambiguously. 
 
 Unknown cells are excluded from the downstream analysis. 
 
 Table: the ~12,000 samples by cell type
 ```{r, echo=FALSE}
-pData(single_cell_schelker) %>% group_by(cell_type) %>% count() %>% knitr::kable()
+pData(single_cell_schelker$expr) %>% group_by(cell_type) %>% count() %>% knitr::kable()
 ```
 
 
 ```{r, echo=FALSE, fig.width=10, fig.height=10, fig.cap="tSNE-clustering of the ~12000 single cells from [@Schelker2017]. "}
-pData(single_cell_schelker) %>% 
+pData(single_cell_schelker$expr) %>% 
   ggplot(aes(x=tsneX1, y=tsneX2, colour=cell_type)) +
            geom_point(size=1) + 
            theme(legend.position="bottom")
 ```
+
+## Immune cell bulk reference samples (quanTIseq training data)
+```{r}
+immune_cell_reference = new.env()
+immune_cell_reference$tidy = read_tsv("../data/immune_cell_reference_profiles/immune_cell_reference_tidy.tsv")
+
+immune_cell_reference$sample_description = immune_cell_reference$tidy %>% select(sample, CellType, Study) %>% distinct()
+
+immune_cell_reference$expr = immune_cell_reference$tidy %>%
+  select(sample, hgnc_id, TPM) %>%
+  group_by(sample, hgnc_id) %>%
+  summarise(TPM = sum(TPM)) %>%
+  spread(sample, TPM)
+
+immune_cell_reference$expr_mat = immune_cell_reference$expr %>%
+  as.data.frame() %>%
+  column_to_rownames("hgnc_id") %>% 
+  as.matrix() %>% 
+  .[, immune_cell_reference$sample_description$sample]
+```
+
+
 
 ## Validation data (RNAseq + matched gold standard)
 e.g. IHC, Flow cytometry, single cell

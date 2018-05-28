@@ -9,11 +9,9 @@ In this chapter, we will use single cell data from [@Schelker2017] to create sim
 
 
 ```{r, cache=TRUE, message=FALSE}
-immune_cell_samples = read_tsv("../data/immune_cell_reference_profiles/immune_cell_reference_tidy.tsv")
+sample_description = immune_cell_reference %>% select(sample, CellType, Study) %>% distinct()
 
-sample_description = immune_cell_samples %>% select(sample, CellType, Study) %>% distinct()
-
-expr = immune_cell_samples %>%
+expr = immune_cell_reference %>%
   select(sample, hgnc_id, TPM) %>%
   group_by(sample, hgnc_id) %>%
   summarise(TPM = sum(TPM)) %>%

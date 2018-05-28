@@ -152,7 +152,7 @@ cell_fractions = rbind(cell_fractions, cell_fractions, cell_fractions)
 colnames(cell_fractions) = cell_types$immune_cells
 rownames(cell_fractions) = unlist(lapply(1:3, function(i) {paste0(cell_types$immune_cells, "_", i)}))
 
-simulated_bulk = make_bulk_eset(eset=single_cell_schelker$expr, cell_fractions = cell_fractions, n_cells=500) %>% exprs() 
+simulated_bulk = make_bulk_eset(eset=single_cell_schelker$eset, cell_fractions = cell_fractions, n_cells=500) %>% exprs() 
 simulated_bulk = log2(simulated_bulk+1)
 colnames(simulated_bulk) = rownames(cell_fractions)
 

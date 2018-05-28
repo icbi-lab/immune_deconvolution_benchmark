@@ -44,15 +44,15 @@ load("../data/single_cell_schelker/single_cell_schelker.rda", envir=single_cell_
 Data will be stored in own environment. 
 ```{r, include=FALSE}
 valid_cells = which(pData(single_cell_schelker$single_cell_schelker)$cell_type!="Unknown")
-single_cell_schelker$expr = single_cell_schelker$single_cell_schelker[,valid_cells]
-assert_that(!any(pData(single_cell_schelker$expr)$cell_type == "Unknown"))
+single_cell_schelker$eset = single_cell_schelker$single_cell_schelker[,valid_cells]
+assert_that(!any(pData(single_cell_schelker$eset)$cell_type == "Unknown"))
 single_cell_schelker$single_cell_schelker = NULL
 ```
 
 ### Define cell type environment
 ```{r}
 cell_types = as.environment(list(
-  available=pData(single_cell_schelker$expr) %>% select(cell_type) %>% distinct() %>% pull(cell_type),
+  available=pData(single_cell_schelker$eset) %>% select(cell_type) %>% distinct() %>% pull(cell_type),
   cancer=c("Melanoma cells", "Ovarian carcinoma cells"),
   other=c("Cancer associated fibroblasts", "Endothelial cells")
 ))
@@ -69,12 +69,12 @@ Unknown cells are excluded from the downstream analysis.
 
 Table: the ~12,000 samples by cell type
 ```{r, echo=FALSE}
-pData(single_cell_schelker$expr) %>% group_by(cell_type) %>% count() %>% knitr::kable()
+pData(single_cell_schelker$eset) %>% group_by(cell_type) %>% count() %>% knitr::kable()
 ```
 
 
 ```{r, echo=FALSE, fig.width=10, fig.height=10, fig.cap="tSNE-clustering of the ~12000 single cells from [@Schelker2017]. "}
-pData(single_cell_schelker$expr) %>% 
+pData(single_cell_schelker$eset) %>% 
   ggplot(aes(x=tsneX1, y=tsneX2, colour=cell_type)) +
            geom_point(size=1) + 
            theme(legend.position="bottom")
@@ -145,7 +145,7 @@ ovarian_bulk_mat = ovarian_bulk %>%
 
 Load the 'ground truth'
 ```{r}
-true_cell_count = pData(single_cell_schelker2) %>% 
+true_cell_count = pData(single_cell_schelker$eset) %>% 
   filter(source == "ascites", donor %in% colnames(ovarian_bulk)) %>% 
   group_by(donor, cell_type) %>% 
   count() %>% 

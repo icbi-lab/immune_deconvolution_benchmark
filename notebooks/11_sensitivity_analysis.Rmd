@@ -1,0 +1,46 @@
+# Sensitivity analysis
+How many cells do we need for a method to detect immune cell infiltration?
+
+```{r}
+infiltration_cell_type = "CD8+ T cells"
+
+background_cells = c(cell_types$cancer, cell_types$other)
+n_background_cells = single_cell_schelker$eset %>% pData() %>%
+  filter(cell_type %in% background_cells) %>%
+  group_by(cell_type) %>%
+  count() %>% 
+  {'names<-'(.$n, .$cell_type)}
+
+n_immune_cells = rep(c(0:10
+                     , seq(15, 50, 5)
+                     , seq(60, 100, 10)
+                     , seq(200, 1000, 100)
+                     ), 5)
+expr_mat = lapply(n_immune_cells, function(n) {
+  cell_n =  c(n_background_cells, "CD8+ T cells"=n)
+  cell_frac = cell_n/sum(cell_n)
+  make_random_bulk(eset=single_cell_schelker$eset, cell_fractions = cell_frac, n_cells = sum(cell_n))
+}) %>% bind_cols() %>% as.matrix()
+
+rownames(expr_mat) = rownames(single_cell_schelker$eset %>% exprs())
+
+
+deconv_res = deconvolute(expr_mat, "cibersort_abs")
+
+deconv_res2 = deconv_res %>% as.data.frame() %>% column_to_rownames("cell_type") %>% t() %>% as.data.frame()
+deconv_res2$n_cells = as.factor(n_immune_cells) 
+deconv_res2 %<>% gather(cell_type, estimate, -n_cells)
+
+deconv_res2 %>% 
+  # filter(cell_type %in% c("T CD8+ (CTL)", "T CD4+ (naïve)")) %>%
+  group_by(cell_type, n_cells) %>% 
+  summarise_each(funs(mean, sd)) %>%
+  ggplot(aes(x=n_cells, y=mean, colour=cell_type)) +
+    geom_line() + 
+    geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd)) + 
+    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position="top")
+
+
+```
+

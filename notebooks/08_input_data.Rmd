@@ -16,7 +16,8 @@ pacman::p_load(knitr,
                BioQC,
                readxl,
                ggpubr,
-               stringr)
+               stringr,
+               DBI)
 
 devtools::load_all("/storage/home/sturm/projects/immune_deconvolution_methods")
 set_cibersort_binary("../lib/CIBERSORT/CIBERSORT.R")
@@ -29,27 +30,32 @@ color_scales = sapply(excel_sheets(color_file), function(sheet) {
   names(colors) = tbl$value
   colors
 })
+
+tcga_db = dbConnect(RSQLite::SQLite(), "/db/tcga.sqlite", flags = RSQLite::SQLITE_RO)
 ```
 
 
 # Input data
 
+In this chapter, we load and preprocess the different input datasets. 
+We use a dedicated environment for each dataset in order not to trash the global namespace. 
+
 ## Single cell data for simulated mixtures
 
 ```{r}
+tmp_env = new.env()
+with(tmp_env, {
+  load("../data/single_cell_schelker/single_cell_schelker.rda")
+  valid_cells = which(pData(single_cell_schelker)$cell_type!="Unknown")
+  eset = single_cell_schelker[,valid_cells]
+  assert_that(!any(pData(eset)$cell_type == "Unknown"))
+})
 single_cell_schelker = new.env()
-load("../data/single_cell_schelker/single_cell_schelker.rda", envir=single_cell_schelker)
+single_cell_schelker$eset = tmp_env$eset
+
 ```
 
-Data will be stored in own environment. 
-```{r, include=FALSE}
-valid_cells = which(pData(single_cell_schelker$single_cell_schelker)$cell_type!="Unknown")
-single_cell_schelker$eset = single_cell_schelker$single_cell_schelker[,valid_cells]
-assert_that(!any(pData(single_cell_schelker$eset)$cell_type == "Unknown"))
-single_cell_schelker$single_cell_schelker = NULL
-```
 
-### Define cell type environment
 ```{r}
 cell_types = as.environment(list(
   available=pData(single_cell_schelker$eset) %>% select(cell_type) %>% distinct() %>% pull(cell_type),
@@ -83,21 +89,24 @@ pData(single_cell_schelker$eset) %>%
 ## Immune cell bulk reference samples (quanTIseq training data)
 ```{r}
 immune_cell_reference = new.env()
-immune_cell_reference$tidy = read_tsv("../data/immune_cell_reference_profiles/immune_cell_reference_tidy.tsv")
+with(immune_cell_reference, {
+  tidy = read_tsv("../data/immune_cell_reference_profiles/immune_cell_reference_tidy.tsv")
 
-immune_cell_reference$sample_description = immune_cell_reference$tidy %>% select(sample, CellType, Study) %>% distinct()
+  sample_description = tidy %>% select(sample, CellType, Study) %>% distinct()
 
-immune_cell_reference$expr = immune_cell_reference$tidy %>%
+  expr = tidy %>%
   select(sample, hgnc_id, TPM) %>%
   group_by(sample, hgnc_id) %>%
   summarise(TPM = sum(TPM)) %>%
   spread(sample, TPM)
 
-immune_cell_reference$expr_mat = immune_cell_reference$expr %>%
+  expr_mat = expr %>%
   as.data.frame() %>%
   column_to_rownames("hgnc_id") %>% 
   as.matrix() %>% 
-  .[, immune_cell_reference$sample_description$sample]
+  .[, sample_description$sample]
+})
+
 ```
 
 
@@ -106,83 +115,103 @@ immune_cell_reference$expr_mat = immune_cell_reference$expr %>%
 e.g. IHC, Flow cytometry, single cell
 
 ```{r}
-datasets = read_excel("../tables/validation-datasets.xlsx")
-kable(datasets)
-
+validation_datasets = read_excel("../tables/validation-datasets.xlsx")
+kable(validation_datasets)
 ```
 
 ### Hoeck data
 8 PBMC, RNAseq+flow cytometry
 ```{r}
-load("../data/hoeck/HoekPBMC_mixture.RData")
-hoeck_mixture = mix.mat
-load("../data/hoeck/HoekPBMC_gtruth.RData")
-hoeck_ref = RefData
+tmp_env = new.env()
+with(tmp_env, {
+  load("../data/hoeck/HoekPBMC_mixture.RData")
+  load("../data/hoeck/HoekPBMC_gtruth.RData")
+})
+hoeck = new.env() 
+hoeck$mixture = tmp_env$mix.mat
+hoeck$ref = tmp_env$RefData
 ```
 
 
-### Schelker data
-Load the data and merge replicates
+### Schelker data 
+Load the data and merge replicates.
+3 ovarian cancer ascites samplese which have matched flow cytometry/single cell/bulk data. 
 ```{r}
-ovarian_bulk_replicates = read_xls("../data/single_cell_schelker/ascites_bulk_samples.xls") 
+schelker_ovarian = new.env()
+with(schelker_ovarian, {
+  bulk_replicates = read_xls("../data/single_cell_schelker/ascites_bulk_samples.xls") 
 
-samples = list("7873M"=c("ascites_7873_1", "ascites_7873_2"),
-               "7882M"=c("ascites_7882_1", "ascites_7882_2"),
-               "7892M"=c("ascites_7892_1", "ascites_7892_2"))
+  samples = list("7873M"=c("ascites_7873_1", "ascites_7873_2"),
+                 "7882M"=c("ascites_7882_1", "ascites_7882_2"),
+                 "7892M"=c("ascites_7892_1", "ascites_7892_2"))
+  
+  bulk = lapply(samples, function(cols) {
+    apply(bulk_replicates[,cols], 1, mean)
+  }) %>% bind_cols() 
+  
+  bulk %<>% 
+    mutate(gene_symbol = bulk_replicates$Row)
+  
+  bulk_mat = bulk %>%
+    as.data.frame() %>%
+    column_to_rownames("gene_symbol") %>%
+    as.matrix()
+  
+  # Load the ground truth
+  
+  true_cell_count = pData(single_cell_schelker$eset) %>% 
+    filter(source == "ascites", donor %in% colnames(bulk)) %>% 
+    group_by(donor, cell_type) %>% 
+    count() %>% 
+    rename(cell_count=n) %>% 
+    group_by(donor) %>%
+    mutate(true_fraction=cell_count/sum(cell_count)) %>% 
+    arrange(cell_type, donor)
 
-ovarian_bulk = lapply(samples, function(cols) {
-  apply(ovarian_bulk_replicates[,cols], 1, mean)
-}) %>% bind_cols() 
+  
 
-ovarian_bulk %<>% 
-  mutate(gene_symbol = ovarian_bulk_replicates$Row)
+   ref = true_cell_count %>% select(sample=donor, cell_type, true_fraction)
+})
 
-ovarian_bulk_mat = ovarian_bulk %>%
-  as.data.frame() %>%
-  column_to_rownames("gene_symbol") %>%
-  as.matrix()
 ```
 
-Load the 'ground truth'
+Single cell count for the 3 samples
 ```{r}
-true_cell_count = pData(single_cell_schelker$eset) %>% 
-  filter(source == "ascites", donor %in% colnames(ovarian_bulk)) %>% 
-  group_by(donor, cell_type) %>% 
-  count() %>% 
-  rename(cell_count=n) %>% 
-  group_by(donor) %>%
-  mutate(true_fraction=cell_count/sum(cell_count)) %>% 
-  arrange(cell_type, donor)
 
-total_cells = true_cell_count %>% 
-  group_by(donor) %>%
-  summarise(sum(cell_count))
+schelker_ovarian$true_cell_count %>% 
+    group_by(donor) %>%
+    summarise(sum(cell_count))
 
-total_cells
-true_cell_count
-
-schelker_ref = true_cell_count %>% select(sample=donor, cell_type, true_fraction)
+schelker_ovarian$true_cell_count
 
 ```
 
 
 ### Racle data
-```{r}
-ensg_hgnc = read_tsv("../data/ensemble_hgnc.txt") %>% 
+4 metastatic melanoma, matched bulkRNAseq with FlowCytometry. 
+```{r, message=FALSE}
+tmp_env = new.env()
+with(tmp_env, {
+  ensg_hgnc = read_tsv("../data/ensemble_hgnc.txt") %>% 
   rename(gene_id = `Gene stable ID`, hgnc_symbol=`HGNC symbol`)
-racle_cyto = read_excel("../data/racle/racle2017_flow_cytometry.xlsx")
-racle_files = list.files("../data/racle/GSE93722_RAW/", full.names = TRUE)
-racle_identifiers = str_extract(racle_files, "LAU\\d+")
-racle_expression_raw = lapply(list.files("../data/racle/GSE93722_RAW/", full.names = TRUE), read_tsv) 
-gene_ids = racle_expression_raw[[1]]$gene_id
-racle_tpm = sapply(racle_expression_raw, function(df) {pull(df, "TPM")}) %>% as.tibble()
-colnames(racle_tpm) = racle_identifiers
-racle_tpm$gene_id = gene_ids
-racle_expression = racle_tpm %>%
-  inner_join(ensg_hgnc) %>%
-  filter(!is.na(hgnc_symbol)) %>%
-  select(-gene_id) %>%
-  group_by(hgnc_symbol) %>%
-  summarise_all(sum)
+  racle_cyto = read_excel("../data/racle/racle2017_flow_cytometry.xlsx")
+  racle_files = list.files("../data/racle/GSE93722_RAW/", full.names = TRUE)
+  racle_identifiers = str_extract(racle_files, "LAU\\d+")
+  racle_expression_raw = lapply(list.files("../data/racle/GSE93722_RAW/", full.names = TRUE), read_tsv) 
+  gene_ids = racle_expression_raw[[1]]$gene_id
+  racle_tpm = sapply(racle_expression_raw, function(df) {pull(df, "TPM")}) %>% as.tibble()
+  colnames(racle_tpm) = racle_identifiers
+  racle_tpm$gene_id = gene_ids
+  racle_expression = racle_tpm %>%
+    inner_join(ensg_hgnc) %>%
+    filter(!is.na(hgnc_symbol)) %>%
+    select(-gene_id) %>%
+    group_by(hgnc_symbol) %>%
+    summarise_all(sum)
+})
+
+racle = new.env()
+racle$expr = tmp_env$racle_expression
+
 ```
 

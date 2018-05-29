@@ -7,7 +7,7 @@ output: html_document
 # Validitiy of single cell RNA-seq as reference
 
 ## Validity of single cell sequencing for counting immune cells
-* Schelker et al have shown that measurements from single cell sequencing are highly consistent with flow cytometry. 
+* @Schelker2017 have shown that measurements from single cell sequencing are highly consistent with flow cytometry. 
 
 ## Validity of simulated bulk tissues from single cell sequencing data
 We use simulated samples from single cell gene expression data. Does this approach make sense after all? 
@@ -20,82 +20,21 @@ To test, we try:
 * correlation of the simulated gene expression with bulk gene expression from the same tissue. 
 
 
+### Compare simululated samples to bulk samples
 
+Simulate bulk samples by summing up the expression values of all cells. 
 ```{r, cache=TRUE}
-ovarian_bulk_replicates = read_xls("../data/single_cell_schelker/ascites_bulk_samples.xls") 
-
-samples = list("7873M"=c("ascites_7873_1", "ascites_7873_2"),
-               "7882M"=c("ascites_7882_1", "ascites_7882_2"),
-               "7892M"=c("ascites_7892_1", "ascites_7892_2"))
-
-ovarian_bulk = lapply(samples, function(cols) {
-  apply(ovarian_bulk_replicates[,cols], 1, mean)
-}) %>% bind_cols() 
-
-ovarian_bulk %<>% 
-  mutate(gene_symbol = ovarian_bulk_replicates$Row)
-
-ovarian_bulk_mat = ovarian_bulk %>%
-  as.data.frame() %>%
-  column_to_rownames("gene_symbol") %>%
-  as.matrix()
-```
-
-Load the 'ground truth'
-```{r, cache=TRUE}
-true_cell_count = pData(single_cell_schelker2) %>% 
-  filter(source == "ascites", donor %in% colnames(ovarian_bulk)) %>% 
-  group_by(donor, cell_type) %>% 
-  count() %>% 
-  rename(cell_count=n) %>% 
-  group_by(donor) %>%
-  mutate(true_fraction=cell_count/sum(cell_count)) %>% 
-  arrange(cell_type, donor)
-
-total_cells = true_cell_count %>% 
-  group_by(donor) %>%
-  summarise(sum(cell_count))
-
-total_cells
-true_cell_count
-
-```
-
-### Compare simululated samplese to bulk samples
-
-randomized: 
-
-```{r, cache=TRUE}
-cell_fractions = true_cell_count %>%
-  select(donor, cell_type, true_fraction) %>%
-  complete(donor, cell_type=available_cell_types) %>%
-  mutate(true_fraction=ifelse(is.na(true_fraction), 0, true_fraction)) %>%
-  spread(cell_type, true_fraction) %>%
-  as.data.frame() %>%
-  column_to_rownames("donor")
-
-bulk_eset_rand = make_bulk_eset(eset=single_cell_schelker2, cell_fractions = cell_fractions, n_cells=500)
-bulk_rand = eset_to_matrix(bulk_eset_rand, column = "gene_symbol")
-colnames(bulk_rand) = names(samples)
-
-```
-
-summing up all cells: 
-```{r, cache=TRUE}
-bulk_sum = sapply(names(samples), function(donor) {
-  ind = pData(single_cell_schelker2)$donor == donor
-  # apply(exprs(single_cell_schelker2)[,ind], 1, function(x){quantile(x, c(.98))})
-  apply(exprs(single_cell_schelker2)[,ind], 1, sum)
+bulk_sum = sapply(colnames(schelker_ovarian$bulk_mat), function(donor) {
+  ind = pData(single_cell_schelker$eset)$donor == donor
+  apply(exprs(single_cell_schelker$eset)[,ind], 1, sum)
 })
 ```
 
-
 ```{r, cache=TRUE}
-genes = intersect(rownames(bulk_sum), ovarian_bulk$gene_symbol)
+genes = intersect(rownames(bulk_sum), schelker_ovarian$bulk$gene_symbol)
 
 expr_all = bind_rows(
-  ovarian_bulk  %>% mutate(source="bulk"),
-  bulk_rand %>% as_tibble(rownames="gene_symbol") %>% mutate(source="rand"),
+  schelker_ovarian$bulk  %>% mutate(source="bulk"),
   bulk_sum %>% as_tibble(rownames="gene_symbol") %>% mutate(source="sum")
 ) %>% 
   filter(gene_symbol %in% genes) %>%
@@ -115,7 +54,7 @@ expr_all %>%
 ### Compare the predicted fractions
 ```{r, cache=TRUE}
 all_results_bulk = lapply(immunedeconv::deconvolution_methods, function(method) {
-  deconvolute(ovarian_bulk_mat, method) %>%
+  deconvolute(schelker_ovarian$bulk_mat, method) %>%
     mutate(method=method) %>%
     mutate(source="bulk")
 })
@@ -168,50 +107,3 @@ common_symbols = intersect(rownames(simulated_bulk), rownames(immune_bulk))
 cor(simulated_bulk[common_symbols,], immune_bulk[common_symbols,]) %>% pheatmap()
 
 ```
-
-
-<!-- ### second dataset -->
-<!-- We have another dataset from Chung 2017 et al with single cell and matched bulk.  -->
-<!-- We do the same comparison.  -->
-
-
-<!-- ```{r, cache=TRUE} -->
-<!-- single_cell_chung = read_tsv("../data/single_cell_chung/GSE75688_GEO_processed_Breast_Cancer_raw_TPM_matrix.txt") -->
-
-<!-- single_cell_chung2 = single_cell_chung %>% -->
-<!--   gather(sample, tpm, -gene_id, -gene_name, -gene_type) %>% -->
-<!--   select(gene_name, sample, tpm) %>% -->
-<!--   group_by(sample, gene_name) %>% -->
-<!--   summarise(tpm=sum(tpm)) %>% -->
-<!--   ungroup() %>%  -->
-<!--   separate(sample, into=c("donor", "sample"), sep="_") -->
-<!-- ``` -->
-
-<!-- ### Overview of bulk samples -->
-<!-- ```{r} -->
-<!-- single_cell_chung2 %>%  -->
-<!--   select(donor, sample) %>% -->
-<!--   distinct() %>% -->
-<!--   filter(sample %in% c("Pooled", "Tumor")) -->
-<!-- ``` -->
-
-
-<!-- ### Separate bulk and single cells -->
-<!-- ```{r, cache=TRUE} -->
-<!-- chung_bulk = single_cell_chung2 %>% -->
-<!--   filter(sample %in% c("Pooled", "Tumor")) %>% -->
-<!--   filter(!(donor == "BC01" & sample == "Tumor")) %>% # remove double bulk reference for sample 1 %>% -->
-<!--   mutate(source="bulk") -->
-
-<!-- chung_sum = single_cell_chung2 %>% -->
-<!--   filter(!sample %in% c("Pooled", "Tumor")) %>%  -->
-<!--   group_by(donor, gene_name) %>% -->
-<!--   summarise(tpm = sum(tpm)) %>% -->
-<!--   ungroup() %>%  -->
-<!--   mutate(source="sum") -->
-
-<!-- genes = intersect(chung_bulk$gene_name %>% unique(), chung_sum$gene_name %>% unique()) -->
-
-<!-- all_results_chung = bind_rows(chung_bulk, chung_sum) %>% -->
-<!--   spread(source, tpm) -->
-<!-- ``` -->

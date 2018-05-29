@@ -87,7 +87,7 @@ pData(single_cell_schelker$eset) %>%
 ```
 
 ## Immune cell bulk reference samples (quanTIseq training data)
-```{r}
+```{r, message=FALSE}
 immune_cell_reference = new.env()
 with(immune_cell_reference, {
   tidy = read_tsv("../data/immune_cell_reference_profiles/immune_cell_reference_tidy.tsv")

@@ -17,7 +17,11 @@ pacman::p_load(knitr,
                readxl,
                ggpubr,
                stringr,
-               DBI)
+               DBI,
+               foreach,
+               doMC)
+
+registerDoMC(detectCores(logical=TRUE))
 
 devtools::load_all("/storage/home/sturm/projects/immune_deconvolution_methods")
 set_cibersort_binary("../lib/CIBERSORT/CIBERSORT.R")

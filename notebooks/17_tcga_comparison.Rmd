@@ -1,0 +1,17 @@
+# Correlation of methods across TCGA samples. 
+
+```{r, fig.width=12, fig.height=12, cache=TRUE}
+tcga_infiltration = tbl(tcga_db, "infiltration") %>%
+  collect() %>% 
+  mutate(method_cell_type = paste0(cell_type, " [", method, "]")) %>%
+  select(sample, method_cell_type, estimate) %>%
+  spread(method_cell_type, estimate)
+
+tcga_infil_mat = tcga_infiltration %>%
+  select(-sample) %>% 
+  as.matrix()
+
+tcga_cor = cor(tcga_infil_mat)
+
+pheatmap(tcga_cor, clustering_distance_rows = "correlation", clustering_distance_cols = "correlation")
+```

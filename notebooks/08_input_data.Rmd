@@ -14,7 +14,8 @@ pacman::p_load(knitr,
                stringr,
                DBI,
                foreach,
-               doMC)
+               doMC,
+               data.tree)
 
 registerDoMC(detectCores(logical=TRUE))
 
@@ -39,14 +40,39 @@ tcga_db = dbConnect(RSQLite::SQLite(), "/db/tcga.sqlite", flags = RSQLite::SQLIT
 In this chapter, we load and preprocess the different input datasets. 
 We use a dedicated environment for each dataset in order not to trash the global namespace. 
 
+
+## cell type hierarchy
+We use a hierachy of immune cell types to map the cell types between different datasets. 
+Here is the hierachy visualized: 
+
+```{r hierarchy, fig.height=8, fig.width=14}
+cell_type_hierarchy = new.env()
+with(cell_type_hierarchy, {
+  adj_list = read_excel("../tables/cell_type_mapping2.xlsx", sheet = "controlled_vocabulary") %>% select(parent, cell_type)
+  tree = FromDataFrameNetwork(adj_list %>% as.data.frame())
+  SetGraphStyle(tree, rankdir = "TB")
+  SetEdgeStyle(tree, arrowhead = "vee", color = "grey35", penwidth = 2)
+  SetNodeStyle(tree, style = "filled,rounded", shape = "box", fillcolor = "GreenYellow", 
+              fontname = "helvetica", tooltip = GetDefaultTooltip, color="black")
+  plot(tree)
+})
+
+
+```
+
+
 ## Single cell data for simulated mixtures
 
-```{r}
+```{r single_cell_schelker, message=FALSE, cache=TRUE}
 tmp_env = new.env()
 with(tmp_env, {
   load("../data/single_cell_schelker/single_cell_schelker.rda")
+  # symbol_remap = read_tsv("../data/single_cell_schelker/symbol_checker.tsv") %>%
+  #   as.data.frame() %>%
+  #   column_to_rownames("Input")
   valid_cells = which(pData(single_cell_schelker)$cell_type!="Unknown")
   eset = single_cell_schelker[,valid_cells]
+  # rownames(eset) = symbol_remap[,rownames(eset)]$`Approved symbol`
   assert_that(!any(pData(eset)$cell_type == "Unknown"))
 })
 single_cell_schelker = new.env()

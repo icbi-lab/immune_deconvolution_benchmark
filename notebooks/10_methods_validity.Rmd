@@ -1,9 +1,3 @@
----
-title: "Untitled"
-output: html_document
----
-
-
 # Validitiy of single cell RNA-seq as reference
 
 ## Validity of single cell sequencing for counting immune cells
@@ -26,7 +20,7 @@ Simulate bulk samples by summing up the expression values of all cells.
 ```{r, cache=TRUE}
 bulk_sum = sapply(colnames(schelker_ovarian$bulk_mat), function(donor) {
   ind = pData(single_cell_schelker$eset)$donor == donor
-  apply(exprs(single_cell_schelker$eset)[,ind], 1, sum)
+  apply(exprs(single_cell_schelker$eset)[,ind], 1, mean)
 })
 ```
 
@@ -35,7 +29,7 @@ genes = intersect(rownames(bulk_sum), schelker_ovarian$bulk$gene_symbol)
 
 expr_all = bind_rows(
   schelker_ovarian$bulk  %>% mutate(source="bulk"),
-  bulk_sum %>% as_tibble(rownames="gene_symbol") %>% mutate(source="sum")
+  bulk_sum %>% as_tibble(rownames="gene_symbol") %>% mutate(source="mean")
 ) %>% 
   filter(gene_symbol %in% genes) %>%
   gather(sample, tpm, -gene_symbol, -source) %>%
@@ -45,9 +39,9 @@ expr_all = bind_rows(
 
 ```{r, fig.width=16, fig.height=8}
 expr_all %>%
-  mutate(bulk=log2(bulk+1), sum=log2(sum+1)) %>%
-  ggplot(aes(x=bulk, y=sum)) + geom_point() + stat_cor() + facet_wrap(~sample) + 
-  geom_abline(slope=1, intercept = 0, col="red")
+  mutate(bulk=log2(bulk+1), mean=log2(mean+1)) %>%
+  ggplot(aes(x=bulk, y=mean)) + geom_point() + stat_cor() + facet_wrap(~sample) + 
+  geom_smooth(method = lm)
 
 ```
 
@@ -82,7 +76,7 @@ all_results %>%
 
 
 ## Correlated simulated samples with bulk of the same tissue. 
-```{r, fig.width=8, fig.height=8}
+```{r, fig.width=8, fig.height=8, cache=TRUE}
 # immune_cell_reference
 # immune_cell_expr_mat
 
@@ -91,7 +85,7 @@ cell_fractions = rbind(cell_fractions, cell_fractions, cell_fractions)
 colnames(cell_fractions) = cell_types$immune_cells
 rownames(cell_fractions) = unlist(lapply(1:3, function(i) {paste0(cell_types$immune_cells, "_", i)}))
 
-simulated_bulk = make_bulk_eset(eset=single_cell_schelker$eset, cell_fractions = cell_fractions, n_cells=500) %>% exprs() 
+simulated_bulk = make_bulk_eset(eset=single_cell_schelker$eset, cell_fractions = cell_fractions, n_cells=500, combine=sum) %>% exprs() 
 simulated_bulk = log2(simulated_bulk+1)
 colnames(simulated_bulk) = rownames(cell_fractions)
 

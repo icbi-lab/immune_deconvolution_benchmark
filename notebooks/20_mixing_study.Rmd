@@ -1,8 +1,3 @@
----
-title: "Mixing study"
-output: html_notebook
----
-
 # Mixing study
 
 In this chapter, we will use single cell data from [@Schelker2017] to create simulated bulk RNAseq samples 
@@ -12,7 +7,7 @@ of which we know the true cell proportions. We futher use these samples to bench
 To obtain representatitive simulated samples, we are interested in the average fraction of tumour cells vs immune cells in a mixture. 
 
 ```{r}
-cell_type_table = pData(single_cell_schelker2) %>%
+cell_type_table = pData(single_cell_schelker$eset) %>%
   filter(source %in% c("melanoma", "ascites")) %>%
   mutate(sample=paste(source, donor, sep="_")) %>% 
   group_by(source, sample, cell_type) %>% 
@@ -39,13 +34,11 @@ The fractions of a sample are randomly assigned in the following procedure:
 
 1. Draw a random tumour cell content from the distribution fitted above
 2. The first half of the samples will use melanoma cells, the second half ovarian cancer cells. 
-3. Assign the remaining fraction (=not cancer cells)  randomly to the remaining cell types (`r available_cell_types`)
+3. Assign the remaining fraction (=not cancer cells)  randomly to the remaining cell types (`r cell_types$available`)
 
 ```{r}
 set.seed(42)
 
-cancer_cells = c("Melanoma cells", "Ovarian carcinoma cells")
-immune_cells = available_cell_types[!(available_cell_types %in% cancer_cells)]
 is_melanoma = c(rep(TRUE, 50), rep(FALSE, 50))
 
 cell_fractions = lapply(is_melanoma, function(melanoma) {
@@ -59,13 +52,13 @@ cell_fractions = lapply(is_melanoma, function(melanoma) {
   } else {
     cancer_fractions = list(0, cancer_fraction)
   }
-  names(cancer_fractions) = cancer_cells
+  names(cancer_fractions) = cell_types$cancer
   
   # compute random fractions for other cells
   remaining_fraction = 1 - cancer_fraction
-  rnd = sample(0:100, length(immune_cells), TRUE)
+  rnd = sample(0:100, length(cell_types$immune_cells), TRUE)
   tmp_fractions = (remaining_fraction * rnd) / sum(rnd)
-  names(tmp_fractions) = immune_cells
+  names(tmp_fractions) = cell_types$immune_cells
   
   c(cancer_fractions, tmp_fractions)
 }) %>% bind_rows()
@@ -76,7 +69,7 @@ testthat::test_that("all fractions sum up to 1", expect_equal(apply(cell_fractio
 
 ```{r, cache=TRUE}
 set.seed(42)
-bulk_eset = make_bulk_eset(eset=single_cell_schelker2, cell_fractions = cell_fractions, n_cells=500)
+bulk_eset = make_bulk_eset(eset=single_cell_schelker$eset, cell_fractions = cell_fractions, n_cells=500)
 ```
 
 

@@ -1,8 +1,3 @@
----
-title: "Materials and Methods"
-output: html_notebook
----
-
 ```{r setup, include=FALSE}
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(knitr,
@@ -91,7 +86,7 @@ pData(single_cell_schelker$eset) %>%
 ```
 
 ## Immune cell bulk reference samples (quanTIseq training data)
-```{r, message=FALSE}
+```{r, message=FALSE, cache=TRUE}
 immune_cell_reference = new.env()
 with(immune_cell_reference, {
   tidy = read_tsv("../data/immune_cell_reference_profiles/immune_cell_reference_tidy.tsv")
@@ -132,7 +127,7 @@ with(tmp_env, {
   load("../data/hoeck/HoekPBMC_gtruth.RData")
 })
 hoeck = new.env() 
-hoeck$mixture = tmp_env$mix.mat
+hoeck$expr_mat = tmp_env$mix.mat
 hoeck$ref = tmp_env$RefData
 ```
 
@@ -183,10 +178,11 @@ Single cell count for the 3 samples
 ```{r}
 
 schelker_ovarian$true_cell_count %>% 
-    group_by(donor) %>%
-    summarise(sum(cell_count))
+  group_by(donor) %>%
+  summarise(sum(cell_count)) %>%
+  kable()
 
-schelker_ovarian$true_cell_count
+schelker_ovarian$true_cell_count %>% kable()
 
 ```
 
@@ -216,6 +212,8 @@ with(tmp_env, {
 
 racle = new.env()
 racle$expr = tmp_env$racle_expression
+racle$expr_mat = racle$expr %>% as.data.frame() %>% column_to_rownames("hgnc_symbol") %>% as.matrix()
+racle$ref = tmp_env$racle_cyto
 
 ```
 

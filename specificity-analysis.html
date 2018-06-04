@@ -32,8 +32,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-<link rel="prev" href="materials-and-methods.html">
-
+<link rel="prev" href="sensitivity-analysis.html">
+<link rel="next" href="correlation-of-methods-across-tcga-samples-.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -174,40 +174,110 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="references" class="section level1">
-<h1><span class="header-section-number">11</span> References</h1>
+<div id="specificity-analysis" class="section level1">
+<h1><span class="header-section-number">5</span> Specificity Analysis</h1>
+<div id="create-datasets" class="section level2">
+<h2><span class="header-section-number">5.1</span> Create datasets</h2>
+<ul>
+<li>immune reference: bulk RNA seq profiles from sorted immune cells (=quanTIseq training data)</li>
+<li>artificial bulk: simulated bulk RNA seq profiles from single cells (e.g. only T cells)</li>
+<li>artificial bulk with background: simulated bulk RNA seq profiles from single cells with ~80% other cells (cancer, fibroblasts, …)</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">background_cells =<span class="st"> </span><span class="kw">c</span>(cell_types<span class="op">$</span>cancer, cell_types<span class="op">$</span>other)
 
-<div id="refs" class="references">
-<div>
-<p>Aaron M. Newman, Chih Long Liu, Michael R. Green, Andrew J. Gentles, Weiguo Feng, Yue Xu, Chuong D. Hoang, Maximilian Diehn, Ash A., and Alizadeh. 2016. “Robust enumeration of cell subsets from tissue expression profiles.” <em>Nat Methods.</em> 21 (3): 193–201. doi:<a href="https://doi.org/10.1016/j.molmed.2014.11.008.Mitochondria">10.1016/j.molmed.2014.11.008.Mitochondria</a>.</p>
+n_background_cells =<span class="st"> </span>single_cell_schelker<span class="op">$</span>eset <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">pData</span>() <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">filter</span>(cell_type <span class="op">%in%</span><span class="st"> </span>background_cells) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">group_by</span>(cell_type) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">count</span>() <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">    </span>{<span class="st">&#39;names&lt;-&#39;</span>(.<span class="op">$</span>n, .<span class="op">$</span>cell_type)}
+
+frac_background_cells =<span class="st"> </span>n_background_cells<span class="op">/</span><span class="kw">sum</span>(n_background_cells)
+
+
+sample_types =<span class="st"> </span><span class="kw">rep</span>(cell_types<span class="op">$</span>immune_cells, <span class="dv">5</span>)
+## make artificial bulk sample
+artificial_bulk =<span class="st"> </span><span class="kw">lapply</span>(sample_types, <span class="cf">function</span>(cell_type) {
+  cell_frac =<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>.)
+  <span class="kw">names</span>(cell_frac) =<span class="st"> </span>cell_type
+  <span class="kw">make_random_bulk</span>(single_cell_schelker<span class="op">$</span>eset, cell_frac, <span class="dt">n_cells=</span><span class="dv">500</span>)
+}) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">bind_cols</span>() <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.matrix</span>()
+
+<span class="kw">rownames</span>(artificial_bulk) =<span class="st"> </span><span class="kw">rownames</span>(single_cell_schelker<span class="op">$</span>eset <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">exprs</span>())
+
+
+## make artificial bulk samples with background
+artificial_bulk_bg =<span class="st"> </span><span class="kw">lapply</span>(sample_types, <span class="cf">function</span>(cell_type) {
+  cell_frac =<span class="st"> </span><span class="kw">c</span>(.<span class="dv">3</span>, .<span class="dv">7</span><span class="op">*</span>frac_background_cells)
+  <span class="kw">names</span>(cell_frac) =<span class="st"> </span><span class="kw">c</span>(cell_type, <span class="kw">names</span>(frac_background_cells))
+  <span class="kw">make_random_bulk</span>(single_cell_schelker<span class="op">$</span>eset, cell_frac, <span class="dt">n_cells=</span><span class="dv">500</span>)
+}) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">bind_cols</span>() <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.matrix</span>()
+
+<span class="kw">rownames</span>(artificial_bulk_bg) =<span class="st"> </span><span class="kw">rownames</span>(single_cell_schelker<span class="op">$</span>eset <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">exprs</span>())</code></pre></div>
 </div>
-<div>
-<p>Aran, Dvir, Zicheng Hu, and Atul J Butte. 2017. “xCell: digitally portraying the tissue cellular heterogeneity landscape.” <em>Genome Biology</em> 18 (1): 220. doi:<a href="https://doi.org/10.1186/s13059-017-1349-1">10.1186/s13059-017-1349-1</a>.</p>
+<div id="run-the-deconvolution" class="section level2">
+<h2><span class="header-section-number">5.2</span> Run the deconvolution</h2>
+<p>We first run all methods that are integrated in the <code>immune_deconvolution_methods</code> are package automatically in a loop.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">datasets =<span class="st"> </span><span class="kw">list</span>(
+  <span class="dt">immune_reference =</span> immune_cell_reference<span class="op">$</span>expr_mat,
+  <span class="dt">artificial_bulk =</span> artificial_bulk,
+  <span class="dt">artificial_bulk_bg =</span> artificial_bulk_bg
+)
+dataset_gold_standard =<span class="st"> </span><span class="kw">list</span>(
+  <span class="dt">immune_reference =</span> immune_cell_reference<span class="op">$</span>sample_description <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">select</span>(sample, <span class="dt">true_cell_type=</span>CellType),
+  <span class="dt">artificial_bulk =</span> <span class="kw">tibble</span>(<span class="dt">sample=</span><span class="kw">colnames</span>(artificial_bulk), <span class="dt">true_cell_type=</span>sample_types),
+  <span class="dt">artificial_bulk_bg =</span> <span class="kw">tibble</span>(<span class="dt">sample=</span><span class="kw">colnames</span>(artificial_bulk), <span class="dt">true_cell_type=</span>sample_types)
+)
+
+all_results_file =<span class="st"> &quot;../results/specificity_analysis_res.rda&quot;</span>
+<span class="cf">if</span>(<span class="op">!</span><span class="kw">file.exists</span>(all_results_file)) {
+  all_results =<span class="st"> </span><span class="kw">foreach</span>(<span class="dt">dataset =</span> datasets, 
+                        <span class="dt">dataset_name =</span> <span class="kw">names</span>(datasets),
+                        <span class="dt">gold_standard =</span> dataset_gold_standard,
+                        <span class="dt">.combine=</span>bind_rows) <span class="op">%:%</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">foreach</span>(<span class="dt">method =</span> immunedeconv<span class="op">::</span>deconvolution_methods, <span class="dt">.combine=</span>bind_rows) <span class="op">%dopar%</span><span class="st"> </span>{
+      <span class="kw">print</span>(<span class="kw">sprintf</span>(<span class="st">&quot;Running %s...&quot;</span>, method))
+      <span class="kw">deconvolute</span>(dataset, method) <span class="op">%&gt;%</span>
+<span class="st">        </span><span class="kw">mutate</span>(<span class="dt">method=</span>method, <span class="dt">dataset=</span>dataset_name) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">        </span><span class="kw">gather</span>(sample, estimate, <span class="op">-</span>cell_type, <span class="op">-</span>method, <span class="op">-</span>dataset) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">        </span><span class="kw">inner_join</span>(gold_standard)
+    }
+  <span class="kw">save</span>(all_results, <span class="dt">file=</span>all_results_file)
+}
+<span class="kw">load</span>(all_results_file)</code></pre></div>
 </div>
-<div>
-<p>Avila Cobos, Francisco, Jo Vandesompele, Pieter Mestdagh, and Katleen De Preter. 2018. “Computational deconvolution of transcriptomics data from mixed cell populations.” <em>Bioinformatics</em>, January. doi:<a href="https://doi.org/10.1093/bioinformatics/bty019">10.1093/bioinformatics/bty019</a>.</p>
-</div>
-<div>
-<p>Becht, Etienne, Nicolas A. Giraldo, Laetitia Lacroix, Bénédicte Buttard, Nabila Elarouci, Florent Petitprez, Janick Selves, et al. 2016. “Estimating the population abundance of tissue-infiltrating immune and stromal cell populations using gene expression.” <em>Genome Biology</em> 17 (1). Genome Biology: 218. doi:<a href="https://doi.org/10.1186/s13059-016-1070-5">10.1186/s13059-016-1070-5</a>.</p>
-</div>
-<div>
-<p>Finotello, Francesca, and Zlatko Trajanoski. 2018. “Quantifying tumor-infiltrating immune cells from transcriptomics data.” <em>Cancer Immunology, Immunotherapy</em> 0. doi:<a href="https://doi.org/10.1007/s00262-018-2150-z">10.1007/s00262-018-2150-z</a>.</p>
-</div>
-<div>
-<p>Finotello, Francesca, Clemens Mayer, Christina Plattner, Gerhard Laschober, Dietmar Rieder, Hubert Hackl, Anne Krogsdam, et al. 2017. “quanTIseq: quantifying immune contexture of human tumors.” <em>bioRxiv</em>, November. Cold Spring Harbor Laboratory, 223180. doi:<a href="https://doi.org/10.1101/223180">10.1101/223180</a>.</p>
-</div>
-<div>
-<p>Li, Bo, Eric Severson, Jean-Christophe Pignon, Haoquan Zhao, Taiwen Li, Jesse Novak, Peng Jiang, et al. 2016. “Comprehensive analyses of tumor immunity: implications for cancer immunotherapy.” <em>Genome Biology</em> 17 (1): 174. doi:<a href="https://doi.org/10.1186/s13059-016-1028-7">10.1186/s13059-016-1028-7</a>.</p>
-</div>
-<div>
-<p>Newman, Aaron M., and Ash A. Alizadeh. 2016. “High-throughput genomic profiling of tumor-infiltrating leukocytes.” <em>Current Opinion in Immunology</em> 41 (August). Elsevier Ltd: 77–84. doi:<a href="https://doi.org/10.1016/j.coi.2016.06.006">10.1016/j.coi.2016.06.006</a>.</p>
-</div>
-<div>
-<p>Racle, Julien, Kaat de Jonge, Petra Baumgaertner, Daniel E Speiser, and David Gfeller. 2017. “Simultaneous enumeration of cancer and immune cell types from bulk tumor gene expression data.” <em>eLife</em> 6 (November). eLife Sciences Publications Limited: e26476. doi:<a href="https://doi.org/10.7554/eLife.26476">10.7554/eLife.26476</a>.</p>
-</div>
-<div>
-<p>Schelker, Max, Sonia Feau, Jinyan Du, Nav Ranu, Edda Klipp, Gavin MacBeath, Birgit Schoeberl, and Andreas Raue. 2017. “Estimation of immune cell content in tumour tissue using single-cell RNA-seq data.” <em>Nature Communications</em> 8 (1): 2032. doi:<a href="https://doi.org/10.1038/s41467-017-02289-3">10.1038/s41467-017-02289-3</a>.</p>
-</div>
+<div id="results" class="section level2">
+<h2><span class="header-section-number">5.3</span> Results</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">all_results <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>cell_type, <span class="dt">y=</span>estimate, <span class="dt">fill=</span>dataset)) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">geom_boxplot</span>(<span class="dt">position =</span> <span class="kw">position_dodge2</span>(<span class="dt">preserve =</span> <span class="st">&quot;total&quot;</span>)) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">facet_grid</span>(method<span class="op">~</span>true_cell_type, <span class="dt">scales=</span><span class="st">&quot;free_y&quot;</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">theme</span>(<span class="dt">axis.text.x=</span><span class="kw">element_text</span>(<span class="dt">angle =</span> <span class="dv">90</span>, <span class="dt">vjust =</span> <span class="fl">0.5</span>, <span class="dt">hjust=</span><span class="dv">1</span>)) </code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-20-1.png" width="2304" /></p>
+<!-- ### Calculate signal to noise ratio for each cell type -->
+<!-- ```{r} -->
+<!-- all_results_tidy %>% -->
+<!--   select(method, true_cell_type, signal, noise) %>% -->
+<!--   distinct() %>%  -->
+<!--   mutate(signal_to_noise = signal/(signal+noise)) %>%  -->
+<!--   ggplot(aes(x=method, y=signal_to_noise)) +  -->
+<!--     geom_boxplot(aes(fill=method), position = "dodge") +  -->
+<!--     facet_wrap(~true_cell_type) +  -->
+<!--     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) + -->
+<!--     scale_fill_manual(values=color_scales$methods) -->
+<!-- ``` -->
+<!-- ```{r} -->
+<!-- all_results_tidy %>% -->
+<!--   select(method, true_cell_type, abs_noise) %>% -->
+<!--   distinct() %>%  -->
+<!--   filter(method %in% c("xcell", "quantiseq", "epic", "cibersort")) %>%  -->
+<!--   ggplot(aes(x=method, y=abs_noise)) +  -->
+<!--     geom_boxplot(aes(fill=method), position="dodge") +  -->
+<!--     facet_wrap(~true_cell_type) +  -->
+<!--     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) + -->
+<!--     scale_fill_manual(values=color_scales$methods) -->
+<!-- ``` -->
+
 </div>
 </div>
             </section>
@@ -215,8 +285,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           </div>
         </div>
       </div>
-<a href="materials-and-methods.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-
+<a href="sensitivity-analysis.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="correlation-of-methods-across-tcga-samples-.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>

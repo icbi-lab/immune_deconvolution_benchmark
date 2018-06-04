@@ -25,7 +25,7 @@
 <meta name="author" content="Gregor Sturm">
 
 
-<meta name="date" content="2018-05-08">
+<meta name="date" content="2018-06-04">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -47,6 +47,10 @@
 
 
 
+<script src="libs/htmlwidgets-1.2/htmlwidgets.js"></script>
+<script src="libs/viz-0.3/viz.js"></script>
+<link href="libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
+<script src="libs/grViz-binding-1.0.0/grViz.js"></script>
 
 
 <style type="text/css">
@@ -107,50 +111,52 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="2" data-path="input-data.html"><a href="input-data.html"><i class="fa fa-check"></i><b>2</b> Input data</a><ul>
-<li class="chapter" data-level="2.1" data-path="input-data.html"><a href="input-data.html#single-cell-data-for-simulated-mixtures"><i class="fa fa-check"></i><b>2.1</b> Single cell data for simulated mixtures</a></li>
-<li class="chapter" data-level="2.2" data-path="input-data.html"><a href="input-data.html#validation-data-rnaseq-matched-gold-standard"><i class="fa fa-check"></i><b>2.2</b> Validation data (RNAseq + matched gold standard)</a><ul>
-<li class="chapter" data-level="2.2.1" data-path="input-data.html"><a href="input-data.html#hoeck-data"><i class="fa fa-check"></i><b>2.2.1</b> Hoeck data</a></li>
-<li class="chapter" data-level="2.2.2" data-path="input-data.html"><a href="input-data.html#schelker-data"><i class="fa fa-check"></i><b>2.2.2</b> Schelker data</a></li>
-<li class="chapter" data-level="2.2.3" data-path="input-data.html"><a href="input-data.html#racle-data"><i class="fa fa-check"></i><b>2.2.3</b> Racle data</a></li>
+<li class="chapter" data-level="2.1" data-path="input-data.html"><a href="input-data.html#cell-type-hierarchy"><i class="fa fa-check"></i><b>2.1</b> cell type hierarchy</a></li>
+<li class="chapter" data-level="2.2" data-path="input-data.html"><a href="input-data.html#single-cell-data-for-simulated-mixtures"><i class="fa fa-check"></i><b>2.2</b> Single cell data for simulated mixtures</a></li>
+<li class="chapter" data-level="2.3" data-path="input-data.html"><a href="input-data.html#immune-cell-bulk-reference-samples-quantiseq-training-data"><i class="fa fa-check"></i><b>2.3</b> Immune cell bulk reference samples (quanTIseq training data)</a></li>
+<li class="chapter" data-level="2.4" data-path="input-data.html"><a href="input-data.html#validation-data-rnaseq-matched-gold-standard"><i class="fa fa-check"></i><b>2.4</b> Validation data (RNAseq + matched gold standard)</a><ul>
+<li class="chapter" data-level="2.4.1" data-path="input-data.html"><a href="input-data.html#hoeck-data"><i class="fa fa-check"></i><b>2.4.1</b> Hoeck data</a></li>
+<li class="chapter" data-level="2.4.2" data-path="input-data.html"><a href="input-data.html#schelker-data"><i class="fa fa-check"></i><b>2.4.2</b> Schelker data</a></li>
+<li class="chapter" data-level="2.4.3" data-path="input-data.html"><a href="input-data.html#racle-data"><i class="fa fa-check"></i><b>2.4.3</b> Racle data</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="3" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html"><i class="fa fa-check"></i><b>3</b> Validitiy of single cell RNA-seq as reference</a><ul>
 <li class="chapter" data-level="3.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#validity-of-single-cell-sequencing-for-counting-immune-cells"><i class="fa fa-check"></i><b>3.1</b> Validity of single cell sequencing for counting immune cells</a></li>
 <li class="chapter" data-level="3.2" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#validity-of-simulated-bulk-tissues-from-single-cell-sequencing-data"><i class="fa fa-check"></i><b>3.2</b> Validity of simulated bulk tissues from single cell sequencing data</a><ul>
-<li class="chapter" data-level="3.2.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#compare-simululated-samplese-to-bulk-samples"><i class="fa fa-check"></i><b>3.2.1</b> Compare simululated samplese to bulk samples</a></li>
+<li class="chapter" data-level="3.2.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#compare-simululated-samples-to-bulk-samples"><i class="fa fa-check"></i><b>3.2.1</b> Compare simululated samples to bulk samples</a></li>
 <li class="chapter" data-level="3.2.2" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#compare-the-predicted-fractions"><i class="fa fa-check"></i><b>3.2.2</b> Compare the predicted fractions</a></li>
 </ul></li>
+<li class="chapter" data-level="3.3" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#correlated-simulated-samples-with-bulk-of-the-same-tissue."><i class="fa fa-check"></i><b>3.3</b> Correlated simulated samples with bulk of the same tissue.</a></li>
 </ul></li>
-<li class="chapter" data-level="4" data-path="spillover-analysis.html"><a href="spillover-analysis.html"><i class="fa fa-check"></i><b>4</b> Spillover analysis</a><ul>
-<li class="chapter" data-level="4.1" data-path="spillover-analysis.html"><a href="spillover-analysis.html#run-the-deconvolution"><i class="fa fa-check"></i><b>4.1</b> Run the deconvolution</a><ul>
-<li class="chapter" data-level="4.1.1" data-path="spillover-analysis.html"><a href="spillover-analysis.html#run-timer"><i class="fa fa-check"></i><b>4.1.1</b> run TIMER</a></li>
+<li class="chapter" data-level="4" data-path="sensitivity-analysis.html"><a href="sensitivity-analysis.html"><i class="fa fa-check"></i><b>4</b> Sensitivity analysis</a></li>
+<li class="chapter" data-level="5" data-path="specificity-analysis.html"><a href="specificity-analysis.html"><i class="fa fa-check"></i><b>5</b> Specificity Analysis</a><ul>
+<li class="chapter" data-level="5.1" data-path="specificity-analysis.html"><a href="specificity-analysis.html#create-datasets"><i class="fa fa-check"></i><b>5.1</b> Create datasets</a></li>
+<li class="chapter" data-level="5.2" data-path="specificity-analysis.html"><a href="specificity-analysis.html#run-the-deconvolution"><i class="fa fa-check"></i><b>5.2</b> Run the deconvolution</a></li>
+<li class="chapter" data-level="5.3" data-path="specificity-analysis.html"><a href="specificity-analysis.html#results"><i class="fa fa-check"></i><b>5.3</b> Results</a></li>
 </ul></li>
-<li class="chapter" data-level="4.2" data-path="spillover-analysis.html"><a href="spillover-analysis.html#results"><i class="fa fa-check"></i><b>4.2</b> Results</a><ul>
-<li class="chapter" data-level="4.2.1" data-path="spillover-analysis.html"><a href="spillover-analysis.html#calculate-signal-to-noise-ratio-for-each-cell-type"><i class="fa fa-check"></i><b>4.2.1</b> Calculate signal to noise ratio for each cell type</a></li>
+<li class="chapter" data-level="6" data-path="correlation-of-methods-across-tcga-samples-.html"><a href="correlation-of-methods-across-tcga-samples-.html"><i class="fa fa-check"></i><b>6</b> Correlation of methods across TCGA samples.</a></li>
+<li class="chapter" data-level="7" data-path="mixing-study.html"><a href="mixing-study.html"><i class="fa fa-check"></i><b>7</b> Mixing study</a><ul>
+<li class="chapter" data-level="7.1" data-path="mixing-study.html"><a href="mixing-study.html#average-fraction-of-tumour-cells"><i class="fa fa-check"></i><b>7.1</b> Average fraction of tumour cells</a></li>
+<li class="chapter" data-level="7.2" data-path="mixing-study.html"><a href="mixing-study.html#create-simulated-bulk-tissues"><i class="fa fa-check"></i><b>7.2</b> Create simulated bulk tissues</a></li>
+<li class="chapter" data-level="7.3" data-path="mixing-study.html"><a href="mixing-study.html#run-the-deconvolution-1"><i class="fa fa-check"></i><b>7.3</b> Run the deconvolution</a><ul>
+<li class="chapter" data-level="7.3.1" data-path="mixing-study.html"><a href="mixing-study.html#run-timer"><i class="fa fa-check"></i><b>7.3.1</b> run TIMER</a></li>
+</ul></li>
+<li class="chapter" data-level="7.4" data-path="mixing-study.html"><a href="mixing-study.html#results-1"><i class="fa fa-check"></i><b>7.4</b> Results</a><ul>
+<li class="chapter" data-level="7.4.1" data-path="mixing-study.html"><a href="mixing-study.html#calculate-other-cells-for-all-absolute-methods"><i class="fa fa-check"></i><b>7.4.1</b> Calculate “Other cells” for all absolute methods</a></li>
+<li class="chapter" data-level="7.4.2" data-path="mixing-study.html"><a href="mixing-study.html#correlation-plots"><i class="fa fa-check"></i><b>7.4.2</b> Correlation plots</a></li>
+<li class="chapter" data-level="7.4.3" data-path="mixing-study.html"><a href="mixing-study.html#calculate-correlations-for-each-method-and-cell-type"><i class="fa fa-check"></i><b>7.4.3</b> Calculate correlations for each method and cell type</a></li>
+<li class="chapter" data-level="7.4.4" data-path="mixing-study.html"><a href="mixing-study.html#absolute-error-for-all-qualifying-methods"><i class="fa fa-check"></i><b>7.4.4</b> Absolute error for all qualifying methods</a></li>
 </ul></li>
 </ul></li>
-<li class="chapter" data-level="5" data-path="mixing-study.html"><a href="mixing-study.html"><i class="fa fa-check"></i><b>5</b> Mixing study</a><ul>
-<li class="chapter" data-level="5.1" data-path="mixing-study.html"><a href="mixing-study.html#average-fraction-of-tumour-cells"><i class="fa fa-check"></i><b>5.1</b> Average fraction of tumour cells</a></li>
-<li class="chapter" data-level="5.2" data-path="mixing-study.html"><a href="mixing-study.html#create-simulated-bulk-tissues"><i class="fa fa-check"></i><b>5.2</b> Create simulated bulk tissues</a></li>
-<li class="chapter" data-level="5.3" data-path="mixing-study.html"><a href="mixing-study.html#run-the-deconvolution-1"><i class="fa fa-check"></i><b>5.3</b> Run the deconvolution</a><ul>
-<li class="chapter" data-level="5.3.1" data-path="mixing-study.html"><a href="mixing-study.html#run-timer-1"><i class="fa fa-check"></i><b>5.3.1</b> run TIMER</a></li>
+<li class="chapter" data-level="8" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html"><i class="fa fa-check"></i><b>8</b> Validation with real data</a><ul>
+<li class="chapter" data-level="8.1" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#run-the-deconvolution-2"><i class="fa fa-check"></i><b>8.1</b> Run the deconvolution</a></li>
 </ul></li>
-<li class="chapter" data-level="5.4" data-path="mixing-study.html"><a href="mixing-study.html#results-1"><i class="fa fa-check"></i><b>5.4</b> Results</a><ul>
-<li class="chapter" data-level="5.4.1" data-path="mixing-study.html"><a href="mixing-study.html#calculate-other-cells-for-all-absolute-methods"><i class="fa fa-check"></i><b>5.4.1</b> Calculate “Other cells” for all absolute methods</a></li>
-<li class="chapter" data-level="5.4.2" data-path="mixing-study.html"><a href="mixing-study.html#correlation-plots"><i class="fa fa-check"></i><b>5.4.2</b> Correlation plots</a></li>
-<li class="chapter" data-level="5.4.3" data-path="mixing-study.html"><a href="mixing-study.html#calculate-correlations-for-each-method-and-cell-type"><i class="fa fa-check"></i><b>5.4.3</b> Calculate correlations for each method and cell type</a></li>
-<li class="chapter" data-level="5.4.4" data-path="mixing-study.html"><a href="mixing-study.html#absolute-error-for-all-qualifying-methods"><i class="fa fa-check"></i><b>5.4.4</b> Absolute error for all qualifying methods</a></li>
+<li class="chapter" data-level="9" data-path="conclusions.html"><a href="conclusions.html"><i class="fa fa-check"></i><b>9</b> Conclusions</a></li>
+<li class="chapter" data-level="10" data-path="materials-and-methods.html"><a href="materials-and-methods.html"><i class="fa fa-check"></i><b>10</b> Materials and Methods</a><ul>
+<li class="chapter" data-level="10.1" data-path="materials-and-methods.html"><a href="materials-and-methods.html#data-acquisition"><i class="fa fa-check"></i><b>10.1</b> Data acquisition</a></li>
+<li class="chapter" data-level="10.2" data-path="materials-and-methods.html"><a href="materials-and-methods.html#validation-datasets-flow-cytometry-scrnaseq-imageing-matched-rna-seq"><i class="fa fa-check"></i><b>10.2</b> Validation datasets (Flow cytometry, scRNAseq, Imageing + matched RNA seq)</a></li>
 </ul></li>
-</ul></li>
-<li class="chapter" data-level="6" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html"><i class="fa fa-check"></i><b>6</b> Validation with real data</a><ul>
-<li class="chapter" data-level="6.1" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#run-the-deconvolution-2"><i class="fa fa-check"></i><b>6.1</b> Run the deconvolution</a></li>
-</ul></li>
-<li class="chapter" data-level="7" data-path="conclusions.html"><a href="conclusions.html"><i class="fa fa-check"></i><b>7</b> Conclusions</a></li>
-<li class="chapter" data-level="8" data-path="materials-and-methods.html"><a href="materials-and-methods.html"><i class="fa fa-check"></i><b>8</b> Materials and Methods</a><ul>
-<li class="chapter" data-level="8.1" data-path="materials-and-methods.html"><a href="materials-and-methods.html#data-acquisition"><i class="fa fa-check"></i><b>8.1</b> Data acquisition</a></li>
-<li class="chapter" data-level="8.2" data-path="materials-and-methods.html"><a href="materials-and-methods.html#validation-datasets-flow-cytometry-scrnaseq-imageing-matched-rna-seq"><i class="fa fa-check"></i><b>8.2</b> Validation datasets (Flow cytometry, scRNAseq, Imageing + matched RNA seq)</a></li>
-</ul></li>
-<li class="chapter" data-level="9" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i><b>9</b> References</a></li>
+<li class="chapter" data-level="11" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i><b>11</b> References</a></li>
 </ul>
 
       </nav>
@@ -169,14 +175,14 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
             <section class="normal" id="section-">
 <div id="materials-and-methods" class="section level1">
-<h1><span class="header-section-number">8</span> Materials and Methods</h1>
+<h1><span class="header-section-number">10</span> Materials and Methods</h1>
 <div id="data-acquisition" class="section level2">
-<h2><span class="header-section-number">8.1</span> Data acquisition</h2>
+<h2><span class="header-section-number">10.1</span> Data acquisition</h2>
 <p>For the single cell dataset by <span class="citation">Schelker et al. (<a href="#ref-Schelker2017">2017</a>)</span>, we obtained the MATLAB source code <a href="https://figshare.com/s/711d3fb2bd3288c8483a">deposited on figshare</a> and used it to re-produced the dataset. The final dataset was exported to <code>csv</code> format in order to continue the main analysis in <code>R</code>.</p>
 <p>We obtained the 3 matched ovarian cancer bulk RNA samples from <span class="citation">Schelker et al. (<a href="#ref-Schelker2017">2017</a>)</span> (personal communication).</p>
 </div>
 <div id="validation-datasets-flow-cytometry-scrnaseq-imageing-matched-rna-seq" class="section level2">
-<h2><span class="header-section-number">8.2</span> Validation datasets (Flow cytometry, scRNAseq, Imageing + matched RNA seq)</h2>
+<h2><span class="header-section-number">10.2</span> Validation datasets (Flow cytometry, scRNAseq, Imageing + matched RNA seq)</h2>
 <p><em>Describe how the datasets were obtained</em></p>
 
 

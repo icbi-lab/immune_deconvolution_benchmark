@@ -20,7 +20,7 @@ Simulate bulk samples by summing up the expression values of all cells.
 ```{r, cache=TRUE}
 bulk_sum = sapply(colnames(schelker_ovarian$bulk_mat), function(donor) {
   ind = pData(single_cell_schelker$eset)$donor == donor
-  apply(exprs(single_cell_schelker$eset)[,ind], 1, mean)
+  apply(exprs(single_cell_schelker$eset)[,ind], 1, sum)
 })
 ```
 
@@ -29,7 +29,7 @@ genes = intersect(rownames(bulk_sum), schelker_ovarian$bulk$gene_symbol)
 
 expr_all = bind_rows(
   schelker_ovarian$bulk  %>% mutate(source="bulk"),
-  bulk_sum %>% as_tibble(rownames="gene_symbol") %>% mutate(source="mean")
+  bulk_sum %>% as_tibble(rownames="gene_symbol") %>% mutate(source="single_cell_aggregate")
 ) %>% 
   filter(gene_symbol %in% genes) %>%
   gather(sample, tpm, -gene_symbol, -source) %>%
@@ -39,8 +39,8 @@ expr_all = bind_rows(
 
 ```{r, fig.width=16, fig.height=8}
 expr_all %>%
-  mutate(bulk=log2(bulk+1), mean=log2(mean+1)) %>%
-  ggplot(aes(x=bulk, y=mean)) + geom_point() + stat_cor() + facet_wrap(~sample) + 
+  mutate(bulk=log2(bulk+1), single_cell_aggregate=log2(single_cell_aggregate+1)) %>%
+  ggplot(aes(x=bulk, y=single_cell_aggregate)) + geom_point() + stat_cor() + facet_wrap(~sample) + 
   geom_smooth(method = lm)
 
 ```

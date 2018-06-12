@@ -21,7 +21,7 @@ ggplot(cell_type_table, aes(x=sample, y=freq)) +
 
 
 cancer_cells = cell_type_table %>% 
-  filter(cell_type %in% c("Melanoma cells", "Ovarian carcinoma cells")) 
+  filter(cell_type %in% cell_types$cancer) 
 
 
 cancer_cell_param = MASS::fitdistr(cancer_cells$freq, "normal")
@@ -76,10 +76,9 @@ bulk_eset = make_bulk_eset(eset=single_cell_schelker$eset, cell_fractions = cell
 ## Run the deconvolution
 We first run all methods that are integrated in the `immune_deconvolution_methods` are package automatically in a loop. 
 ```{r, cache=TRUE}
-all_results = lapply(immunedeconv::deconvolution_methods, function(method) {
-  deconvolute(bulk_eset, method, column="gene_symbol") %>%
-    mutate(method=method)
-})
+all_results = sapply(immunedeconv::deconvolution_methods, function(method) {
+  deconvolute(bulk_eset, method, column="gene_symbol")
+}, USE.NAMES = TRUE, simplify = FALSE)
 ```
 
 ### run TIMER
@@ -94,8 +93,7 @@ immunedeconv::export_for_timer(eset_mat[,!is_melanoma], path="../results/timer_i
 
 res_timer_melanoma = immunedeconv::import_from_timer("../data/timer/timer_result_melanoma.csv")
 res_timer_ovarian = immunedeconv::import_from_timer("../data/timer/timer_result_ovarian.csv")
-res_timer = inner_join(res_timer_melanoma, res_timer_ovarian, by="cell_type") %>%
-  mutate(method="timer")
+res_timer = inner_join(res_timer_melanoma, res_timer_ovarian, by="cell_type") 
 ```
 
 ```{r}
@@ -109,24 +107,22 @@ Here, we map the results back to the "gold standard". We aggregate the results o
 into a single table and clean it up for further processing. 
 ```{r, cache=TRUE}
 all_results2 = all_results %>% 
-  c(list(res_timer))
-
-# summarise cell_types from the method that only map to a single cell_type in the reference dataset (namely monocytes and macrophages)
-all_results3 = lapply(all_results2, function(res) {
-  res %>% 
-    map_results_to_dataset("single_cell_schelker") %>% 
-    group_by(method, single_cell_schelker) %>%   
-    summarise_all(funs(sum)) 
-})
+  c(list("timer"=res_timer))
+  
+all_results3 = lapply(names(all_results2), function(method) {
+  map_result_to_celltypes(all_results2[[method]], single_cell_schelker$cell_types, method) %>%
+    as_tibble(rownames="cell_type") %>%
+    mutate(method=method)
+}) 
 
 all_results_tidy = all_results3 %>%
   bind_rows() %>%
-  rename(cell_type = single_cell_schelker) %>%
+  na.omit() %>% 
   gather(sample, estimate, -cell_type, -method) %>%
   arrange(method, cell_type, sample)
 
 gold_standard = pData(bulk_eset) %>%
-  rownames_to_column("sample") %>%
+  rownames_to_column("sample") %>% 
   gather(cell_type, true_fraction, -sample)
 ```
 

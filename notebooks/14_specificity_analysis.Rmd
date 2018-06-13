@@ -50,7 +50,7 @@ datasets = list(
 )
 dataset_gold_standard = list(
   immune_reference = immune_cell_reference$sample_description %>%
-    select(sample, true_cell_type=CellType),
+    select(sample, true_cell_type=cell_type),
   artificial_bulk = tibble(sample=colnames(artificial_bulk), true_cell_type=sample_types),
   artificial_bulk_bg = tibble(sample=colnames(artificial_bulk), true_cell_type=sample_types)
 )

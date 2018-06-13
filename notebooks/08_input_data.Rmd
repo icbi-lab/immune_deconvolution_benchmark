@@ -111,7 +111,8 @@ pData(single_cell_schelker$eset) %>% group_by(cell_type) %>% count() %>% knitr::
 pData(single_cell_schelker$eset) %>% 
   ggplot(aes(x=tsneX1, y=tsneX2, colour=cell_type)) +
            geom_point(size=1) + 
-           theme(legend.position="bottom")
+           theme(legend.position="bottom") + 
+           scale_color_manual(values=color_scales$cell_types)
 ```
 
 ## Immune cell bulk reference samples (quanTIseq training data)

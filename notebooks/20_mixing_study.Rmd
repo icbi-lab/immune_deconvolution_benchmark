@@ -6,7 +6,7 @@ of which we know the true cell proportions. We futher use these samples to bench
 ## Average fraction of tumour cells
 To obtain representatitive simulated samples, we are interested in the average fraction of tumour cells vs immune cells in a mixture. 
 
-```{r}
+```{r, results='hold'}
 cell_type_table = pData(single_cell_schelker$eset) %>%
   filter(source %in% c("melanoma", "ascites")) %>%
   mutate(sample=paste(source, donor, sep="_")) %>% 
@@ -27,6 +27,7 @@ cancer_cells = cell_type_table %>%
 cancer_cell_param = MASS::fitdistr(cancer_cells$freq, "normal")
 ```
 
+The mean cancer fraction is `r cancer_cell_param$estimate[1]`±`r cancer_cell_param$estimate[2]`. 
 
 
 ## Create simulated bulk tissues
@@ -55,10 +56,11 @@ cell_fractions = lapply(is_melanoma, function(melanoma) {
   names(cancer_fractions) = cell_types$cancer
   
   # compute random fractions for other cells
+  use_cell_types = c(cell_types$immune_cells, cell_types$other)
   remaining_fraction = 1 - cancer_fraction
-  rnd = sample(0:100, length(cell_types$immune_cells), TRUE)
+  rnd = sample(0:100, length(use_cell_types), TRUE)
   tmp_fractions = (remaining_fraction * rnd) / sum(rnd)
-  names(tmp_fractions) = cell_types$immune_cells
+  names(tmp_fractions) = use_cell_types
   
   c(cancer_fractions, tmp_fractions)
 }) %>% bind_rows()
@@ -76,9 +78,10 @@ bulk_eset = make_bulk_eset(eset=single_cell_schelker$eset, cell_fractions = cell
 ## Run the deconvolution
 We first run all methods that are integrated in the `immune_deconvolution_methods` are package automatically in a loop. 
 ```{r, cache=TRUE}
-all_results = sapply(immunedeconv::deconvolution_methods, function(method) {
+all_results = foreach(method=immunedeconv::deconvolution_methods,
+                      .final = function(x) {setNames(x, immunedeconv::deconvolution_methods)}) %dopar% {
   deconvolute(bulk_eset, method, column="gene_symbol")
-}, USE.NAMES = TRUE, simplify = FALSE)
+}
 ```
 
 ### run TIMER
@@ -86,7 +89,7 @@ TIMER [@TIMER2016] is only available as a web resource. Moreover, the algorithm 
 
 We therefore export the data required to run the algorithm and re-import the results obtained from the web-tool. 
 
-```{r, cache=TRUE}
+```{r, cache=TRUE, message=FALSE}
 eset_mat = eset_to_matrix(bulk_eset, "gene_symbol")
 immunedeconv::export_for_timer(eset_mat[,is_melanoma], path="../results/timer_input_melanoma.tsv")
 immunedeconv::export_for_timer(eset_mat[,!is_melanoma], path="../results/timer_input_ovarian.tsv")
@@ -98,6 +101,7 @@ res_timer = inner_join(res_timer_melanoma, res_timer_ovarian, by="cell_type")
 
 ```{r}
 abs_methods = c("cibersort_abs", "epic", "quantiseq", "xcell")
+show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte", "NK cell", "T cell CD4+", "T cell CD4+ (non-regulatory)", "T cell regulatory (Tregs)", "T cell CD8+", "Cancer associated fibroblast", "Endothelial cell")
 ```
 
 
@@ -110,7 +114,7 @@ all_results2 = all_results %>%
   c(list("timer"=res_timer))
   
 all_results3 = lapply(names(all_results2), function(method) {
-  map_result_to_celltypes(all_results2[[method]], single_cell_schelker$cell_types, method) %>%
+  map_result_to_celltypes(all_results2[[method]], show_cell_types, method) %>%
     as_tibble(rownames="cell_type") %>%
     mutate(method=method)
 }) 
@@ -122,8 +126,11 @@ all_results_tidy = all_results3 %>%
   arrange(method, cell_type, sample)
 
 gold_standard = pData(bulk_eset) %>%
-  rownames_to_column("sample") %>% 
-  gather(cell_type, true_fraction, -sample)
+  t() %>%
+  as_tibble(rownames="cell_type") %>% 
+  map_result_to_celltypes(show_cell_types, "schelker_single_cell") %>% 
+  rownames_to_column("cell_type") %>% 
+  gather(sample, true_fraction, -cell_type)
 ```
 
 ### Calculate "Other cells" for all absolute methods
@@ -158,13 +165,16 @@ results_with_gold_standard = all_results_tidy2 %>%
 
 ### Correlation plots
 ```{r, fig.width=14, fig.height=8}
+
+
 results_with_gold_standard %>%
   ggplot(aes(x=true_fraction, y=estimate)) +
   facet_grid(method ~ cell_type, scales="free") +
   geom_point() +
   stat_smooth(aes(color=method), method="lm") + 
   scale_color_manual(values=color_scales$methods) + 
-  scale_x_continuous(breaks=c(.2, .5))
+  scale_x_continuous(breaks=c(.2, .5)) + 
+  stat_cor()
 ```
 
 

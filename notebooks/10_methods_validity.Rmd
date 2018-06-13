@@ -22,7 +22,7 @@ Simulate bulk samples by summing up the expression values of all cells.
 # * shouldn't matter, but: when using mean we run into numerical issues with cibersort and quantiseq as values
 # tend to become quite small. 
 
-bulk_sum = sapply(colnames(schelker_ovarian$bulk_mat), function(donor) {
+bulk_sum = sapply(colnames(schelker_ovarian$expr_mat), function(donor) {
   ind = pData(single_cell_schelker$eset)$donor == donor
   apply(exprs(single_cell_schelker$eset)[,ind], 1, sum)
 })
@@ -49,10 +49,15 @@ expr_all %>%
 
 ```
 
+
+We observe a good correlation, although one can argue that it is very noisy and far from perfect. 
+We do not draw any conclusions from this plot. 
+
+
 ### Compare the predicted fractions
 ```{r, cache=TRUE}
 all_results_bulk = lapply(immunedeconv::deconvolution_methods, function(method) {
-  deconvolute(schelker_ovarian$bulk_mat, method) %>%
+  deconvolute(schelker_ovarian$expr_mat, method) %>%
     mutate(method=method) %>%
     mutate(source="bulk")
 })
@@ -69,16 +74,17 @@ all_results = bind_rows(all_results_bulk, all_results_simulated) %>%
 
 ```
 
-# xCell does not pick up a signal here as is "does not work on homogeneous samples", as stated on their github page. 
-
 ```{r, fig.width=12, fig.height=8}
 all_results %>%
   ggplot(aes(x = bulk, y=sum)) +
     geom_point(aes(colour=cell_type)) + 
     facet_wrap(~method, scales="free") + 
-    stat_cor()
-
+    stat_cor() 
 ```
+
+The results suggest a reasonable correlation between the estimates on bulkRNAseq and simulated bulkRNAseq. The results depend on the 
+method, however. The very good agreement of EPIC and MCPCounter suggest, that the methodology itself is valid; just some methods appear to be more dependent on noise than others. xCell does not pick up a signal here as is "does not work on homogeneous samples", as stated on their github page. 
+
 
 
 ## Correlated simulated samples with bulk of the same tissue. 
@@ -96,7 +102,7 @@ simulated_bulk = log2(simulated_bulk+1)
 colnames(simulated_bulk) = rownames(cell_fractions)
 
 immune_bulk = log2(immune_cell_reference$expr_mat+1)
-colnames(immune_bulk) = paste(immune_cell_reference$sample_description$CellType, immune_cell_reference$sample_description$sample)
+colnames(immune_bulk) = paste(immune_cell_reference$sample_description$cell_type, immune_cell_reference$sample_description$sample)
 
 common_symbols = intersect(rownames(simulated_bulk), rownames(immune_bulk))
 

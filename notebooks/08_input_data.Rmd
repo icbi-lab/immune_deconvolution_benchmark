@@ -115,6 +115,21 @@ pData(single_cell_schelker$eset) %>%
            scale_color_manual(values=color_scales$cell_types)
 ```
 
+<!-- ### Attempting to distinguish between macrophages and monocytes -->
+<!-- ```{r} -->
+<!-- cd11b = exprs(single_cell_schelker$eset)["ITGAM",] != 0  -->
+<!-- pdata = pData(single_cell_schelker$eset)  -->
+<!-- pdata$ITGAM = cd11b -->
+<!-- pdata %>% filter(cell_type == "Macrophage/Monocyte") %>%  -->
+<!--   ggplot(aes(x=tsneX1, y=tsneX2, colour=ITGAM)) + -->
+<!--    geom_point(size=1) +  -->
+<!--    theme(legend.position="bottom")  -->
+
+<!-- # pheatmap(exprs(single_cell_schelker$eset)[,pdata$cell_type == "Macrophage/Monocyte"], cluster_rows = FALSE) -->
+
+<!-- ``` -->
+
+
 ## Immune cell bulk reference samples (quanTIseq training data)
 ```{r, message=FALSE, cache=TRUE}
 immune_cell_reference = new.env()

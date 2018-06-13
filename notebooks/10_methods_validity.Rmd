@@ -55,7 +55,7 @@ We do not draw any conclusions from this plot.
 
 
 ### Compare the predicted fractions
-```{r, cache=TRUE}
+```{r, cache=TRUE, message=FALSE}
 all_results_bulk = lapply(immunedeconv::deconvolution_methods, function(method) {
   deconvolute(schelker_ovarian$expr_mat, method) %>%
     mutate(method=method) %>%
@@ -101,7 +101,7 @@ simulated_bulk = make_bulk_eset(eset=single_cell_schelker$eset, cell_fractions =
 simulated_bulk = log2(simulated_bulk+1)
 colnames(simulated_bulk) = rownames(cell_fractions)
 
-immune_bulk = log2(immune_cell_reference$expr_mat+1)
+immune_bulk = log2(immune_cell_reference$expr_mat + 1)
 colnames(immune_bulk) = paste(immune_cell_reference$sample_description$cell_type, immune_cell_reference$sample_description$sample)
 
 common_symbols = intersect(rownames(simulated_bulk), rownames(immune_bulk))

@@ -99,13 +99,30 @@ res_timer_ovarian = immunedeconv::import_from_timer("../data/timer/timer_result_
 res_timer = inner_join(res_timer_melanoma, res_timer_ovarian, by="cell_type") 
 ```
 
-```{r}
-abs_methods = c("cibersort_abs", "epic", "quantiseq", "xcell")
-show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte", "NK cell", "T cell CD4+", "T cell CD4+ (non-regulatory)", "T cell regulatory (Tregs)", "T cell CD8+", "Cancer associated fibroblast", "Endothelial cell")
-```
+
 
 
 ## Results
+The following methods have absolute (EPIC, quanTIseq) or pseudo-absolute (CIBERSORT abs. mode, xCell) scores, and we test how well they perform 
+in terms of absolute deviation
+```{r}
+abs_methods = c("cibersort_abs", "epic", "quantiseq", "xcell")
+```
+
+We perform an evaluation for the following cell types.
+Note that some cell types are redundant (T cell CD4+ is a super-category of Tregs and non-regulatory CD4+ T cells). 
+As some methods provide deconvolution only at the CD4+ level, we compare both categories:
+```{r}
+show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte", "NK cell", "T cell CD4+", "T cell CD4+ (non-regulatory)", "T cell regulatory (Tregs)", "T cell CD8+", "Cancer associated fibroblast", "Endothelial cell")
+```
+
+The following methods do not have signatures to quantify "Macrophages/Monocytes", but only a Macrophage signature. Unfortunately, 
+our single cell dataset does not distinguish between Macrophages and Monocytes. As we are only comparing correlations here, we still 
+benchmark the Macrophage signature on the "Macrophage/Monocyte" data, as an increase in both should also lead to an increase in Macrophages only. 
+To be fair, we label the results accordingly. 
+```{r}
+macrophage_signature_only = c("epic", "timer")
+```
 
 Here, we map the results back to the "gold standard". We aggregate the results of the different methods
 into a single table and clean it up for further processing. 
@@ -123,7 +140,8 @@ all_results_tidy = all_results3 %>%
   bind_rows() %>%
   na.omit() %>% 
   gather(sample, estimate, -cell_type, -method) %>%
-  arrange(method, cell_type, sample)
+  mutate(macrophage_only=if_else(method %in% macrophage_signature_only & cell_type == "Macrophage/Monocyte", "yes", "no")) %>%
+  arrange(method, cell_type, sample) 
 
 gold_standard = pData(bulk_eset) %>%
   t() %>%
@@ -131,42 +149,12 @@ gold_standard = pData(bulk_eset) %>%
   map_result_to_celltypes(show_cell_types, "schelker_single_cell") %>% 
   rownames_to_column("cell_type") %>% 
   gather(sample, true_fraction, -cell_type)
-```
 
-### Calculate "Other cells" for all absolute methods
-```{r}
-other_cells_estimates = all_results_tidy %>% 
-  filter(method %in% abs_methods) %>%
-  group_by(method, sample) %>% 
-  summarise(cell_type="Other", estimate=max(0, 1-sum(estimate)))
-
-other_cells_true_fractions = gold_standard %>%
-  inner_join(all_results_tidy %>% select(method, sample) %>% distinct(), by=c("sample")) %>%
-  anti_join(all_results_tidy, by=c("sample", "cell_type", "method")) %>% 
-  group_by(method, sample) %>% 
-  summarise(cell_type="Other", true_fraction=sum(true_fraction))
-```
-
-
-```{r}
-all_results_tidy2 = bind_rows(all_results_tidy, other_cells_estimates)
-
-# we need to add the methods (full join) to each cell type as 
-# the "Other" fractions are method specific
-# (all cell types that are not predicted by the method)
-gold_standard2 = gold_standard %>%
-  crossing(method=unique(all_results_tidy$method)) %>% 
-  bind_rows(other_cells_true_fractions)
-
-results_with_gold_standard = all_results_tidy2 %>%
-  inner_join(gold_standard2, by=c("sample", "cell_type", "method"))
-
+results_with_gold_standard = inner_join(all_results_tidy, gold_standard, by=c("sample", "cell_type"))
 ```
 
 ### Correlation plots
-```{r, fig.width=14, fig.height=8}
-
-
+```{r, fig.width=18, fig.height=8}
 results_with_gold_standard %>%
   ggplot(aes(x=true_fraction, y=estimate)) +
   facet_grid(method ~ cell_type, scales="free") +
@@ -179,7 +167,7 @@ results_with_gold_standard %>%
 
 
 ### Calculate correlations for each method and cell type
-```{r, fig.width=6, fig.height=5}
+```{r, fig.width=8, fig.height=6}
 make_cor = function(estimate, true_fraction) {
   test_res = cor.test(estimate, true_fraction, method="pearson")
   data.frame(
@@ -190,31 +178,36 @@ make_cor = function(estimate, true_fraction) {
 }
 
 correlations = results_with_gold_standard %>%
-  group_by(cell_type, method) %>%
+  group_by(cell_type, method, macrophage_only) %>%
   do(make_cor(.$estimate, .$true_fraction))
 
-correlations %>% ggplot(aes(x=method, y=pearson)) +
+correlations %>% ggplot(aes(x=method, y=pearson, alpha=macrophage_only)) +
   geom_bar(aes(fill=method), stat="identity") +
   geom_errorbar(aes(ymin=conf_int_lower, ymax=conf_int_upper), width=.2) + 
-  facet_wrap(~cell_type, nrow=2) + 
+  facet_wrap(~cell_type, nrow=2, labeller = label_wrap_gen()) + 
   theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position="top") +
-  scale_fill_manual(values=color_scales$methods)
+        legend.position="top",
+        strip.text.x = element_text(size=9)) +
+  scale_fill_manual(values=color_scales$methods) + 
+  scale_alpha_manual(values=c("yes"=.3, "no"=1.))
 ```
 
 
 ### Absolute error for all qualifying methods
-```{r, fig.width=10, fig.height=4}
+```{r, fig.width=8, fig.height=6}
 
 results_with_gold_standard %>% 
   filter(method %in% abs_methods) %>% 
   mutate(error=abs(estimate-true_fraction)) %>%
   mutate(square_error=error^2) %>% 
-  ggplot(aes(x=method, y=square_error)) + 
-    facet_wrap(~cell_type, nrow=1) + 
-    geom_boxplot(aes(fill=method), width=1, position="dodge") +
-    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) +
-    scale_fill_manual(values=color_scales$methods) 
+  ggplot(aes(x=method, y=error, alpha=macrophage_only)) + 
+    geom_boxplot(aes(fill=method), width=1, position="dodge") + 
+    facet_wrap(~cell_type, nrow=2, labeller = label_wrap_gen()) + 
+    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position="top",
+        strip.text.x = element_text(size=9)) +
+    scale_fill_manual(values=color_scales$methods)  + 
+    scale_alpha_manual(values=c("yes"=.3, "no"=1.))
 
 ```
 

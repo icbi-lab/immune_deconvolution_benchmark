@@ -120,7 +120,10 @@ immune_cell_reference = new.env()
 with(immune_cell_reference, {
   tidy = read_tsv("../data/immune_cell_reference_profiles/immune_cell_reference_tidy.tsv")
 
-  sample_description = tidy %>% select(sample, CellType, Study) %>% distinct()
+  sample_description = tidy %>% 
+    select(sample, method_cell_type=CellType, Study) %>% 
+    distinct() %>% 
+    inner_join(immunedeconv::cell_type_mapping %>% filter(method_dataset == "quantiseq_reference"))
 
   expr = tidy %>%
   select(sample, hgnc_id, TPM) %>%
@@ -157,7 +160,10 @@ with(tmp_env, {
 })
 hoeck = new.env() 
 hoeck$expr_mat = tmp_env$mix.mat
-hoeck$ref = tmp_env$RefData
+hoeck$ref = tmp_env$RefData %>% 
+  as_tibble(rownames="sample") %>% 
+  gather(method_cell_type, true_fraction, -sample) %>%
+  inner_join(immunedeconv::cell_type_mapping %>% filter(method_dataset == "hoeck"))
 ```
 
 
@@ -180,7 +186,7 @@ with(schelker_ovarian, {
   bulk %<>% 
     mutate(gene_symbol = bulk_replicates$Row)
   
-  bulk_mat = bulk %>%
+  expr_mat = bulk %>%
     as.data.frame() %>%
     column_to_rownames("gene_symbol") %>%
     as.matrix()
@@ -198,7 +204,7 @@ with(schelker_ovarian, {
 
   
 
-   ref = true_cell_count %>% select(sample=donor, cell_type, true_fraction)
+   ref = true_cell_count %>% select(sample=donor, cell_type, true_fraction) %>% mutate(method_dataset = "schelker_ovarian")
 })
 
 ```
@@ -242,7 +248,11 @@ with(tmp_env, {
 racle = new.env()
 racle$expr = tmp_env$racle_expression
 racle$expr_mat = racle$expr %>% as.data.frame() %>% column_to_rownames("hgnc_symbol") %>% as.matrix()
-racle$ref = tmp_env$racle_cyto
+racle$ref = tmp_env$racle_cyto %>% 
+  rename(sample=`donor ID`) %>% 
+  gather(method_cell_type, true_fraction, -sample) %>% 
+  mutate(true_fraction=true_fraction/100) %>% 
+  inner_join(immunedeconv::cell_type_mapping %>% filter(method_dataset == "racle"))
 
 ```
 

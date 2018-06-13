@@ -69,6 +69,8 @@ all_results = bind_rows(all_results_bulk, all_results_simulated) %>%
 
 ```
 
+# xCell does not pick up a signal here as is "does not work on homogeneous samples", as stated on their github page. 
+
 ```{r, fig.width=12, fig.height=8}
 all_results %>%
   ggplot(aes(x = bulk, y=sum)) +

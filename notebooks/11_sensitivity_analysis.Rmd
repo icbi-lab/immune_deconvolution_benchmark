@@ -76,13 +76,13 @@ p2 = sensitivity_analysis_res %>%
   arrange(percent_cd8) %>% 
   mutate(percent_cd8f=factor(percent_cd8c, levels=percent_cd8c))
 
-p2 %>%
-  ggplot(aes(x=percent_cd8f, y=mean, colour=cell_type)) +
-    geom_line() + 
-    geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) + 
-    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position="top") + 
-    facet_wrap(~method, scales = "free_y")
+# p2 %>%
+#   ggplot(aes(x=percent_cd8f, y=mean, colour=cell_type)) +
+#     geom_line() + 
+#     geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) + 
+#     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
+#         legend.position="top") + 
+#     facet_wrap(~method, scales = "free_y")
 
 
 ```
@@ -90,12 +90,12 @@ p2 %>%
 
 Fraction CD8 predicted at 0% infiltration
 ```{r}
-sensitivity_analysis_res %>% 
-  filter(input_cell_type == "CD8+ T cells", cell_type == "T CD8+ (CTL)", n_cells==0, method!="mcp_counter") %>%
-  ggplot(aes(x=method, y=estimate, fill=method)) + 
-  geom_boxplot() + 
-  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position="top") +
-  scale_fill_manual(values=color_scales$methods)
+# sensitivity_analysis_res %>% 
+#   filter(input_cell_type == "CD8+ T cells", cell_type == "T CD8+ (CTL)", n_cells==0, method!="mcp_counter") %>%
+#   ggplot(aes(x=method, y=estimate, fill=method)) + 
+#   geom_boxplot() + 
+#   theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
+#         legend.position="top") +
+#   scale_fill_manual(values=color_scales$methods)
 
 ```

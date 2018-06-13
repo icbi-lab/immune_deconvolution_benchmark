@@ -5,27 +5,26 @@ We the curated datasets with gold standard as an additional validation on top of
 ## Run the deconvolution
 We first run all methods that are integrated in the `immune_deconvolution_methods` are package automatically in a loop. 
 ```{r, cache=TRUE}
-all_results_racle = lapply(immunedeconv::deconvolution_methods, function(method) {
-  deconvolute(racle$expr_mat, method) %>%
-    mutate(method=method) %>%
-    map_results_to_dataset("racle") %>% 
-    group_by(method, racle) %>%   
-    summarise_all(funs(sum)) 
-})
-all_results_hoeck = lapply(immunedeconv::deconvolution_methods, function(method) {
-  deconvolute(hoeck$expr_mat, method) %>%
-    mutate(method=method) %>%
-    map_results_to_dataset("hoeck") %>% 
-    group_by(method, hoeck) %>%   
-    summarise_all(funs(sum)) 
-})
-all_results_schelker = lapply(immunedeconv::deconvolution_methods, function(method) {
-  deconvolute(schelker_ovarian$bulk_mat, method) %>%
-    mutate(method=method) %>%
-    map_results_to_dataset("single_cell_schelker") %>% 
-    group_by(method, single_cell_schelker) %>%   
-    summarise_all(funs(sum)) 
-})
+datasets = list(
+  racle=racle,
+  hoeck=hoeck,
+  schelker_ovarian=schelker_ovarian
+)
+
+all_results = foreach(dataset=datasets, dataset_name=names(datasets), .combine=bind_rows) %:%
+  foreach(method = immunedeconv::deconvolution_methods, .combine=bind_rows) %dopar% {
+    deconvolute(dataset$expr_mat, method) %>%
+      gather(sample, estimate, -cell_type) %>%
+      mutate(method=method, dataset=dataset_name)
+}
+
+all_refs = foreach(dataset=datasets, dataset_name=names(datasets), .combine=bind_rows) %do% {
+  dataset$ref %>% 
+    select(sample, cell_type, true_fraction) %>%
+    mutate(dataset=dataset_name)
+}
+
+all_results_ref = inner_join(all_results, all_refs, by=c("sample"="sample", "dataset"="dataset", "cell_type"="cell_type"))
 ```
 
 
@@ -36,24 +35,10 @@ all_results_schelker = lapply(immunedeconv::deconvolution_methods, function(meth
 #   mutate(method="timer")
 ```
 
-```{r, cache=TRUE}
-hoeck_ref2 = hoeck$ref %>% as_tibble(rownames="sample") %>% gather(cell_type, true_fraction, -sample)
-hoeck2 = bind_rows(all_results_hoeck) %>% gather(sample, estimate, -method, -hoeck) %>% mutate(dataset="hoeck") %>% rename(cell_type=hoeck) %>% inner_join(hoeck_ref2)
-
-racle_ref2 = racle$ref %>% rename(sample=`donor ID`) %>% gather(cell_type, true_fraction, -sample) %>% mutate(true_fraction=true_fraction/100)
-racle2 = bind_rows(all_results_racle) %>% gather(sample, estimate, -method, -racle) %>% mutate(dataset="racle") %>% rename(cell_type=racle) %>% inner_join(racle_ref2)
-
-schelker_ref2 = schelker_ovarian$ref
-schelker2 = bind_rows(all_results_schelker) %>% gather(sample, estimate, -method, -single_cell_schelker) %>% mutate(dataset="single_cell_schelker") %>% rename(cell_type=single_cell_schelker) %>% inner_join(schelker_ref2)
-
-
-all_results_tidy_val = bind_rows(hoeck2, racle2, schelker2) %>% ungroup()
-
-```
 
 
 ```{r, fig.width=10, fig.height=6}
-all_results_tidy_val %>% filter(cell_type %in% c("B cells", "Bcells")) %>%
+all_results_ref %>% filter(cell_type == "B cell") %>%
   ggplot(aes(x=true_fraction, y=estimate)) + geom_point(aes(color=method, shape=dataset)) + 
   scale_color_manual(values=color_scales$methods) + 
   facet_wrap(~method, scales = "free") + 
@@ -62,44 +47,3 @@ all_results_tidy_val %>% filter(cell_type %in% c("B cells", "Bcells")) %>%
 
 ```
 
-
-```{r, fig.width=10, fig.height=6}
-all_results_tidy_val %>% filter(cell_type %in% c("Dendritic cells", "DC")) %>%
-  ggplot(aes(x=true_fraction, y=estimate)) + geom_point(aes(color=method, shape=dataset)) + 
-  scale_color_manual(values=color_scales$methods) + 
-  facet_wrap(~method, scales = "free") + 
-  stat_cor() + 
-  ggtitle("Dendritic cells")
-
-```
-
-
-```{r, fig.width=10, fig.height=6}
-all_results_tidy_val %>% filter(cell_type %in% c("CD8+ T cells", "CD8 T cells")) %>%
-  ggplot(aes(x=true_fraction, y=estimate)) + geom_point(aes(color=method, shape=dataset)) + 
-  scale_color_manual(values=color_scales$methods) + 
-  facet_wrap(~method, scales = "free") + 
-  stat_cor() + 
-  ggtitle("CD8 T")
-
-```
-
-```{r, fig.width=10, fig.height=6}
-all_results_tidy_val %>% filter(cell_type %in% c("CD4+ T cells", "CD4 T cells")) %>%
-  ggplot(aes(x=true_fraction, y=estimate)) + geom_point(aes(color=method, shape=dataset)) + 
-  scale_color_manual(values=color_scales$methods) + 
-  facet_wrap(~method, scales = "free") + 
-  stat_cor() + 
-  ggtitle("CD4 T")
-
-```
-
-```{r, fig.width=10, fig.height=6}
-all_results_tidy_val %>% filter(cell_type %in% c("Natural killer cells", "NK", "NK cells")) %>%
-  ggplot(aes(x=true_fraction, y=estimate)) + geom_point(aes(color=method, shape=dataset)) + 
-  scale_color_manual(values=color_scales$methods) + 
-  facet_wrap(~method, scales = "free") + 
-  stat_cor() + 
-  ggtitle("NK")
-
-```

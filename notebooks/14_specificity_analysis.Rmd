@@ -6,24 +6,20 @@
  * artificial bulk: simulated bulk RNA seq profiles from single cells (e.g. only T cells)
  * artificial bulk with background: simulated bulk RNA seq profiles from single cells with ~80% other cells (cancer, fibroblasts, ...)
  
+ 
+```{r}
+show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte", "NK cell", "T cell CD4+", "T cell CD8+")
+```
+
+ 
 ```{r, cache=TRUE}
 set.seed(42)
-background_cells = c(cell_types$cancer, cell_types$other)
 
-n_background_cells = single_cell_schelker$eset %>% pData() %>%
-    filter(cell_type %in% background_cells) %>%
-    group_by(cell_type) %>%
-    count() %>% 
-    {'names<-'(.$n, .$cell_type)}
-
-frac_background_cells = n_background_cells/sum(n_background_cells)
-
-
-sample_types = rep(cell_types$immune_cells, 5)
+sample_types = rep(show_cell_types, 5)
 ## make artificial bulk sample
 artificial_bulk = lapply(sample_types, function(cell_type) {
-  cell_frac = c(1.)
-  names(cell_frac) = cell_type
+  cell_n = make_cell_fraction_vector(cell_type, n=500, background=NULL)
+  cell_frac = cell_n/sum(cell_n)
   make_random_bulk(single_cell_schelker$eset, cell_frac, n_cells=500)
 }) %>% bind_cols() %>% as.matrix()
 
@@ -32,8 +28,9 @@ rownames(artificial_bulk) = rownames(single_cell_schelker$eset %>% exprs())
 
 ## make artificial bulk samples with background
 artificial_bulk_bg = lapply(sample_types, function(cell_type) {
-  cell_frac = c(.3, .7*frac_background_cells)
-  names(cell_frac) = c(cell_type, names(frac_background_cells))
+  cell_n = make_cell_fraction_vector(cell_type, n=100, background=round(400*(n_background_cells/sum(n_background_cells))))
+  assert("sample has 500 cells", sum(cell_n) >= 499 & sum(cell_n) <= 501)
+  cell_frac = cell_n/sum(cell_n)
   make_random_bulk(single_cell_schelker$eset, cell_frac, n_cells=500)
 }) %>% bind_cols() %>% as.matrix()
 
@@ -58,78 +55,65 @@ dataset_gold_standard = list(
 
 all_results_file = "../results/specificity_analysis_res.rda"
 if(!file.exists(all_results_file)) {
-  all_results = foreach(dataset = datasets, 
-                        .final = function(x) setNames(x, names(datasets))) %do% {
-                          
-                            foreach(method = immunedeconv::deconvolution_methods, 
-                                    .final = function(x) setNames(x, immunedeconv::deconvolution_methods)) %dopar% {
-                                          deconvolute(dataset, method) 
-                                    }
-                        }
+  all_results = sapply(names(datasets), function(dataset) {
+                    sapply(immunedeconv::deconvolution_methods, function(method) {
+                      deconvolute(datasets[[dataset]], method)
+                    }, USE.NAMES = TRUE, simplify = FALSE)
+                }, USE.NAMES = TRUE, simplify = FALSE)
   save(all_results, file=all_results_file)
 }
 load(all_results_file)
 ```
 
-```{r}
-show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte", "NK cell", "T cell CD4+", "T cell CD8+")
-```
-
 ### Postprocess the deconvolution results
-```{r}
-foreach(dataset = names(datasets), 
-        gold_standard = dataset_gold_standard,
-        .combine = bind_rows) %:% 
-  foreach(method = immunedeconv::deconvolution_methods,
-          .combine = bind_rows) %do% {
-            all_results[[dataset]][[method]] %>% 
-              map_result_to_celltypes(show_cell_types, method) %>% 
-              as_tibble(rownames = "cell_type") %>%
-              gather(sample, estimate, -cell_type) %>%
-              mutate(method=method, dataset=dataset) %>% 
-              inner_join(gold_standard)
-}
+```{r, cache=TRUE, message=FALSE}
+all_results2 =  foreach(dataset = names(datasets), 
+                        gold_standard = dataset_gold_standard,
+                        .combine = bind_rows) %:% 
+                  foreach(method = immunedeconv::deconvolution_methods,
+                          .combine = bind_rows) %do% {
+                            all_results[[dataset]][[method]] %>% 
+                              map_result_to_celltypes(show_cell_types, method) %>% 
+                              as_tibble(rownames = "cell_type") %>%
+                              gather(sample, estimate, -cell_type) %>%
+                              mutate(method=method, dataset=dataset) %>% 
+                              inner_join(gold_standard)
+                } %>% 
+  na.omit()
 ```
 
 
 ## Results
 ```{r, fig.width=24, fig.height=24}
-all_results %>%
+all_results2 %>%
   filter(true_cell_type %in% show_cell_types, cell_type %in% show_cell_types) %>% 
   ggplot(aes(x=cell_type, y=estimate, fill=dataset)) + 
     geom_boxplot(position = position_dodge2(preserve = "total")) + 
-    facet_grid(method~true_cell_type, scales="free_y") + 
-    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) 
+    facet_grid(method~true_cell_type+dataset, scales="free_y") + 
+    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) +
+    background_grid(major = "xy", minor = "none")
    
 
 
 ```
 
 
+### Summary figure: signal to noise ratio
+```{r, fig.width=8, fig.height=8}
+signal_noise_res = all_results2 %>% 
+  mutate(signal_noise=if_else(cell_type == true_cell_type, "signal", "noise")) %>%
+  group_by(dataset, sample, method, true_cell_type, signal_noise) %>%
+  summarise(estimate=sum(estimate)) %>% 
+  spread(signal_noise, estimate) %>% 
+  mutate(noise_ratio = noise/(noise+signal)) %>%
+  ungroup() %>% 
+  na.omit()
 
-<!-- ### Calculate signal to noise ratio for each cell type -->
-<!-- ```{r} -->
-<!-- all_results_tidy %>% -->
-<!--   select(method, true_cell_type, signal, noise) %>% -->
-<!--   distinct() %>%  -->
-<!--   mutate(signal_to_noise = signal/(signal+noise)) %>%  -->
-<!--   ggplot(aes(x=method, y=signal_to_noise)) +  -->
-<!--     geom_boxplot(aes(fill=method), position = "dodge") +  -->
-<!--     facet_wrap(~true_cell_type) +  -->
-<!--     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) + -->
-<!--     scale_fill_manual(values=color_scales$methods) -->
 
-<!-- ``` -->
+signal_noise_res %>% 
+  ggplot(aes(x=method, y=noise_ratio, color=dataset)) + 
+  geom_boxplot(position = position_dodge2(preserve = "total")) +
+  facet_wrap(~true_cell_type) +
+  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1))
 
-<!-- ```{r} -->
-<!-- all_results_tidy %>% -->
-<!--   select(method, true_cell_type, abs_noise) %>% -->
-<!--   distinct() %>%  -->
-<!--   filter(method %in% c("xcell", "quantiseq", "epic", "cibersort")) %>%  -->
-<!--   ggplot(aes(x=method, y=abs_noise)) +  -->
-<!--     geom_boxplot(aes(fill=method), position="dodge") +  -->
-<!--     facet_wrap(~true_cell_type) +  -->
-<!--     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) + -->
-<!--     scale_fill_manual(values=color_scales$methods) -->
-
-<!-- ``` -->
+```

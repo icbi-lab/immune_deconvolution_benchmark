@@ -3,12 +3,6 @@ How many cells do we need for a method to detect immune cell infiltration?
 
 ```{r}
 show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte", "NK cell", "T cell CD4+", "T cell CD8+")
-background_cells = c(cell_types$cancer, cell_types$other)
-n_background_cells = single_cell_schelker$eset %>% pData() %>%
-  filter(cell_type %in% background_cells) %>%
-  group_by(cell_type) %>%
-  count() %>% 
-  {'names<-'(.$n, .$cell_type)}
 
 n_immune_cells = rep(c(seq(0, 50, 5)
                      , seq(60, 100, 10)
@@ -18,24 +12,6 @@ n_immune_cells = rep(c(seq(0, 50, 5)
 ```
 
 ```{r, fig.height=18, fig.width=25, cache=TRUE}
-make_cell_fraction_vector = function(input_cell_type, n) {
-  if(input_cell_type == "T cell CD4+") {
-    # combine regulatory and non-regulatory CD4+ T cells
-    cell_type_stats = pData(single_cell_schelker$eset) %>% 
-      group_by(cell_type) %>% 
-      count() %>% 
-      as.data.frame() %>% 
-      column_to_rownames("cell_type")
-    ratio = cell_type_stats["T cell regulatory (Tregs)", "n"]/cell_type_stats["T cell CD4+ (non-regulatory)", "n"]
-    cell_n =  c(n_background_cells, round(n*(1-ratio)), round(n*ratio))
-    names(cell_n) = c(names(n_background_cells), "T cell CD4+ (non-regulatory)", "T cell regulatory (Tregs)")
-  } else {
-    cell_n =  c(n_background_cells, n)
-    names(cell_n) = c(names(n_background_cells), input_cell_type)
-  }
-  cell_n
-}
-
 if(!file.exists("../results/sensitivity_analysis_res.rda")) {
   set.seed(42)
   registerDoMC(cores=16)
@@ -63,7 +39,7 @@ if(!file.exists("../results/sensitivity_analysis_res.rda")) {
 ```
 
 ## post-process the deconvolution results
-```{r}
+```{r, cache=TRUE}
 load("../results/sensitivity_analysis_res.rda")
 
 all_results = foreach(input_cell_type = show_cell_types, 
@@ -86,7 +62,9 @@ all_results = foreach(input_cell_type = show_cell_types,
       inner_join(n_cell_df, by="sample")
 } %>% 
   select(-sample) %>% 
-  mutate(frac_immune_cells = as.factor(round(n_immune_cells/n_background_cells * 100, 2))) %>% 
+  mutate(frac_immune_cells = as.factor(round(n_immune_cells/n_background_cells * 100, 2)))
+
+all_results2 = all_results %>% 
   group_by_at(vars(-estimate)) %>% 
   summarise_all(funs(mean, sd, n=length)) %>%
   mutate(ci=qt(0.975,df=n-1)*sd/sqrt(n)) %>%
@@ -94,7 +72,7 @@ all_results = foreach(input_cell_type = show_cell_types,
 ```
 
 ```{r, fig.height=18, fig.width=25, cache=TRUE}
-all_results %>% 
+all_results2 %>% 
   ggplot(aes(x=frac_immune_cells, y=mean, colour=cell_type)) +
   #   geom_line() + 
     geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) + 
@@ -105,27 +83,27 @@ all_results %>%
 ```
 
 ### Summary figure: At which percentage the method captures the cell type above noise level? 
-```{r}
+```{r, warning=FALSE, message=FALSE, cache=TRUE}
 # add fallback values, if none of the fractions exceed the specified value
-results_inf_fallback = all_results %>%
+results_inf_fallback = all_results2 %>%
   select(cell_type, method, input_cell_type) %>%
   distinct() %>% 
   mutate(mean = if_else(cell_type == input_cell_type, Inf, 0), ci=0, frac_immune_cells = as.factor(Inf))
 
 # omit unnecessary columns and append fallback Inf valuees
-all_results2 = all_results %>% 
+all_results3 = all_results2 %>% 
   select(cell_type, method, input_cell_type, mean, ci, frac_immune_cells) %>% 
   bind_rows(results_inf_fallback)
 
 # add the 'reference cell type', i.e. the celltype that *should* be there as an additional column
-ref_cell_type = all_results2 %>% 
+ref_cell_type = all_results3 %>% 
   filter(cell_type == input_cell_type) %>% 
   select(input_cell_type, method, frac_immune_cells, ref_mean=mean, ref_ci=ci)
 
 all_combinations = crossing(method=immunedeconv::deconvolution_methods, input_cell_type=show_cell_types)
 
 # filter and summarise, s.t. we end up having the minimal fraction at which the celltype is distinguishable from the others
-sensitivity_plot = all_results2 %>% 
+sensitivity_plot = all_results3 %>% 
   filter(cell_type != input_cell_type) %>% 
   select(cell_type, method, input_cell_type, mean, ci, frac_immune_cells) %>% 
   inner_join(ref_cell_type) %>% 
@@ -142,7 +120,7 @@ sensitivity_plot = all_results2 %>%
 
 ```
 
-```{r, fig.width=7, fig.height=6}
+```{r, fig.width=7, fig.height=6, cache=TRUE}
 sensitivity_plot %>%
   mutate(min_frac=ifelse(is.infinite(min_frac), 100, min_frac)) %>% 
   mutate(not_measured=ifelse(is.na(min_frac), "yes", "no")) %>%
@@ -156,5 +134,21 @@ sensitivity_plot %>%
   scale_fill_manual(values=color_scales$methods) + 
   scale_alpha_manual(values=c("yes"=.3, "no"=1.)) + 
   ggtitle("Sensitivity")
+
+```
+
+
+### Summary figure: predicted amount of cells when there are none
+```{r, fig.height=6, fig.width=6}
+all_results %>% 
+  filter(frac_immune_cells == 0, cell_type == input_cell_type) %>%
+  filter(method != "mcp_counter") %>% 
+  ggplot(aes(x=method, y=estimate, color=method)) + 
+    geom_boxplot(position="dodge") + 
+    facet_wrap(~cell_type) + 
+    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
+          legend.position="top",
+          strip.text.x = element_text(size=9)) +
+    scale_color_manual(values=color_scales$methods) 
 
 ```

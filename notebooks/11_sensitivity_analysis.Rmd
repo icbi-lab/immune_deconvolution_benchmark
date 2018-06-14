@@ -52,7 +52,7 @@ all_results = foreach(input_cell_type = show_cell_types,
     
     n_cell_df = tibble(sample=colnames(tmp_res),
                        n_immune_cells = n_immune_cells,
-                       n_background_cells = sum(n_background_cells)) 
+                       n_background_cells = sum(cell_types$n_background_cells)) 
                   
     
     tmp_res %>%
@@ -62,7 +62,7 @@ all_results = foreach(input_cell_type = show_cell_types,
       inner_join(n_cell_df, by="sample")
 } %>% 
   select(-sample) %>% 
-  mutate(frac_immune_cells = as.factor(round(n_immune_cells/n_background_cells * 100, 2)))
+  mutate(frac_immune_cells = as.factor(round(n_immune_cells/cell_types$n_background_cells * 100, 2)))
 
 all_results2 = all_results %>% 
   group_by_at(vars(-estimate)) %>% 

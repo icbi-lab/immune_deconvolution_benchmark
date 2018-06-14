@@ -20,6 +20,7 @@ pacman::p_load(knitr,
 registerDoMC(detectCores(logical=TRUE))
 
 devtools::load_all("/storage/home/sturm/projects/immune_deconvolution_methods")
+source("../lib/make_cell_fraction_vector.R")
 set_cibersort_binary("../lib/CIBERSORT/CIBERSORT.R")
 set_cibersort_mat("../lib/CIBERSORT/LM22.txt")
 
@@ -45,7 +46,7 @@ We use a dedicated environment for each dataset in order not to trash the global
 We use a hierachy of immune cell types to map the cell types between different datasets. 
 Here is the hierachy visualized: 
 
-```{r hierarchy, fig.height=8, fig.width=8}
+```{r hierarchy, fig.height=8, fig.width=8, echo=FALSE}
 cell_type_hierarchy = new.env()
 with(cell_type_hierarchy, {
   tree = immunedeconv::cell_type_tree
@@ -62,7 +63,7 @@ with(cell_type_hierarchy, {
 
 ## Single cell data for simulated mixtures
 
-```{r single_cell_schelker, message=FALSE, cache=TRUE}
+```{r single_cell_schelker, message=FALSE, cache=TRUE, echo=FALSE}
 tmp_env = new.env()
 with(tmp_env, {
   load("../data/single_cell_schelker/single_cell_schelker.rda")
@@ -84,13 +85,20 @@ single_cell_schelker$cell_types = pData(single_cell_schelker$eset)$cell_type %>%
 ```
 
 
-```{r}
+```{r, echo=FALSE}
 cell_types = as.environment(list(
   available=pData(single_cell_schelker$eset) %>% select(cell_type) %>% distinct() %>% pull(cell_type),
   cancer=c("Melanoma cell", "Ovarian carcinoma cell"),
   other=c("Cancer associated fibroblast", "Endothelial cell")
 ))
 cell_types$immune_cells = cell_types$available[!cell_types$available %in% c(cell_types$cancer, cell_types$other)]
+
+cell_types$background_cells = c(cell_types$cancer, cell_types$other)
+cell_types$n_background_cells = single_cell_schelker$eset %>% pData() %>%
+  filter(cell_type %in% cell_types$background_cells) %>%
+  group_by(cell_type) %>%
+  count() %>% 
+  {'names<-'(.$n, .$cell_type)}
 ```
 
 In this study, we make use of the single cell dataset curated by [@Schelker2017]. They aggregated single cell sequencing data from different sources resulting in a set of ~12,000 single cells. They classified the cells using at set of 45 marker genes into `r length(cell_types$available)` categories:
@@ -131,7 +139,7 @@ pData(single_cell_schelker$eset) %>%
 
 
 ## Immune cell bulk reference samples (quanTIseq training data)
-```{r, message=FALSE, cache=TRUE}
+```{r, message=FALSE, cache=TRUE, echo=FALSE}
 immune_cell_reference = new.env()
 with(immune_cell_reference, {
   tidy = read_tsv("../data/immune_cell_reference_profiles/immune_cell_reference_tidy.tsv")
@@ -154,6 +162,8 @@ with(immune_cell_reference, {
   .[, sample_description$sample]
 })
 
+
+DT::datatable(immune_cell_reference$sample_description %>% select(sample, Study, cell_type))
 ```
 
 
@@ -161,14 +171,14 @@ with(immune_cell_reference, {
 ## Validation data (RNAseq + matched gold standard)
 e.g. IHC, Flow cytometry, single cell
 
-```{r}
+```{r, echo=FALSE}
 validation_datasets = read_excel("../tables/validation-datasets.xlsx")
-kable(validation_datasets)
+DT::datatable(validation_datasets)
 ```
 
 ### Hoeck data
 8 PBMC, RNAseq+flow cytometry
-```{r}
+```{r, echo=FALSE, message=FALSE}
 tmp_env = new.env()
 with(tmp_env, {
   load("../data/hoeck/HoekPBMC_mixture.RData")
@@ -181,12 +191,15 @@ hoeck$ref = tmp_env$RefData %>%
   gather(method_cell_type, true_fraction, -sample) %>%
   inner_join(immunedeconv::cell_type_mapping %>% filter(method_dataset == "hoeck"))
 ```
+Measured cell types: `r unique(hoeck$ref$cell_type)`. 
+
+
 
 
 ### Schelker data 
 Load the data and merge replicates.
 3 ovarian cancer ascites samplese which have matched flow cytometry/single cell/bulk data. 
-```{r}
+```{r, echo=FALSE}
 schelker_ovarian = new.env()
 with(schelker_ovarian, {
   bulk_replicates = read_xls("../data/single_cell_schelker/ascites_bulk_samples.xls") 
@@ -226,21 +239,21 @@ with(schelker_ovarian, {
 ```
 
 Single cell count for the 3 samples
-```{r}
+```{r, echo=FALSE}
 
 schelker_ovarian$true_cell_count %>% 
   group_by(donor) %>%
   summarise(sum(cell_count)) %>%
   kable()
 
-schelker_ovarian$true_cell_count %>% kable()
+schelker_ovarian$true_cell_count %>% DT::datatable()
 
 ```
 
 
 ### Racle data
 4 metastatic melanoma, matched bulkRNAseq with FlowCytometry. 
-```{r, message=FALSE}
+```{r, message=FALSE, echo=FALSE}
 tmp_env = new.env()
 with(tmp_env, {
   ensg_hgnc = read_tsv("../data/ensemble_hgnc.txt") %>% 
@@ -270,38 +283,7 @@ racle$ref = tmp_env$racle_cyto %>%
   mutate(true_fraction=true_fraction/100) %>% 
   inner_join(immunedeconv::cell_type_mapping %>% filter(method_dataset == "racle"))
 
+
+racle$ref %>% select(sample, cell_type, true_fraction) %>% DT::datatable()
 ```
 
-### helper functions for generating bulk samples
-```{r}
-#' Make a cell fraction vector from single cell data with one specific cell type
-#' 
-#' @param input_cell_type cell_type for the immune cell to use
-#' @param n number of immune cells to use in the sample
-#' @param background named vector giving cell counts of background cells. use `NULL` to exclude background cells. 
-make_cell_fraction_vector = function(input_cell_type, n, background=n_background_cells) {
-  if(input_cell_type == "T cell CD4+") {
-    # combine regulatory and non-regulatory CD4+ T cells
-    cell_type_stats = pData(single_cell_schelker$eset) %>% 
-      group_by(cell_type) %>% 
-      count() %>% 
-      as.data.frame() %>% 
-      column_to_rownames("cell_type")
-    ratio = cell_type_stats["T cell regulatory (Tregs)", "n"]/cell_type_stats["T cell CD4+ (non-regulatory)", "n"]
-    cell_n =  c(background, round(n*(1-ratio)), round(n*ratio))
-    names(cell_n) = c(names(background), "T cell CD4+ (non-regulatory)", "T cell regulatory (Tregs)")
-  } else {
-    cell_n =  c(background, n)
-    names(cell_n) = c(names(background), input_cell_type)
-  }
-  cell_n
-}
-
-background_cells = c(cell_types$cancer, cell_types$other)
-n_background_cells = single_cell_schelker$eset %>% pData() %>%
-  filter(cell_type %in% background_cells) %>%
-  group_by(cell_type) %>%
-  count() %>% 
-  {'names<-'(.$n, .$cell_type)}
-
-```

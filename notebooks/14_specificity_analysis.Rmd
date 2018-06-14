@@ -28,7 +28,8 @@ rownames(artificial_bulk) = rownames(single_cell_schelker$eset %>% exprs())
 
 ## make artificial bulk samples with background
 artificial_bulk_bg = lapply(sample_types, function(cell_type) {
-  cell_n = make_cell_fraction_vector(cell_type, n=100, background=round(400*(n_background_cells/sum(n_background_cells))))
+  cell_n = make_cell_fraction_vector(cell_type, n=100,
+                                     background=round(400*(cell_types$n_background_cells/sum(cell_types$n_background_cells))))
   assert("sample has 500 cells", sum(cell_n) >= 499 & sum(cell_n) <= 501)
   cell_frac = cell_n/sum(cell_n)
   make_random_bulk(single_cell_schelker$eset, cell_frac, n_cells=500)
@@ -40,7 +41,7 @@ rownames(artificial_bulk_bg) = rownames(single_cell_schelker$eset %>% exprs())
 
 ## Run the deconvolution
 We first run all methods that are integrated in the `immune_deconvolution_methods` are package automatically in a loop. 
-```{r, cache=TRUE}
+```{r, cache=TRUE, message=FALSE}
 datasets = list(
   immune_reference = immune_cell_reference$expr_mat,
   artificial_bulk = artificial_bulk,
@@ -84,7 +85,7 @@ all_results2 =  foreach(dataset = names(datasets),
 
 
 ## Results
-```{r, fig.width=24, fig.height=24}
+```{r, fig.width=24, fig.height=24, cache=TRUE}
 all_results2 %>%
   filter(true_cell_type %in% show_cell_types, cell_type %in% show_cell_types) %>% 
   ggplot(aes(x=cell_type, y=estimate, fill=dataset)) + 
@@ -99,7 +100,7 @@ all_results2 %>%
 
 
 ### Summary figure: signal to noise ratio
-```{r, fig.width=8, fig.height=8}
+```{r, fig.width=8, fig.height=8, cache=TRUE}
 signal_noise_res = all_results2 %>% 
   mutate(signal_noise=if_else(cell_type == true_cell_type, "signal", "noise")) %>%
   group_by(dataset, sample, method, true_cell_type, signal_noise) %>%

@@ -1,28 +1,50 @@
 # Sensitivity analysis
 How many cells do we need for a method to detect immune cell infiltration?
 
+```{r}
+show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte", "NK cell", "T cell CD4+", "T cell CD8+")
+background_cells = c(cell_types$cancer, cell_types$other)
+n_background_cells = single_cell_schelker$eset %>% pData() %>%
+  filter(cell_type %in% background_cells) %>%
+  group_by(cell_type) %>%
+  count() %>% 
+  {'names<-'(.$n, .$cell_type)}
+
+n_immune_cells = rep(c(seq(0, 50, 5)
+                     , seq(60, 100, 10)
+                     , seq(150, 500, 50)
+                     , seq(600, 1000, 100)
+                     ), 5)
+```
 
 ```{r, fig.height=18, fig.width=25, cache=TRUE}
+make_cell_fraction_vector = function(input_cell_type, n) {
+  if(input_cell_type == "T cell CD4+") {
+    # combine regulatory and non-regulatory CD4+ T cells
+    cell_type_stats = pData(single_cell_schelker$eset) %>% 
+      group_by(cell_type) %>% 
+      count() %>% 
+      as.data.frame() %>% 
+      column_to_rownames("cell_type")
+    ratio = cell_type_stats["T cell regulatory (Tregs)", "n"]/cell_type_stats["T cell CD4+ (non-regulatory)", "n"]
+    cell_n =  c(n_background_cells, round(n*(1-ratio)), round(n*ratio))
+    names(cell_n) = c(names(n_background_cells), "T cell CD4+ (non-regulatory)", "T cell regulatory (Tregs)")
+  } else {
+    cell_n =  c(n_background_cells, n)
+    names(cell_n) = c(names(n_background_cells), input_cell_type)
+  }
+  cell_n
+}
+
 if(!file.exists("../results/sensitivity_analysis_res.rda")) {
-  background_cells = c(cell_types$cancer, cell_types$other)
-  n_background_cells = single_cell_schelker$eset %>% pData() %>%
-    filter(cell_type %in% background_cells) %>%
-    group_by(cell_type) %>%
-    count() %>% 
-    {'names<-'(.$n, .$cell_type)}
-  
-  n_immune_cells = rep(c(0:10
-                       , seq(15, 50, 5)
-                       , seq(60, 100, 10)
-                       , seq(200, 1000, 100)
-                       ), 5)
-  
+  set.seed(42)
   registerDoMC(cores=16)
-  res = foreach(input_cell_type = cell_types$immune_cells, .combine=bind_rows) %:% 
-    foreach(method = immunedeconv::deconvolution_methods, .combine=bind_rows) %dopar% {
+  res = foreach(input_cell_type = show_cell_types,
+                .final = function(x) setNames(x, show_cell_types)) %:% 
+    foreach(method = immunedeconv::deconvolution_methods,
+            .final = function(x) setNames(x, immunedeconv::deconvolution_methods)) %dopar% {
       expr_mat = lapply(n_immune_cells, function(n) {
-        cell_n =  c(n_background_cells, n)
-        names(cell_n) = c(names(n_background_cells), input_cell_type)
+        cell_n = make_cell_fraction_vector(input_cell_type, n)
         cell_frac = cell_n/sum(cell_n)
         make_random_bulk(eset=single_cell_schelker$eset, cell_fractions = cell_frac, n_cells = sum(cell_n))
       }) %>% bind_cols() %>% as.matrix()
@@ -30,13 +52,7 @@ if(!file.exists("../results/sensitivity_analysis_res.rda")) {
       
       rownames(expr_mat) = rownames(single_cell_schelker$eset %>% exprs())
       
-      deconv_res = deconvolute(expr_mat, method)
-      
-      deconv_res2 = deconv_res %>% as.data.frame() %>% column_to_rownames("cell_type") %>% t() %>% as.data.frame()
-      deconv_res2$n_cells = as.factor(n_immune_cells) 
-      deconv_res2 %<>% 
-        gather(cell_type, estimate, -n_cells) %>%
-        mutate(method=method, input_cell_type=input_cell_type)
+      deconvolute(expr_mat, method)
     }
   
   sensitivity_analysis_res = res
@@ -46,56 +62,99 @@ if(!file.exists("../results/sensitivity_analysis_res.rda")) {
 
 ```
 
+## post-process the deconvolution results
+```{r}
+load("../results/sensitivity_analysis_res.rda")
+
+all_results = foreach(input_cell_type = show_cell_types, 
+        .combine=bind_rows) %:% 
+  foreach(method = immunedeconv::deconvolution_methods,
+          .combine=bind_rows) %do% {
+    tmp_res = sensitivity_analysis_res[[input_cell_type]][[method]] %>%
+                map_result_to_celltypes(show_cell_types, method) %>%
+                na.omit() 
+    
+    n_cell_df = tibble(sample=colnames(tmp_res),
+                       n_immune_cells = n_immune_cells,
+                       n_background_cells = sum(n_background_cells)) 
+                  
+    
+    tmp_res %>%
+      as_tibble(rownames = "cell_type") %>%
+      gather(sample, estimate, -cell_type) %>%
+      mutate(method=method, input_cell_type=input_cell_type) %>%
+      inner_join(n_cell_df, by="sample")
+} %>% 
+  select(-sample) %>% 
+  mutate(frac_immune_cells = as.factor(round(n_immune_cells/n_background_cells * 100, 2))) %>% 
+  group_by_at(vars(-estimate)) %>% 
+  summarise_all(funs(mean, sd, n=length)) %>%
+  mutate(ci=qt(0.975,df=n-1)*sd/sqrt(n)) %>%
+  ungroup()
+```
 
 ```{r, fig.height=18, fig.width=25, cache=TRUE}
-load("../results/sensitivity_analysis_res.rda")
-sensitivity_analysis_res %>% 
-  # filter(cell_type %in% c("T CD8+ (CTL)", "T CD4+ (naïve)")) %>%
-  group_by(method, input_cell_type, cell_type, n_cells) %>% 
-  summarise_all(funs(mean, sd, n=length)) %>%
-  mutate(ci=qt(0.975,df=n-1)*sd/sqrt(n)) %>% 
-  ggplot(aes(x=n_cells, y=mean, colour=cell_type)) +
-    geom_line() + 
+all_results %>% 
+  ggplot(aes(x=frac_immune_cells, y=mean, colour=cell_type)) +
+  #   geom_line() + 
     geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) + 
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
         legend.position="top") + 
-    facet_grid(method~input_cell_type, scales = "free_y")
+    facet_grid(method~input_cell_type, scales = "free_y") + 
+    scale_color_manual(values = color_scales$immune_cells)
 ```
 
-tmp sens figure for presentation (only CD8)
-```{r, fig.width=12, fig.height=8}
-n_bg_cells = 1813
-
-p2 = sensitivity_analysis_res %>% 
-  filter(input_cell_type == "CD8+ T cells") %>%
-  group_by(method, input_cell_type, cell_type, n_cells) %>% 
-  summarise_all(funs(mean, sd, n=length)) %>%
-  mutate(ci=qt(0.975,df=n-1)*sd/sqrt(n)) %>% 
-  mutate(percent_cd8=100*as.numeric(as.character(n_cells))/(as.numeric(as.character(n_cells)) + n_bg_cells)) %>%
-  mutate(percent_cd8c=as.character(round(percent_cd8, 2))) %>%
-  arrange(percent_cd8) %>% 
-  mutate(percent_cd8f=factor(percent_cd8c, levels=percent_cd8c))
-
-# p2 %>%
-#   ggplot(aes(x=percent_cd8f, y=mean, colour=cell_type)) +
-#     geom_line() + 
-#     geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) + 
-#     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
-#         legend.position="top") + 
-#     facet_wrap(~method, scales = "free_y")
-
-
-```
-
-
-Fraction CD8 predicted at 0% infiltration
+### Summary figure: At which percentage the method captures the cell type above noise level? 
 ```{r}
-# sensitivity_analysis_res %>% 
-#   filter(input_cell_type == "CD8+ T cells", cell_type == "T CD8+ (CTL)", n_cells==0, method!="mcp_counter") %>%
-#   ggplot(aes(x=method, y=estimate, fill=method)) + 
-#   geom_boxplot() + 
-#   theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
-#         legend.position="top") +
-#   scale_fill_manual(values=color_scales$methods)
+# add fallback values, if none of the fractions exceed the specified value
+results_inf_fallback = all_results %>%
+  select(cell_type, method, input_cell_type) %>%
+  distinct() %>% 
+  mutate(mean = if_else(cell_type == input_cell_type, Inf, 0), ci=0, frac_immune_cells = as.factor(Inf))
+
+# omit unnecessary columns and append fallback Inf valuees
+all_results2 = all_results %>% 
+  select(cell_type, method, input_cell_type, mean, ci, frac_immune_cells) %>% 
+  bind_rows(results_inf_fallback)
+
+# add the 'reference cell type', i.e. the celltype that *should* be there as an additional column
+ref_cell_type = all_results2 %>% 
+  filter(cell_type == input_cell_type) %>% 
+  select(input_cell_type, method, frac_immune_cells, ref_mean=mean, ref_ci=ci)
+
+all_combinations = crossing(method=immunedeconv::deconvolution_methods, input_cell_type=show_cell_types)
+
+# filter and summarise, s.t. we end up having the minimal fraction at which the celltype is distinguishable from the others
+sensitivity_plot = all_results2 %>% 
+  filter(cell_type != input_cell_type) %>% 
+  select(cell_type, method, input_cell_type, mean, ci, frac_immune_cells) %>% 
+  inner_join(ref_cell_type) %>% 
+  # at least 0.001 predicted to avoid numerical problems with very small values (-> xCell). 
+  mutate(significantly_enriched = ref_mean-ci > mean+ci & ref_mean > 1e-3) %>%
+  filter(significantly_enriched) %>%
+  group_by(method, input_cell_type, cell_type) %>% 
+  summarise(min_frac = min(as.numeric(as.character(frac_immune_cells)))) %>% 
+  group_by(method, input_cell_type) %>% 
+  # must exceed *all* other cell types
+  summarise(min_frac = max(as.numeric(as.character(min_frac)))) %>% 
+  right_join(all_combinations)
+  
+
+```
+
+```{r, fig.width=7, fig.height=6}
+sensitivity_plot %>%
+  mutate(min_frac=ifelse(is.infinite(min_frac), 100, min_frac)) %>% 
+  mutate(not_measured=ifelse(is.na(min_frac), "yes", "no")) %>%
+  mutate(min_frac=ifelse(is.na(min_frac), 100, min_frac)) %>% 
+  ggplot(aes(x=method, y=min_frac, fill=method, alpha=not_measured)) + 
+  geom_bar(stat='identity') + 
+  facet_wrap(~input_cell_type, nrow=2, labeller = label_wrap_gen()) +  
+  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position="top",
+        strip.text.x = element_text(size=9)) +
+  scale_fill_manual(values=color_scales$methods) + 
+  scale_alpha_manual(values=c("yes"=.3, "no"=1.)) + 
+  ggtitle("Sensitivity")
 
 ```

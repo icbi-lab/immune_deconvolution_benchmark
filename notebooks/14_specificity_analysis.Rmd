@@ -7,6 +7,7 @@
  * artificial bulk with background: simulated bulk RNA seq profiles from single cells with ~80% other cells (cancer, fibroblasts, ...)
  
 ```{r, cache=TRUE}
+set.seed(42)
 background_cells = c(cell_types$cancer, cell_types$other)
 
 n_background_cells = single_cell_schelker$eset %>% pData() %>%
@@ -58,24 +59,43 @@ dataset_gold_standard = list(
 all_results_file = "../results/specificity_analysis_res.rda"
 if(!file.exists(all_results_file)) {
   all_results = foreach(dataset = datasets, 
-                        dataset_name = names(datasets),
-                        gold_standard = dataset_gold_standard,
-                        .combine=bind_rows) %:% 
-    foreach(method = immunedeconv::deconvolution_methods, .combine=bind_rows) %dopar% {
-      print(sprintf("Running %s...", method))
-      deconvolute(dataset, method) %>%
-        mutate(method=method, dataset=dataset_name) %>% 
-        gather(sample, estimate, -cell_type, -method, -dataset) %>% 
-        inner_join(gold_standard)
-    }
+                        .final = function(x) setNames(x, names(datasets))) %do% {
+                          
+                            foreach(method = immunedeconv::deconvolution_methods, 
+                                    .final = function(x) setNames(x, immunedeconv::deconvolution_methods)) %dopar% {
+                                          deconvolute(dataset, method) 
+                                    }
+                        }
   save(all_results, file=all_results_file)
 }
 load(all_results_file)
 ```
 
+```{r}
+show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte", "NK cell", "T cell CD4+", "T cell CD8+")
+```
+
+### Postprocess the deconvolution results
+```{r}
+foreach(dataset = names(datasets), 
+        gold_standard = dataset_gold_standard,
+        .combine = bind_rows) %:% 
+  foreach(method = immunedeconv::deconvolution_methods,
+          .combine = bind_rows) %do% {
+            all_results[[dataset]][[method]] %>% 
+              map_result_to_celltypes(show_cell_types, method) %>% 
+              as_tibble(rownames = "cell_type") %>%
+              gather(sample, estimate, -cell_type) %>%
+              mutate(method=method, dataset=dataset) %>% 
+              inner_join(gold_standard)
+}
+```
+
+
 ## Results
 ```{r, fig.width=24, fig.height=24}
 all_results %>%
+  filter(true_cell_type %in% show_cell_types, cell_type %in% show_cell_types) %>% 
   ggplot(aes(x=cell_type, y=estimate, fill=dataset)) + 
     geom_boxplot(position = position_dodge2(preserve = "total")) + 
     facet_grid(method~true_cell_type, scales="free_y") + 

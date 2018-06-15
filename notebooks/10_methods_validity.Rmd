@@ -88,7 +88,7 @@ method, however. The very good agreement of EPIC and MCPCounter suggest, that th
 ## Correlated simulated samples with bulk of the same tissue. 
 We generate simulated bulk tissues of various cell types and correlate them with
 bulk RNA seq samples from sorted cells. 
-```{r, fig.width=8, fig.height=8, cache=TRUE, echo=FALSE}
+```{r, fig.width=8, fig.height=8, echo=FALSE}
 # immune_cell_reference
 # immune_cell_expr_mat
 

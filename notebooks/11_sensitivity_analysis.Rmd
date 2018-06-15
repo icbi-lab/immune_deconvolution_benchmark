@@ -1,9 +1,18 @@
 # Sensitivity analysis
 How many cells do we need for a method to detect immune cell infiltration?
 
+We again use the single cell dataset to simulate samples that consist of background cells
+(i.e. non-immune cells: fibroblasts, endothelial cells cancer cells) and add an increasing amount 
+of immune cells of a certain type. 
+
+For each amount of immune cells, we generate 5 random samples to compute a confidence interval. 
+
+We use the following cell types:
 ```{r}
 show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte", "NK cell", "T cell CD4+", "T cell CD8+")
+```
 
+```{r, echo=FALSE}
 n_immune_cells = rep(c(seq(0, 50, 5)
                      , seq(60, 100, 10)
                      , seq(150, 500, 50)
@@ -11,7 +20,7 @@ n_immune_cells = rep(c(seq(0, 50, 5)
                      ), 5)
 ```
 
-```{r, fig.height=18, fig.width=25, cache=TRUE}
+```{r, fig.height=18, fig.width=25, cache=TRUE, echo=FALSE}
 sensitivity_analysis_file = "../results/cache/sensitivity_analysis_res.rda"
 if(!file.exists(sensitivity_analysis_file)) {
   set.seed(42)
@@ -39,8 +48,8 @@ if(!file.exists(sensitivity_analysis_file)) {
 
 ```
 
-## post-process the deconvolution results
-```{r, cache=TRUE}
+```{r, cache=TRUE, echo=FALSE, message=FALSE}
+# post process the deconvolution results
 load(sensitivity_analysis_file)
 
 all_results = foreach(input_cell_type = show_cell_types, 
@@ -63,7 +72,7 @@ all_results = foreach(input_cell_type = show_cell_types,
       inner_join(n_cell_df, by="sample")
 } %>% 
   select(-sample) %>% 
-  mutate(frac_immune_cells = as.factor(round(n_immune_cells/cell_types$n_background_cells * 100, 2)))
+  mutate(frac_immune_cells = as.factor(round(n_immune_cells/sum(cell_types$n_background_cells) * 100, 2)))
 
 all_results2 = all_results %>% 
   group_by_at(vars(-estimate)) %>% 
@@ -72,7 +81,8 @@ all_results2 = all_results %>%
   ungroup()
 ```
 
-```{r, fig.height=18, fig.width=25, cache=TRUE}
+## Predictions with increasing immune cell content
+```{r, fig.height=18, fig.width=25, echo=FALSE}
 all_results2 %>% 
   ggplot(aes(x=frac_immune_cells, y=mean, colour=cell_type)) +
   #   geom_line() + 
@@ -84,7 +94,7 @@ all_results2 %>%
 ```
 
 ### Summary figure: At which percentage the method captures the cell type above noise level? 
-```{r, warning=FALSE, message=FALSE, cache=TRUE}
+```{r, warning=FALSE, message=FALSE, cache=TRUE, echo=FALSE}
 # add fallback values, if none of the fractions exceed the specified value
 results_inf_fallback = all_results2 %>%
   select(cell_type, method, input_cell_type) %>%
@@ -121,7 +131,7 @@ sensitivity_plot = all_results3 %>%
 
 ```
 
-```{r, fig.width=7, fig.height=6, cache=TRUE}
+```{r, fig.width=7, fig.height=6, echo=FALSE}
 sensitivity_plot %>%
   mutate(min_frac=ifelse(is.infinite(min_frac), 100, min_frac)) %>% 
   mutate(not_measured=ifelse(is.na(min_frac), "yes", "no")) %>%
@@ -140,7 +150,7 @@ sensitivity_plot %>%
 
 
 ### Summary figure: predicted amount of cells when there are none
-```{r, fig.height=6, fig.width=6}
+```{r, fig.height=6, fig.width=6, echo=FALSE}
 all_results %>% 
   filter(frac_immune_cells == 0, cell_type == input_cell_type) %>%
   filter(method != "mcp_counter") %>% 

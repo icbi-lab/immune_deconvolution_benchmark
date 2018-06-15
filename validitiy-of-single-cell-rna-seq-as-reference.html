@@ -25,7 +25,7 @@
 <meta name="author" content="Gregor Sturm">
 
 
-<meta name="date" content="2018-06-04">
+<meta name="date" content="2018-06-15">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -33,7 +33,7 @@
   
   
 <link rel="prev" href="input-data.html">
-<link rel="next" href="sensitivity-analysis.html">
+<link rel="next" href="mixing-study.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -51,6 +51,13 @@
 <script src="libs/viz-0.3/viz.js"></script>
 <link href="libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
 <script src="libs/grViz-binding-1.0.0/grViz.js"></script>
+<link href="libs/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
+<script src="libs/datatables-binding-0.4/datatables.js"></script>
+<link href="libs/dt-core-1.10.16/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="libs/dt-core-1.10.16/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="libs/dt-core-1.10.16/js/jquery.dataTables.min.js"></script>
+<link href="libs/crosstalk-1.0.0/css/crosstalk.css" rel="stylesheet" />
+<script src="libs/crosstalk-1.0.0/js/crosstalk.min.js"></script>
 
 
 <style type="text/css">
@@ -121,42 +128,50 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="3" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html"><i class="fa fa-check"></i><b>3</b> Validitiy of single cell RNA-seq as reference</a><ul>
-<li class="chapter" data-level="3.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#validity-of-single-cell-sequencing-for-counting-immune-cells"><i class="fa fa-check"></i><b>3.1</b> Validity of single cell sequencing for counting immune cells</a></li>
-<li class="chapter" data-level="3.2" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#validity-of-simulated-bulk-tissues-from-single-cell-sequencing-data"><i class="fa fa-check"></i><b>3.2</b> Validity of simulated bulk tissues from single cell sequencing data</a><ul>
-<li class="chapter" data-level="3.2.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#compare-simululated-samples-to-bulk-samples"><i class="fa fa-check"></i><b>3.2.1</b> Compare simululated samples to bulk samples</a></li>
-<li class="chapter" data-level="3.2.2" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#compare-the-predicted-fractions"><i class="fa fa-check"></i><b>3.2.2</b> Compare the predicted fractions</a></li>
+<li class="chapter" data-level="3.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#validity-of-simulated-bulk-tissues-from-single-cell-sequencing-data"><i class="fa fa-check"></i><b>3.1</b> Validity of simulated bulk tissues from single cell sequencing data</a><ul>
+<li class="chapter" data-level="3.1.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#compare-simululated-samples-to-bulk-samples"><i class="fa fa-check"></i><b>3.1.1</b> Compare simululated samples to bulk samples</a></li>
+<li class="chapter" data-level="3.1.2" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#compare-the-predicted-fractions"><i class="fa fa-check"></i><b>3.1.2</b> Compare the predicted fractions</a></li>
 </ul></li>
-<li class="chapter" data-level="3.3" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#correlated-simulated-samples-with-bulk-of-the-same-tissue."><i class="fa fa-check"></i><b>3.3</b> Correlated simulated samples with bulk of the same tissue.</a></li>
+<li class="chapter" data-level="3.2" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#correlated-simulated-samples-with-bulk-of-the-same-tissue."><i class="fa fa-check"></i><b>3.2</b> Correlated simulated samples with bulk of the same tissue.</a></li>
 </ul></li>
-<li class="chapter" data-level="4" data-path="sensitivity-analysis.html"><a href="sensitivity-analysis.html"><i class="fa fa-check"></i><b>4</b> Sensitivity analysis</a></li>
-<li class="chapter" data-level="5" data-path="specificity-analysis.html"><a href="specificity-analysis.html"><i class="fa fa-check"></i><b>5</b> Specificity Analysis</a><ul>
-<li class="chapter" data-level="5.1" data-path="specificity-analysis.html"><a href="specificity-analysis.html#create-datasets"><i class="fa fa-check"></i><b>5.1</b> Create datasets</a></li>
-<li class="chapter" data-level="5.2" data-path="specificity-analysis.html"><a href="specificity-analysis.html#run-the-deconvolution"><i class="fa fa-check"></i><b>5.2</b> Run the deconvolution</a></li>
-<li class="chapter" data-level="5.3" data-path="specificity-analysis.html"><a href="specificity-analysis.html#results"><i class="fa fa-check"></i><b>5.3</b> Results</a></li>
+<li class="chapter" data-level="4" data-path="mixing-study.html"><a href="mixing-study.html"><i class="fa fa-check"></i><b>4</b> Mixing study</a><ul>
+<li class="chapter" data-level="4.1" data-path="mixing-study.html"><a href="mixing-study.html#average-fraction-of-tumour-cells"><i class="fa fa-check"></i><b>4.1</b> Average fraction of tumour cells</a></li>
+<li class="chapter" data-level="4.2" data-path="mixing-study.html"><a href="mixing-study.html#create-simulated-bulk-tissues"><i class="fa fa-check"></i><b>4.2</b> Create simulated bulk tissues</a></li>
+<li class="chapter" data-level="4.3" data-path="mixing-study.html"><a href="mixing-study.html#run-the-deconvolution"><i class="fa fa-check"></i><b>4.3</b> Run the deconvolution</a><ul>
+<li class="chapter" data-level="4.3.1" data-path="mixing-study.html"><a href="mixing-study.html#run-timer"><i class="fa fa-check"></i><b>4.3.1</b> run TIMER</a></li>
 </ul></li>
-<li class="chapter" data-level="6" data-path="correlation-of-methods-across-tcga-samples-.html"><a href="correlation-of-methods-across-tcga-samples-.html"><i class="fa fa-check"></i><b>6</b> Correlation of methods across TCGA samples.</a></li>
-<li class="chapter" data-level="7" data-path="mixing-study.html"><a href="mixing-study.html"><i class="fa fa-check"></i><b>7</b> Mixing study</a><ul>
-<li class="chapter" data-level="7.1" data-path="mixing-study.html"><a href="mixing-study.html#average-fraction-of-tumour-cells"><i class="fa fa-check"></i><b>7.1</b> Average fraction of tumour cells</a></li>
-<li class="chapter" data-level="7.2" data-path="mixing-study.html"><a href="mixing-study.html#create-simulated-bulk-tissues"><i class="fa fa-check"></i><b>7.2</b> Create simulated bulk tissues</a></li>
-<li class="chapter" data-level="7.3" data-path="mixing-study.html"><a href="mixing-study.html#run-the-deconvolution-1"><i class="fa fa-check"></i><b>7.3</b> Run the deconvolution</a><ul>
-<li class="chapter" data-level="7.3.1" data-path="mixing-study.html"><a href="mixing-study.html#run-timer"><i class="fa fa-check"></i><b>7.3.1</b> run TIMER</a></li>
-</ul></li>
-<li class="chapter" data-level="7.4" data-path="mixing-study.html"><a href="mixing-study.html#results-1"><i class="fa fa-check"></i><b>7.4</b> Results</a><ul>
-<li class="chapter" data-level="7.4.1" data-path="mixing-study.html"><a href="mixing-study.html#calculate-other-cells-for-all-absolute-methods"><i class="fa fa-check"></i><b>7.4.1</b> Calculate “Other cells” for all absolute methods</a></li>
-<li class="chapter" data-level="7.4.2" data-path="mixing-study.html"><a href="mixing-study.html#correlation-plots"><i class="fa fa-check"></i><b>7.4.2</b> Correlation plots</a></li>
-<li class="chapter" data-level="7.4.3" data-path="mixing-study.html"><a href="mixing-study.html#calculate-correlations-for-each-method-and-cell-type"><i class="fa fa-check"></i><b>7.4.3</b> Calculate correlations for each method and cell type</a></li>
-<li class="chapter" data-level="7.4.4" data-path="mixing-study.html"><a href="mixing-study.html#absolute-error-for-all-qualifying-methods"><i class="fa fa-check"></i><b>7.4.4</b> Absolute error for all qualifying methods</a></li>
+<li class="chapter" data-level="4.4" data-path="mixing-study.html"><a href="mixing-study.html#results"><i class="fa fa-check"></i><b>4.4</b> Results</a><ul>
+<li class="chapter" data-level="4.4.1" data-path="mixing-study.html"><a href="mixing-study.html#correlation-plots"><i class="fa fa-check"></i><b>4.4.1</b> Correlation plots</a></li>
+<li class="chapter" data-level="4.4.2" data-path="mixing-study.html"><a href="mixing-study.html#calculate-correlations-for-each-method-and-cell-type"><i class="fa fa-check"></i><b>4.4.2</b> Calculate correlations for each method and cell type</a></li>
+<li class="chapter" data-level="4.4.3" data-path="mixing-study.html"><a href="mixing-study.html#absolute-error-for-all-qualifying-methods"><i class="fa fa-check"></i><b>4.4.3</b> Absolute error for all qualifying methods</a></li>
 </ul></li>
 </ul></li>
-<li class="chapter" data-level="8" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html"><i class="fa fa-check"></i><b>8</b> Validation with real data</a><ul>
-<li class="chapter" data-level="8.1" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#run-the-deconvolution-2"><i class="fa fa-check"></i><b>8.1</b> Run the deconvolution</a></li>
+<li class="chapter" data-level="5" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html"><i class="fa fa-check"></i><b>5</b> Validation with real data</a></li>
+<li class="chapter" data-level="6" data-path="correlation-of-methods-across-tcga-samples-.html"><a href="correlation-of-methods-across-tcga-samples-.html"><i class="fa fa-check"></i><b>6</b> Correlation of methods across TCGA samples.</a><ul>
+<li class="chapter" data-level="6.1" data-path="correlation-of-methods-across-tcga-samples-.html"><a href="correlation-of-methods-across-tcga-samples-.html#heatmap-clustered-by-correlation"><i class="fa fa-check"></i><b>6.1</b> Heatmap clustered by correlation</a></li>
+<li class="chapter" data-level="6.2" data-path="correlation-of-methods-across-tcga-samples-.html"><a href="correlation-of-methods-across-tcga-samples-.html#heatmap-unclustered-sorted-by-cell-type"><i class="fa fa-check"></i><b>6.2</b> Heatmap unclustered, sorted by cell type</a></li>
 </ul></li>
-<li class="chapter" data-level="9" data-path="conclusions.html"><a href="conclusions.html"><i class="fa fa-check"></i><b>9</b> Conclusions</a></li>
-<li class="chapter" data-level="10" data-path="materials-and-methods.html"><a href="materials-and-methods.html"><i class="fa fa-check"></i><b>10</b> Materials and Methods</a><ul>
-<li class="chapter" data-level="10.1" data-path="materials-and-methods.html"><a href="materials-and-methods.html#data-acquisition"><i class="fa fa-check"></i><b>10.1</b> Data acquisition</a></li>
-<li class="chapter" data-level="10.2" data-path="materials-and-methods.html"><a href="materials-and-methods.html#validation-datasets-flow-cytometry-scrnaseq-imageing-matched-rna-seq"><i class="fa fa-check"></i><b>10.2</b> Validation datasets (Flow cytometry, scRNAseq, Imageing + matched RNA seq)</a></li>
+<li class="chapter" data-level="7" data-path="sensitivity-analysis.html"><a href="sensitivity-analysis.html"><i class="fa fa-check"></i><b>7</b> Sensitivity analysis</a><ul>
+<li class="chapter" data-level="7.1" data-path="sensitivity-analysis.html"><a href="sensitivity-analysis.html#predictions-with-increasing-immune-cell-content"><i class="fa fa-check"></i><b>7.1</b> Predictions with increasing immune cell content</a><ul>
+<li class="chapter" data-level="7.1.1" data-path="sensitivity-analysis.html"><a href="sensitivity-analysis.html#summary-figure-at-which-percentage-the-method-captures-the-cell-type-above-noise-level"><i class="fa fa-check"></i><b>7.1.1</b> Summary figure: At which percentage the method captures the cell type above noise level?</a></li>
+<li class="chapter" data-level="7.1.2" data-path="sensitivity-analysis.html"><a href="sensitivity-analysis.html#summary-figure-predicted-amount-of-cells-when-there-are-none"><i class="fa fa-check"></i><b>7.1.2</b> Summary figure: predicted amount of cells when there are none</a></li>
 </ul></li>
-<li class="chapter" data-level="11" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i><b>11</b> References</a></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="specificity-analysis.html"><a href="specificity-analysis.html"><i class="fa fa-check"></i><b>8</b> Specificity Analysis</a><ul>
+<li class="chapter" data-level="8.1" data-path="specificity-analysis.html"><a href="specificity-analysis.html#complete-spillover-matrix"><i class="fa fa-check"></i><b>8.1</b> Complete Spillover Matrix</a></li>
+<li class="chapter" data-level="8.2" data-path="specificity-analysis.html"><a href="specificity-analysis.html#summary-figure-noise-ratio"><i class="fa fa-check"></i><b>8.2</b> Summary figure: Noise ratio</a></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="robustness-against-noise.html"><a href="robustness-against-noise.html"><i class="fa fa-check"></i><b>9</b> Robustness against noise</a><ul>
+<li class="chapter" data-level="9.1" data-path="robustness-against-noise.html"><a href="robustness-against-noise.html#result-figures"><i class="fa fa-check"></i><b>9.1</b> Result figures</a><ul>
+<li class="chapter" data-level="9.1.1" data-path="robustness-against-noise.html"><a href="robustness-against-noise.html#correlations"><i class="fa fa-check"></i><b>9.1.1</b> Correlations</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="conclusions.html"><a href="conclusions.html"><i class="fa fa-check"></i><b>10</b> Conclusions</a></li>
+<li class="chapter" data-level="11" data-path="materials-and-methods.html"><a href="materials-and-methods.html"><i class="fa fa-check"></i><b>11</b> Materials and Methods</a><ul>
+<li class="chapter" data-level="11.1" data-path="materials-and-methods.html"><a href="materials-and-methods.html#data-acquisition"><i class="fa fa-check"></i><b>11.1</b> Data acquisition</a></li>
+<li class="chapter" data-level="11.2" data-path="materials-and-methods.html"><a href="materials-and-methods.html#validation-datasets-flow-cytometry-scrnaseq-imageing-matched-rna-seq"><i class="fa fa-check"></i><b>11.2</b> Validation datasets (Flow cytometry, scRNAseq, Imageing + matched RNA seq)</a></li>
+</ul></li>
+<li class="chapter" data-level="12" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i><b>12</b> References</a></li>
 </ul>
 
       </nav>
@@ -176,14 +191,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
             <section class="normal" id="section-">
 <div id="validitiy-of-single-cell-rna-seq-as-reference" class="section level1">
 <h1><span class="header-section-number">3</span> Validitiy of single cell RNA-seq as reference</h1>
-<div id="validity-of-single-cell-sequencing-for-counting-immune-cells" class="section level2">
-<h2><span class="header-section-number">3.1</span> Validity of single cell sequencing for counting immune cells</h2>
-<ul>
-<li><span class="citation">Schelker et al. (<a href="#ref-Schelker2017">2017</a>)</span> have shown that measurements from single cell sequencing are highly consistent with flow cytometry.</li>
-</ul>
-</div>
+<p><span class="citation">Schelker et al. (<a href="#ref-Schelker2017">2017</a>)</span> have shown that measurements from single cell sequencing are highly consistent with flow cytometry.</p>
 <div id="validity-of-simulated-bulk-tissues-from-single-cell-sequencing-data" class="section level2">
-<h2><span class="header-section-number">3.2</span> Validity of simulated bulk tissues from single cell sequencing data</h2>
+<h2><span class="header-section-number">3.1</span> Validity of simulated bulk tissues from single cell sequencing data</h2>
 <p>We use simulated samples from single cell gene expression data. Does this approach make sense after all? We have 3 samples of single cell samples matched to bulk RNA sequencing.</p>
 <p>To test, we try:</p>
 <ul>
@@ -192,104 +202,31 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li>correlation of the simulated gene expression with bulk gene expression from the same tissue.</li>
 </ul>
 <div id="compare-simululated-samples-to-bulk-samples" class="section level3">
-<h3><span class="header-section-number">3.2.1</span> Compare simululated samples to bulk samples</h3>
-<p>Simulate bulk samples by summing up the expression values of all cells.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">bulk_sum =<span class="st"> </span><span class="kw">sapply</span>(<span class="kw">colnames</span>(schelker_ovarian<span class="op">$</span>bulk_mat), <span class="cf">function</span>(donor) {
+<h3><span class="header-section-number">3.1.1</span> Compare simululated samples to bulk samples</h3>
+<p>Simulate bulk samples by summing up the expression values of all cells. Theoretically, it should not matter whether to use <code>sum</code> or <code>mean</code> as they only differ by a constant scaling factor. However, we ran into numerical issues with CIBERSORT and quanTIseq using mean, as the valuese are much smaller.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">bulk_sum =<span class="st"> </span><span class="kw">sapply</span>(<span class="kw">colnames</span>(schelker_ovarian<span class="op">$</span>expr_mat), <span class="cf">function</span>(donor) {
   ind =<span class="st"> </span><span class="kw">pData</span>(single_cell_schelker<span class="op">$</span>eset)<span class="op">$</span>donor <span class="op">==</span><span class="st"> </span>donor
   <span class="kw">apply</span>(<span class="kw">exprs</span>(single_cell_schelker<span class="op">$</span>eset)[,ind], <span class="dv">1</span>, sum)
 })</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">genes =<span class="st"> </span><span class="kw">intersect</span>(<span class="kw">rownames</span>(bulk_sum), schelker_ovarian<span class="op">$</span>bulk<span class="op">$</span>gene_symbol)
-
-expr_all =<span class="st"> </span><span class="kw">bind_rows</span>(
-  schelker_ovarian<span class="op">$</span>bulk  <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">source=</span><span class="st">&quot;bulk&quot;</span>),
-  bulk_sum <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as_tibble</span>(<span class="dt">rownames=</span><span class="st">&quot;gene_symbol&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">source=</span><span class="st">&quot;single_cell_aggregate&quot;</span>)
-) <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">filter</span>(gene_symbol <span class="op">%in%</span><span class="st"> </span>genes) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">gather</span>(sample, tpm, <span class="op">-</span>gene_symbol, <span class="op">-</span>source) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">spread</span>(source, tpm)</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">expr_all <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">bulk=</span><span class="kw">log2</span>(bulk<span class="op">+</span><span class="dv">1</span>), <span class="dt">single_cell_aggregate=</span><span class="kw">log2</span>(single_cell_aggregate<span class="op">+</span><span class="dv">1</span>)) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>bulk, <span class="dt">y=</span>single_cell_aggregate)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span><span class="kw">stat_cor</span>() <span class="op">+</span><span class="st"> </span><span class="kw">facet_wrap</span>(<span class="op">~</span>sample) <span class="op">+</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">geom_smooth</span>(<span class="dt">method =</span> lm)</code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-12-1.png" width="1536" /></p>
+<div class="figure"><span id="fig:unnamed-chunk-11"></span>
+<img src="_main_files/figure-html/unnamed-chunk-11-1.png" alt="Correlation of bulkRNAseq data vs. simulated bulk data. Data has been log-tranformed" width="1536" />
+<p class="caption">
+Figure 3.1: Correlation of bulkRNAseq data vs. simulated bulk data. Data has been log-tranformed
+</p>
+</div>
+<p>We observe a good correlation, although one can argue that it is very noisy and far from perfect. We do not draw any conclusions from this plot.</p>
 </div>
 <div id="compare-the-predicted-fractions" class="section level3">
-<h3><span class="header-section-number">3.2.2</span> Compare the predicted fractions</h3>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">all_results_bulk =<span class="st"> </span><span class="kw">lapply</span>(immunedeconv<span class="op">::</span>deconvolution_methods, <span class="cf">function</span>(method) {
-  <span class="kw">deconvolute</span>(schelker_ovarian<span class="op">$</span>bulk_mat, method) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">mutate</span>(<span class="dt">method=</span>method) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">mutate</span>(<span class="dt">source=</span><span class="st">&quot;bulk&quot;</span>)
-})</code></pre></div>
-<pre><code>## Warning in EPIC::EPIC(bulk = gene_expression_matrix, ...): mRNA_cell value
-## unknown for some cell types: CAFs, Endothelial - using the default value of
-## 0.4 for these but this might bias the true cell proportions from all cell
-## types.</code></pre>
-<pre><code>## 
-## Running quanTIseq deconvolution module</code></pre>
-<pre><code>## Gene expression normalization and re-annotation (arrays: FALSE)</code></pre>
-<pre><code>## Removing 17 noisy genes</code></pre>
-<pre><code>## Signature genes found in data set: 152/153 (99.35%)</code></pre>
-<pre><code>## Mixture deconvolution (method: lsei)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;limSolve&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:ggplot2&#39;:
-## 
-##     resolution</code></pre>
-<pre><code>## Deconvolution sucessful!</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">all_results_simulated =<span class="st"> </span><span class="kw">lapply</span>(immunedeconv<span class="op">::</span>deconvolution_methods, <span class="cf">function</span>(method) {
-  <span class="kw">deconvolute</span>(bulk_sum, method) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">mutate</span>(<span class="dt">method=</span>method) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">mutate</span>(<span class="dt">source=</span><span class="st">&quot;sum&quot;</span>)
-})</code></pre></div>
-<pre><code>## Warning in EPIC::EPIC(bulk = gene_expression_matrix, ...): mRNA_cell value
-## unknown for some cell types: CAFs, Endothelial - using the default value of
-## 0.4 for these but this might bias the true cell proportions from all cell
-## types.</code></pre>
-<pre><code>## 
-## Running quanTIseq deconvolution module</code></pre>
-<pre><code>## Gene expression normalization and re-annotation (arrays: FALSE)</code></pre>
-<pre><code>## Removing 17 noisy genes</code></pre>
-<pre><code>## Signature genes found in data set: 140/153 (91.5%)</code></pre>
-<pre><code>## Mixture deconvolution (method: lsei)</code></pre>
-<pre><code>## Deconvolution sucessful!</code></pre>
-<pre><code>## Warning in .local(expr, gset.idx.list, ...): 1genes with constant
-## expression values throuhgout the samples.</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">all_results =<span class="st"> </span><span class="kw">bind_rows</span>(all_results_bulk, all_results_simulated) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">gather</span>(donor, fraction, <span class="op">-</span>cell_type, <span class="op">-</span>source, <span class="op">-</span>method) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">spread</span>(source, fraction)</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">all_results <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> bulk, <span class="dt">y=</span>sum)) <span class="op">+</span>
-<span class="st">    </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">colour=</span>cell_type)) <span class="op">+</span><span class="st"> </span>
-<span class="st">    </span><span class="kw">facet_wrap</span>(<span class="op">~</span>method, <span class="dt">scales=</span><span class="st">&quot;free&quot;</span>) <span class="op">+</span><span class="st"> </span>
-<span class="st">    </span><span class="kw">stat_cor</span>()</code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-14-1.png" width="1152" /></p>
+<h3><span class="header-section-number">3.1.2</span> Compare the predicted fractions</h3>
+<p>We run all methods on both datasets and compare the results.</p>
+<p><img src="_main_files/figure-html/unnamed-chunk-13-1.png" width="1152" /></p>
+<p>The results suggest a reasonable correlation between the estimates on bulkRNAseq and simulated bulkRNAseq. The results depend on the method, however. The very good agreement of EPIC and MCPCounter suggest, that the methodology itself is valid; just some methods appear to be more dependent on noise than others. xCell does not pick up a signal here as is “does not work on homogeneous samples”, as stated on their github page.</p>
 </div>
 </div>
 <div id="correlated-simulated-samples-with-bulk-of-the-same-tissue." class="section level2">
-<h2><span class="header-section-number">3.3</span> Correlated simulated samples with bulk of the same tissue.</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># immune_cell_reference</span>
-<span class="co"># immune_cell_expr_mat</span>
-
-cell_fractions =<span class="st"> </span><span class="kw">diag</span>(<span class="kw">length</span>(cell_types<span class="op">$</span>immune_cells))
-cell_fractions =<span class="st"> </span><span class="kw">rbind</span>(cell_fractions, cell_fractions, cell_fractions)
-<span class="kw">colnames</span>(cell_fractions) =<span class="st"> </span>cell_types<span class="op">$</span>immune_cells
-<span class="kw">rownames</span>(cell_fractions) =<span class="st"> </span><span class="kw">unlist</span>(<span class="kw">lapply</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>, <span class="cf">function</span>(i) {<span class="kw">paste0</span>(cell_types<span class="op">$</span>immune_cells, <span class="st">&quot;_&quot;</span>, i)}))
-
-simulated_bulk =<span class="st"> </span><span class="kw">make_bulk_eset</span>(<span class="dt">eset=</span>single_cell_schelker<span class="op">$</span>eset, <span class="dt">cell_fractions =</span> cell_fractions, <span class="dt">n_cells=</span><span class="dv">500</span>, <span class="dt">combine=</span>sum) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">exprs</span>() 
-simulated_bulk =<span class="st"> </span><span class="kw">log2</span>(simulated_bulk<span class="op">+</span><span class="dv">1</span>)
-<span class="kw">colnames</span>(simulated_bulk) =<span class="st"> </span><span class="kw">rownames</span>(cell_fractions)
-
-immune_bulk =<span class="st"> </span><span class="kw">log2</span>(immune_cell_reference<span class="op">$</span>expr_mat<span class="op">+</span><span class="dv">1</span>)
-<span class="kw">colnames</span>(immune_bulk) =<span class="st"> </span><span class="kw">paste</span>(immune_cell_reference<span class="op">$</span>sample_description<span class="op">$</span>CellType, immune_cell_reference<span class="op">$</span>sample_description<span class="op">$</span>sample)
-
-common_symbols =<span class="st"> </span><span class="kw">intersect</span>(<span class="kw">rownames</span>(simulated_bulk), <span class="kw">rownames</span>(immune_bulk))
-
-
-<span class="co"># all_samples = cbind(simulated_bulk[common_symbols,], immune_bulk[common_symbols, ])</span>
-<span class="co"># pheatmap(all_samples, cluster_rows = FALSE, cluster_cols = TRUE, clustering_distance_cols=&quot;correlation&quot;)</span>
-
-<span class="kw">cor</span>(simulated_bulk[common_symbols,], immune_bulk[common_symbols,]) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">pheatmap</span>()</code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-15-1.png" width="768" /></p>
+<h2><span class="header-section-number">3.2</span> Correlated simulated samples with bulk of the same tissue.</h2>
+<p>We generate simulated bulk tissues of various cell types and correlate them with bulk RNA seq samples from sorted cells. <img src="_main_files/figure-html/unnamed-chunk-14-1.png" width="768" /></p>
+<p>In general, the highest correlation is observed between the expression of the sorted cells and the simulated bulk sample. However, the simulated Dendritic cells do not correlate well with any of the reference profiles.</p>
 
 </div>
 </div>
@@ -305,7 +242,7 @@ common_symbols =<span class="st"> </span><span class="kw">intersect</span>(<span
         </div>
       </div>
 <a href="input-data.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="sensitivity-analysis.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="mixing-study.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -346,6 +283,19 @@ gitbook.start({
 });
 </script>
 
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "";
+    if (src === "" || src === "true") src = "https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:" && /^https?:/.test(src))
+      src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
 </body>
 
 </html>

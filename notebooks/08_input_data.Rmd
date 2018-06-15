@@ -222,7 +222,7 @@ with(schelker_ovarian, {
   
   # Load the ground truth
   
-  true_cell_count = pData(single_cell_schelker$eset) %>% 
+  true_cell_count_sc = pData(single_cell_schelker$eset) %>% 
     filter(source == "ascites", donor %in% colnames(bulk)) %>% 
     group_by(donor, cell_type) %>% 
     count() %>% 
@@ -230,10 +230,11 @@ with(schelker_ovarian, {
     group_by(donor) %>%
     mutate(true_fraction=cell_count/sum(cell_count)) %>% 
     arrange(cell_type, donor)
-
   
+  true_cell_count_facs = read_excel("../data/single_cell_schelker/ascites_facs.xlsx") %>%
+    gather(sample, true_fraction, -cell_type) 
 
-   ref = true_cell_count %>% select(sample=donor, cell_type, true_fraction) %>% mutate(method_dataset = "schelker_ovarian")
+   ref = true_cell_count_facs %>% select(sample, cell_type, true_fraction) %>% mutate(method_dataset = "schelker_ovarian")
 })
 
 ```
@@ -241,12 +242,12 @@ with(schelker_ovarian, {
 Single cell count for the 3 samples
 ```{r, echo=FALSE}
 
-schelker_ovarian$true_cell_count %>% 
+schelker_ovarian$true_cell_count_sc %>% 
   group_by(donor) %>%
   summarise(sum(cell_count)) %>%
   kable()
 
-schelker_ovarian$true_cell_count %>% DT::datatable()
+schelker_ovarian$true_cell_count_sc %>% DT::datatable()
 
 ```
 

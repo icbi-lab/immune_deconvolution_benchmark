@@ -18,7 +18,7 @@ set.seed(42)
 sample_types = rep(show_cell_types, 5)
 ## make artificial bulk sample
 artificial_bulk = lapply(sample_types, function(cell_type) {
-  cell_n = make_cell_fraction_vector(cell_type, n=500, background=NULL)
+  cell_n = make_cell_fraction_vector(cell_type, k=500, background=NULL)
   cell_frac = cell_n/sum(cell_n)
   make_random_bulk(single_cell_schelker$eset, cell_frac, n_cells=500)
 }) %>% bind_cols() %>% as.matrix()
@@ -28,7 +28,7 @@ rownames(artificial_bulk) = rownames(single_cell_schelker$eset %>% exprs())
 
 ## make artificial bulk samples with background
 artificial_bulk_bg = lapply(sample_types, function(cell_type) {
-  cell_n = make_cell_fraction_vector(cell_type, n=100,
+  cell_n = make_cell_fraction_vector(cell_type, k=100,
                                      background=round(400*(cell_types$n_background_cells/sum(cell_types$n_background_cells))))
   assert("sample has 500 cells", sum(cell_n) >= 499 & sum(cell_n) <= 501)
   cell_frac = cell_n/sum(cell_n)
@@ -54,7 +54,7 @@ dataset_gold_standard = list(
   artificial_bulk_bg = tibble(sample=colnames(artificial_bulk), true_cell_type=sample_types)
 )
 
-all_results_file = "../results/specificity_analysis_res.rda"
+all_results_file = "../results/cache/specificity_analysis_res.rda"
 if(!file.exists(all_results_file)) {
   all_results = sapply(names(datasets), function(dataset) {
                     sapply(immunedeconv::deconvolution_methods, function(method) {

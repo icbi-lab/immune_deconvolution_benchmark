@@ -11,17 +11,29 @@ datasets = list(
   schelker_ovarian=schelker_ovarian
 )
 
+use_cell_types = c("T cell", "T cell CD8+", "T cell CD4+", "Macrophage/Monocyte", "B cell", "Dendritic cell", "NK cell", "Neutrophil")
+```
+
+```{r}
 all_results = foreach(dataset=datasets, dataset_name=names(datasets), .combine=bind_rows) %:%
   foreach(method = immunedeconv::deconvolution_methods, .combine=bind_rows) %dopar% {
     deconvolute(dataset$expr_mat, method) %>%
-      gather(sample, estimate, -cell_type) %>%
+      map_result_to_celltypes(use_cell_types, method) %>% 
+      as_tibble(rownames="cell_type") %>% 
+      na.omit() %>% 
+      gather(sample, estimate, -cell_type) %>% 
       mutate(method=method, dataset=dataset_name)
 }
 
 all_refs = foreach(dataset=datasets, dataset_name=names(datasets), .combine=bind_rows) %do% {
   dataset$ref %>% 
     select(sample, cell_type, true_fraction) %>%
-    mutate(dataset=dataset_name)
+    spread(sample, true_fraction) %>% 
+    map_result_to_celltypes(use_cell_types) %>% 
+    as_tibble(rownames="cell_type") %>% 
+    gather(sample, true_fraction, -cell_type) %>% 
+    mutate(dataset=dataset_name) %>% 
+    na.omit()
 }
 
 all_results_ref = inner_join(all_results, all_refs, by=c("sample"="sample", "dataset"="dataset", "cell_type"="cell_type"))
@@ -37,13 +49,16 @@ all_results_ref = inner_join(all_results, all_refs, by=c("sample"="sample", "dat
 
 
 
-```{r, fig.width=10, fig.height=6}
-all_results_ref %>% filter(cell_type == "B cell") %>%
-  ggplot(aes(x=true_fraction, y=estimate)) + geom_point(aes(color=method, shape=dataset)) + 
-  scale_color_manual(values=color_scales$methods) + 
-  facet_wrap(~method, scales = "free") + 
-  stat_cor() + 
-  ggtitle("B cells")
-
+```{r, fig.width=10, fig.height=14}
+all_results_ref %>%
+  filter(!(cell_type == "T cell" & dataset != "hoeck")) %>% 
+  ggplot(aes(x=true_fraction, y=estimate)) +
+    geom_point(aes(color=cell_type)) + 
+    scale_color_manual(values=color_scales$validation) + 
+    facet_grid(method~dataset, scales = "free_y") + 
+    theme(legend.position = "top",
+          strip.text.x = element_text(size=9)) + 
+    background_grid(major="xy") + 
+    stat_cor() 
 ```
 

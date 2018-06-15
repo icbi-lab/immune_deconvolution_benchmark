@@ -12,15 +12,16 @@ n_immune_cells = rep(c(seq(0, 50, 5)
 ```
 
 ```{r, fig.height=18, fig.width=25, cache=TRUE}
-if(!file.exists("../results/sensitivity_analysis_res.rda")) {
+sensitivity_analysis_file = "../results/cache/sensitivity_analysis_res.rda"
+if(!file.exists(sensitivity_analysis_file)) {
   set.seed(42)
   registerDoMC(cores=16)
   res = foreach(input_cell_type = show_cell_types,
                 .final = function(x) setNames(x, show_cell_types)) %:% 
     foreach(method = immunedeconv::deconvolution_methods,
             .final = function(x) setNames(x, immunedeconv::deconvolution_methods)) %dopar% {
-      expr_mat = lapply(n_immune_cells, function(n) {
-        cell_n = make_cell_fraction_vector(input_cell_type, n)
+      expr_mat = lapply(n_immune_cells, function(k) {
+        cell_n = make_cell_fraction_vector(input_cell_type, k)
         cell_frac = cell_n/sum(cell_n)
         make_random_bulk(eset=single_cell_schelker$eset, cell_fractions = cell_frac, n_cells = sum(cell_n))
       }) %>% bind_cols() %>% as.matrix()
@@ -32,7 +33,7 @@ if(!file.exists("../results/sensitivity_analysis_res.rda")) {
     }
   
   sensitivity_analysis_res = res
-  save(sensitivity_analysis_res, file="../results/sensitivity_analysis_res.rda")
+  save(sensitivity_analysis_res, file=sensitivity_analysis_file)
 }
 
 
@@ -40,7 +41,7 @@ if(!file.exists("../results/sensitivity_analysis_res.rda")) {
 
 ## post-process the deconvolution results
 ```{r, cache=TRUE}
-load("../results/sensitivity_analysis_res.rda")
+load(sensitivity_analysis_file)
 
 all_results = foreach(input_cell_type = show_cell_types, 
         .combine=bind_rows) %:% 

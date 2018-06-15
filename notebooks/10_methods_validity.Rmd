@@ -1,7 +1,6 @@
 # Validitiy of single cell RNA-seq as reference
 
-## Validity of single cell sequencing for counting immune cells
-* @Schelker2017 have shown that measurements from single cell sequencing are highly consistent with flow cytometry. 
+@Schelker2017 have shown that measurements from single cell sequencing are highly consistent with flow cytometry. 
 
 ## Validity of simulated bulk tissues from single cell sequencing data
 We use simulated samples from single cell gene expression data. Does this approach make sense after all? 
@@ -54,7 +53,7 @@ We do not draw any conclusions from this plot.
 
 ### Compare the predicted fractions
 We run all methods on both datasets and compare the results. 
-```{r, cache=TRUE, message=FALSE, echo=FALSE}
+```{r, cache=TRUE, message=FALSE, echo=FALSE, warning=FALSE}
 all_results_bulk = lapply(immunedeconv::deconvolution_methods, function(method) {
   deconvolute(schelker_ovarian$expr_mat, method) %>%
     mutate(method=method) %>%

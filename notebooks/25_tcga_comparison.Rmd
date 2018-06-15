@@ -1,6 +1,16 @@
 # Correlation of methods across TCGA samples. 
 
-```{r, fig.width=12, fig.height=12, cache=TRUE}
+Next, we were interested how the predictions for different cell types correlate. 
+To this end, we ran all methods on `r tbl(tcga_db, "sample") %>% collect() %>% nrow()` TCGA samples. 
+
+If predictions for the same cell type of different methods correlate strongly, we 
+can assume the signatures to be robust. If they do not cluster, 
+the signatures are different and we can conclude, that potentially the cell-type is not well-defined. 
+
+The data has been preprocessed elsewhere, and we obtain the estimates from our database. 
+
+```{r, fig.width=12, fig.height=12, cache=TRUE, echo=FALSE}
+# Obtain the data from database
 tcga_infiltration = tbl(tcga_db, "infiltration") %>%
   collect() %>% 
   filter(method != "cibersort") %>% # cibersort does not make senes here, as it only compares relative fractions. 
@@ -17,10 +27,14 @@ tcga_cor = cor(tcga_infil_mat)
 
 ## Heatmap clustered by correlation
 ```{r, fig.width=12, fig.height=12, cache=TRUE}
-pheatmap(tcga_cor, clustering_distance_rows = "correlation", clustering_distance_cols = "correlation")
+pheatmap(tcga_cor, 
+         clustering_distance_rows = "correlation",
+         clustering_distance_cols = "correlation")
 ```
 
 ## Heatmap unclustered, sorted by cell type
 ```{r, fig.width=12, fig.height=12, cache=TRUE}
-pheatmap(tcga_cor, cluster_rows = FALSE, cluster_cols = FALSE)
+pheatmap(tcga_cor,
+         cluster_rows = FALSE,
+         cluster_cols = FALSE)
 ```

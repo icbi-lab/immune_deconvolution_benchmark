@@ -1,20 +1,25 @@
 # Validation with real data
 We the curated datasets with gold standard as an additional validation on top of the mixing study. 
 
-
-## Run the deconvolution
-We first run all methods that are integrated in the `immune_deconvolution_methods` are package automatically in a loop. 
+We use the following three validation datasets (see table \@ref(tab:validation_data)), which are the only ones
+in the tables for which we could obtain both gene expression and validation data
 ```{r, cache=TRUE}
 datasets = list(
   racle=racle,
   hoeck=hoeck,
   schelker_ovarian=schelker_ovarian
 )
-
-use_cell_types = c("T cell", "T cell CD8+", "T cell CD4+", "Macrophage/Monocyte", "B cell", "Dendritic cell", "NK cell", "Neutrophil")
 ```
 
+We use the following cell types, which are available in (some of) the datasets
 ```{r}
+use_cell_types = c("T cell", "T cell CD8+", "T cell CD4+",
+                   "Macrophage/Monocyte", "B cell", 
+                   "Dendritic cell", "NK cell", "Neutrophil")
+```
+
+```{r, echo=FALSE, cache=TRUE}
+# Run the deconvolution...
 all_results = foreach(dataset=datasets, dataset_name=names(datasets), .combine=bind_rows) %:%
   foreach(method = immunedeconv::deconvolution_methods, .combine=bind_rows) %dopar% {
     deconvolute(dataset$expr_mat, method) %>%
@@ -35,12 +40,16 @@ all_refs = foreach(dataset=datasets, dataset_name=names(datasets), .combine=bind
     mutate(dataset=dataset_name) %>% 
     na.omit()
 }
+```
 
-all_results_ref = inner_join(all_results, all_refs, by=c("sample"="sample", "dataset"="dataset", "cell_type"="cell_type"))
+Here, we combine the predictions with the 'gold standard' reference data. 
+```{r, cache=TRUE}
+all_results_ref = inner_join(all_results, all_refs, 
+                             by=c("sample"="sample", "dataset"="dataset", "cell_type"="cell_type"))
 ```
 
 
-```{r, cache=TRUE, eval=FALSE}
+```{r, cache=TRUE, eval=FALSE, echo=FALSE}
 # immunedeconv::export_for_timer(ovarian_bulk_mat, path="../results/timer_input_ovarian_bulk.tsv")
 # 
 # res_timer = immunedeconv::import_from_timer("../data/timer/timer_result_ovarian_bulk.csv") %>%
@@ -49,7 +58,7 @@ all_results_ref = inner_join(all_results, all_refs, by=c("sample"="sample", "dat
 
 
 
-```{r, fig.width=10, fig.height=14}
+```{r, fig.width=10, fig.height=14, echo=FALSE}
 all_results_ref %>%
   filter(!(cell_type == "T cell" & dataset != "hoeck")) %>% 
   ggplot(aes(x=true_fraction, y=estimate)) +

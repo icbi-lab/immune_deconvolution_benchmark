@@ -171,7 +171,7 @@ DT::datatable(immune_cell_reference$sample_description %>% select(sample, Study,
 ## Validation data (RNAseq + matched gold standard)
 e.g. IHC, Flow cytometry, single cell
 
-```{r, echo=FALSE}
+```{r validation_data, echo=FALSE}
 validation_datasets = read_excel("../tables/validation-datasets.xlsx")
 DT::datatable(validation_datasets)
 ```

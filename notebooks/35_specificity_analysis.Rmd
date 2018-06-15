@@ -1,18 +1,25 @@
 # Specificity Analysis
 
-## Create datasets
+In this chapter, we investigate which other cell types a method predicts, 
+if there is actually only a certain one. In FACS, this phenomenon is 
+known as "spillover". 
 
- * immune reference: bulk RNA seq profiles from sorted immune cells (=quanTIseq training data)
- * artificial bulk: simulated bulk RNA seq profiles from single cells (e.g. only T cells)
- * artificial bulk with background: simulated bulk RNA seq profiles from single cells with ~80% other cells (cancer, fibroblasts, ...)
+To this end, we create three datasets
+
+ * *immune reference*: bulk RNA seq profiles from sorted immune cells (=quanTIseq training data)
+ * *artificial bulk*: simulated bulk RNA seq profiles from single cells (e.g. only T cells)
+ * *artificial bulk with background*: simulated bulk RNA seq profiles from single cells with ~80% other cells (cancer, fibroblasts, ...)
  
- 
+We test the following cell types: 
 ```{r}
-show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte", "NK cell", "T cell CD4+", "T cell CD8+")
+show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
+                    "NK cell", "T cell CD4+", "T cell CD8+")
 ```
 
  
-```{r, cache=TRUE}
+```{r, cache=TRUE, echo=FALSE}
+# Create datasets 
+
 set.seed(42)
 
 sample_types = rep(show_cell_types, 5)
@@ -39,9 +46,8 @@ rownames(artificial_bulk_bg) = rownames(single_cell_schelker$eset %>% exprs())
 ```
 
 
-## Run the deconvolution
-We first run all methods that are integrated in the `immune_deconvolution_methods` are package automatically in a loop. 
-```{r, cache=TRUE, message=FALSE}
+```{r, cache=TRUE, message=FALSE, echo=FALSE}
+# Run the deconvolution
 datasets = list(
   immune_reference = immune_cell_reference$expr_mat,
   artificial_bulk = artificial_bulk,
@@ -66,8 +72,8 @@ if(!file.exists(all_results_file)) {
 load(all_results_file)
 ```
 
-### Postprocess the deconvolution results
-```{r, cache=TRUE, message=FALSE}
+```{r, cache=TRUE, message=FALSE, echo=FALSE}
+# Postprocess the deconvolution results
 all_results2 =  foreach(dataset = names(datasets), 
                         gold_standard = dataset_gold_standard,
                         .combine = bind_rows) %:% 
@@ -83,9 +89,9 @@ all_results2 =  foreach(dataset = names(datasets),
   na.omit()
 ```
 
-
-## Results
-```{r, fig.width=24, fig.height=24, cache=TRUE}
+## Complete Spillover Matrix
+This figure shows the spillover for all methods, cell types and datasets
+```{r, fig.width=24, fig.height=24, cache=TRUE, echo=FALSE}
 all_results2 %>%
   filter(true_cell_type %in% show_cell_types, cell_type %in% show_cell_types) %>% 
   ggplot(aes(x=cell_type, y=estimate, fill=dataset)) + 
@@ -99,8 +105,11 @@ all_results2 %>%
 ```
 
 
-### Summary figure: signal to noise ratio
-```{r, fig.width=8, fig.height=8, cache=TRUE}
+## Summary figure: Noise ratio
+The noise ratio is defined as $\frac{\text{noise}}{\text{signal+noise}}$. Lower values 
+indicate less noise (i.e. predictions of cell types that are not there). 
+
+```{r, fig.width=8, fig.height=8, cache=TRUE, echo=FALSE}
 signal_noise_res = all_results2 %>% 
   mutate(signal_noise=if_else(cell_type == true_cell_type, "signal", "noise")) %>%
   group_by(dataset, sample, method, true_cell_type, signal_noise) %>%

@@ -1,12 +1,3 @@
 # Conclusions
 
-Not sure if the methodology is valid after all?
-
-
-Anyway, conclusions:
-* Some cell types (CTL) are easier to detect that others (DC)
-* The deconvolution methodology is not the bottleneck, it's the availability of reliable signatures
-
-
-precise definition can be controlversial (Jaitin 2014, Science, References 4-7)
-is based on inderect association of function with cell surface markers (5-8). 
+(TODO)

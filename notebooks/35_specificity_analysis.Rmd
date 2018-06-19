@@ -16,6 +16,7 @@ show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
                     "NK cell", "T cell CD4+", "T cell CD8+")
 ```
 
+We do not include TIMER in this analysis as we cannot run it in an automated fashion. 
  
 ```{r, cache=TRUE, echo=FALSE}
 # Create datasets 

@@ -18,17 +18,41 @@ use_cell_types = c("T cell", "T cell CD8+", "T cell CD4+",
                    "Dendritic cell", "NK cell", "Neutrophil")
 ```
 
-```{r, echo=FALSE, cache=TRUE}
+```{r, echo=FALSE, cache=TRUE, results='hide'}
+# run deconvolution and include TIMER results
+
+## process a deconvolution result
+process_result = function(result, method, dataset_name) {
+  result %>% 
+    map_result_to_celltypes(use_cell_types, method) %>% 
+    as_tibble(rownames="cell_type") %>% 
+    na.omit() %>% 
+    gather(sample, estimate, -cell_type) %>% 
+    mutate(method=method, dataset=dataset_name)
+}
+
+timer_cancer_type = list(racle="melanoma", # actually PBMC
+                         hoeck="melanoma", 
+                         schelker_ovarian="ovarian")
+
+foreach(dataset=datasets, dataset_name=names(datasets), cancer_type=timer_cancer_type) %do% {
+  immunedeconv::export_for_timer(dataset$expr_mat, paste0("../results/timer/validation/input_", cancer_type, "_", dataset_name, ".tsv"))
+  NULL
+}
+
+timer_res = foreach(dataset_name=names(datasets), cancer_type=timer_cancer_type, .combine=bind_rows) %do% {
+  immunedeconv::import_from_timer(paste0("../results/timer/validation/result_", cancer_type, "_", dataset_name, ".csv")) %>% 
+    process_result("timer", dataset_name)
+}
+
 # Run the deconvolution...
 all_results = foreach(dataset=datasets, dataset_name=names(datasets), .combine=bind_rows) %:%
   foreach(method = immunedeconv::deconvolution_methods, .combine=bind_rows) %dopar% {
     deconvolute(dataset$expr_mat, method) %>%
-      map_result_to_celltypes(use_cell_types, method) %>% 
-      as_tibble(rownames="cell_type") %>% 
-      na.omit() %>% 
-      gather(sample, estimate, -cell_type) %>% 
-      mutate(method=method, dataset=dataset_name)
+      process_result(method, dataset_name)
 }
+
+all_results %<>% bind_rows(timer_res)
 
 all_refs = foreach(dataset=datasets, dataset_name=names(datasets), .combine=bind_rows) %do% {
   dataset$ref %>% 
@@ -49,16 +73,7 @@ all_results_ref = inner_join(all_results, all_refs,
 ```
 
 
-```{r, cache=TRUE, eval=FALSE, echo=FALSE}
-# immunedeconv::export_for_timer(ovarian_bulk_mat, path="../results/timer_input_ovarian_bulk.tsv")
-# 
-# res_timer = immunedeconv::import_from_timer("../data/timer/timer_result_ovarian_bulk.csv") %>%
-#   mutate(method="timer")
-```
-
-
-
-```{r, fig.width=10, fig.height=14, echo=FALSE}
+```{r, fig.width=10, fig.height=16, echo=FALSE}
 all_results_ref %>%
   filter(!(cell_type == "T cell" & dataset != "hoeck")) %>% 
   ggplot(aes(x=true_fraction, y=estimate)) +
@@ -71,3 +86,4 @@ all_results_ref %>%
     stat_cor() 
 ```
 
+Observation: all methods work better on PBMC than they do on cancer cells. 

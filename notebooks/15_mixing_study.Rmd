@@ -20,6 +20,7 @@ ggplot(cell_type_table, aes(x=sample, y=freq)) +
   scale_fill_manual(values=color_scales$cell_types)
 ```
 
+
 ```{r, echo=FALSE}
 cancer_cells = cell_type_table %>% 
   filter(cell_type %in% cell_types$cancer) 
@@ -95,13 +96,13 @@ We therefore export the data required to run the algorithm and re-import the res
 
 ```{r, cache=TRUE, message=FALSE}
 eset_mat = eset_to_matrix(bulk_eset, "gene_symbol")
-immunedeconv::export_for_timer(eset_mat[,is_melanoma], path="../results/timer_input_melanoma.tsv")
-immunedeconv::export_for_timer(eset_mat[,!is_melanoma], path="../results/timer_input_ovarian.tsv")
+immunedeconv::export_for_timer(eset_mat[,is_melanoma], path="../results/timer/mixing/input_melanoma.tsv")
+immunedeconv::export_for_timer(eset_mat[,!is_melanoma], path="../results/timer/mixing/input_ovarian.tsv")
 
 # run web here...
 
-res_timer_melanoma = immunedeconv::import_from_timer("../data/timer/timer_result_melanoma.csv")
-res_timer_ovarian = immunedeconv::import_from_timer("../data/timer/timer_result_ovarian.csv")
+res_timer_melanoma = immunedeconv::import_from_timer("../results/timer/mixing/result_melanoma.csv")
+res_timer_ovarian = immunedeconv::import_from_timer("../results/timer/mixing/result_ovarian.csv")
 res_timer = inner_join(res_timer_melanoma, res_timer_ovarian, by="cell_type") 
 ```
 

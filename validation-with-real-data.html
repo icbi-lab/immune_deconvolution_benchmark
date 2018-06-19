@@ -25,7 +25,7 @@
 <meta name="author" content="Gregor Sturm">
 
 
-<meta name="date" content="2018-06-15">
+<meta name="date" content="2018-06-19">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -202,10 +202,41 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">use_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;T cell&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>,
                    <span class="st">&quot;Macrophage/Monocyte&quot;</span>, <span class="st">&quot;B cell&quot;</span>, 
                    <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;Neutrophil&quot;</span>)</code></pre></div>
+<pre><code>## Parsed with column specification:
+## cols(
+##   sampleID = col_character(),
+##   B_cell = col_double(),
+##   T_cell.CD4 = col_double(),
+##   T_cell.CD8 = col_double(),
+##   Neutrophil = col_double(),
+##   Macrophage = col_double(),
+##   DC = col_double()
+## )
+## Parsed with column specification:
+## cols(
+##   sampleID = col_character(),
+##   B_cell = col_double(),
+##   T_cell.CD4 = col_double(),
+##   T_cell.CD8 = col_double(),
+##   Neutrophil = col_double(),
+##   Macrophage = col_double(),
+##   DC = col_double()
+## )
+## Parsed with column specification:
+## cols(
+##   sampleID = col_character(),
+##   B_cell = col_double(),
+##   T_cell.CD4 = col_double(),
+##   T_cell.CD8 = col_double(),
+##   Neutrophil = col_double(),
+##   Macrophage = col_double(),
+##   DC = col_double()
+## )</code></pre>
 <p>Here, we combine the predictions with the ‘gold standard’ reference data.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">all_results_ref =<span class="st"> </span><span class="kw">inner_join</span>(all_results, all_refs, 
                              <span class="dt">by=</span><span class="kw">c</span>(<span class="st">&quot;sample&quot;</span>=<span class="st">&quot;sample&quot;</span>, <span class="st">&quot;dataset&quot;</span>=<span class="st">&quot;dataset&quot;</span>, <span class="st">&quot;cell_type&quot;</span>=<span class="st">&quot;cell_type&quot;</span>))</code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-36-1.png" width="960" /></p>
+<p><img src="_main_files/figure-html/unnamed-chunk-35-1.png" width="960" /></p>
+<p>Observation: all methods work better on PBMC than they do on cancer cells.</p>
 
 </div>
             </section>

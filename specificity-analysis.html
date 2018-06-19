@@ -25,7 +25,7 @@
 <meta name="author" content="Gregor Sturm">
 
 
-<meta name="date" content="2018-06-15">
+<meta name="date" content="2018-06-19">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -201,14 +201,36 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>We test the following cell types:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">show_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>,
                     <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</code></pre></div>
+<p>We do not include TIMER in this analysis as we cannot run it in an automated fashion.</p>
+<pre><code>## Warning in EPIC::EPIC(bulk = gene_expression_matrix, ...): The optimization didn&#39;t fully converge for some samples:
+## SRR1551070; SRR1740062; SRR452331; SRR1551055; SRR1551048; SRR1740046; SRR1551073; SRR1551059; SRR1740050; SRR1740078; SRR1551057; ERR431583; ERR431606; ERR431601
+##  - check fit.gof for the convergeCode and convergeMessage</code></pre>
+<pre><code>## Warning in EPIC::EPIC(bulk = gene_expression_matrix, ...): mRNA_cell value
+## unknown for some cell types: CAFs, Endothelial - using the default value of
+## 0.4 for these but this might bias the true cell proportions from all cell
+## types.</code></pre>
+<pre><code>## Warning in EPIC::EPIC(bulk = gene_expression_matrix, ...): The optimization didn&#39;t fully converge for some samples:
+## value10; value16; value18; value19; value20; value23; value24
+##  - check fit.gof for the convergeCode and convergeMessage</code></pre>
+<pre><code>## Warning in EPIC::EPIC(bulk = gene_expression_matrix, ...): mRNA_cell value
+## unknown for some cell types: CAFs, Endothelial - using the default value of
+## 0.4 for these but this might bias the true cell proportions from all cell
+## types.</code></pre>
+<pre><code>## Warning in EPIC::EPIC(bulk = gene_expression_matrix, ...): The optimization didn&#39;t fully converge for some samples:
+## value17; value28
+##  - check fit.gof for the convergeCode and convergeMessage</code></pre>
+<pre><code>## Warning in EPIC::EPIC(bulk = gene_expression_matrix, ...): mRNA_cell value
+## unknown for some cell types: CAFs, Endothelial - using the default value of
+## 0.4 for these but this might bias the true cell proportions from all cell
+## types.</code></pre>
 <div id="complete-spillover-matrix" class="section level2">
 <h2><span class="header-section-number">8.1</span> Complete Spillover Matrix</h2>
-<p>This figure shows the spillover for all methods, cell types and datasets <img src="_main_files/figure-html/unnamed-chunk-52-1.png" width="2304" /></p>
+<p>This figure shows the spillover for all methods, cell types and datasets <img src="_main_files/figure-html/unnamed-chunk-51-1.png" width="2304" /></p>
 </div>
 <div id="summary-figure-noise-ratio" class="section level2">
 <h2><span class="header-section-number">8.2</span> Summary figure: Noise ratio</h2>
 <p>The noise ratio is defined as <span class="math inline">\(\frac{\text{noise}}{\text{signal+noise}}\)</span>. Lower values indicate less noise (i.e. predictions of cell types that are not there).</p>
-<p><img src="_main_files/figure-html/unnamed-chunk-53-1.png" width="768" /></p>
+<p><img src="_main_files/figure-html/unnamed-chunk-52-1.png" width="768" /></p>
 
 </div>
 </div>

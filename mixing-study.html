@@ -25,7 +25,7 @@
 <meta name="author" content="Gregor Sturm">
 
 
-<meta name="date" content="2018-06-15">
+<meta name="date" content="2018-06-19">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -225,13 +225,13 @@ bulk_eset =<span class="st"> </span><span class="kw">make_bulk_eset</span>(<span
 <p>TIMER <span class="citation">(B. Li et al. <a href="#ref-TIMER2016">2016</a>)</span> is only available as a web resource. Moreover, the algorithm is adapted for each cancer type, so that we have to choose the corresponding option (Melanoma/Ovarian) when running the algorithm.</p>
 <p>We therefore export the data required to run the algorithm and re-import the results obtained from the web-tool.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">eset_mat =<span class="st"> </span><span class="kw">eset_to_matrix</span>(bulk_eset, <span class="st">&quot;gene_symbol&quot;</span>)
-immunedeconv<span class="op">::</span><span class="kw">export_for_timer</span>(eset_mat[,is_melanoma], <span class="dt">path=</span><span class="st">&quot;../results/timer_input_melanoma.tsv&quot;</span>)
-immunedeconv<span class="op">::</span><span class="kw">export_for_timer</span>(eset_mat[,<span class="op">!</span>is_melanoma], <span class="dt">path=</span><span class="st">&quot;../results/timer_input_ovarian.tsv&quot;</span>)
+immunedeconv<span class="op">::</span><span class="kw">export_for_timer</span>(eset_mat[,is_melanoma], <span class="dt">path=</span><span class="st">&quot;../results/timer/mixing/input_melanoma.tsv&quot;</span>)
+immunedeconv<span class="op">::</span><span class="kw">export_for_timer</span>(eset_mat[,<span class="op">!</span>is_melanoma], <span class="dt">path=</span><span class="st">&quot;../results/timer/mixing/input_ovarian.tsv&quot;</span>)
 
 <span class="co"># run web here...</span>
 
-res_timer_melanoma =<span class="st"> </span>immunedeconv<span class="op">::</span><span class="kw">import_from_timer</span>(<span class="st">&quot;../data/timer/timer_result_melanoma.csv&quot;</span>)
-res_timer_ovarian =<span class="st"> </span>immunedeconv<span class="op">::</span><span class="kw">import_from_timer</span>(<span class="st">&quot;../data/timer/timer_result_ovarian.csv&quot;</span>)
+res_timer_melanoma =<span class="st"> </span>immunedeconv<span class="op">::</span><span class="kw">import_from_timer</span>(<span class="st">&quot;../results/timer/mixing/result_melanoma.csv&quot;</span>)
+res_timer_ovarian =<span class="st"> </span>immunedeconv<span class="op">::</span><span class="kw">import_from_timer</span>(<span class="st">&quot;../results/timer/mixing/result_ovarian.csv&quot;</span>)
 res_timer =<span class="st"> </span><span class="kw">inner_join</span>(res_timer_melanoma, res_timer_ovarian, <span class="dt">by=</span><span class="st">&quot;cell_type&quot;</span>) </code></pre></div>
 </div>
 </div>

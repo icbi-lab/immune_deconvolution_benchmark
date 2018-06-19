@@ -70,8 +70,9 @@ with(tmp_env, {
   # symbol_remap = read_tsv("../data/single_cell_schelker/symbol_checker.tsv") %>%
   #   as.data.frame() %>%
   #   column_to_rownames("Input")
-  valid_cells = which(pData(single_cell_schelker)$cell_type!="Unknown")
-  eset = single_cell_schelker[,valid_cells]
+  valid_cells = pData(single_cell_schelker)$cell_type != "Unknown"
+  cancer_cells = pData(single_cell_schelker)$source != "pbmc"
+  eset = single_cell_schelker[, valid_cells & cancer_cells]
   pData(eset) %<>% rename(method_cell_type=cell_type) %>%
     inner_join(immunedeconv::cell_type_mapping %>% filter(method_dataset == "schelker_single_cell"))
   # rownames(eset) = symbol_remap[,rownames(eset)]$`Approved symbol`
@@ -109,10 +110,14 @@ In this study, we make use of the single cell dataset curated by [@Schelker2017]
 
 Unknown cells are excluded from the downstream analysis. 
 
+The dataset consists of single cells from PBMC, melanoma and ovarian cancer ascites. 
+As we are interested in the deconvolution of cancer samples, we exclude the PBMC cells from all downstream analyses. 
+
 Table: the ~12,000 samples by cell type
 ```{r, echo=FALSE}
 pData(single_cell_schelker$eset) %>% group_by(cell_type) %>% count() %>% knitr::kable()
 ```
+
 
 
 ```{r, echo=FALSE, fig.width=10, fig.height=10, fig.cap="tSNE-clustering of the ~12000 single cells from [@Schelker2017]. "}

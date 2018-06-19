@@ -174,7 +174,7 @@ results_with_gold_standard %>%
   geom_point() +
   stat_smooth(aes(color=method), method="lm") + 
   scale_color_manual(values=color_scales$methods) + 
-  scale_x_continuous(breaks=c(.2, .5)) + 
+  scale_x_continuous(breaks=c(.2, .3)) + 
   stat_cor()
 ```
 

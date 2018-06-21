@@ -7,7 +7,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Immune Deconvolution Benchmark</title>
   <meta name="description" content="Systematic Evaluation of state-of-the-art Immune deconvolution methods.">
-  <meta name="generator" content="bookdown 0.7 and GitBook 2.6.7">
+  <meta name="generator" content="bookdown 0.7.13 and GitBook 2.6.7">
 
   <meta property="og:title" content="Immune Deconvolution Benchmark" />
   <meta property="og:type" content="book" />
@@ -25,7 +25,7 @@
 <meta name="author" content="Gregor Sturm">
 
 
-<meta name="date" content="2018-06-19">
+<meta name="date" content="2018-06-21">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -47,7 +47,7 @@
 
 
 
-<script src="libs/htmlwidgets-1.2/htmlwidgets.js"></script>
+<script src="libs/htmlwidgets-1.0/htmlwidgets.js"></script>
 <script src="libs/viz-0.3/viz.js"></script>
 <link href="libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
 <script src="libs/grViz-binding-1.0.0/grViz.js"></script>
@@ -61,41 +61,69 @@
 
 
 <style type="text/css">
-div.sourceCode { overflow-x: auto; }
-table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
-  margin: 0; padding: 0; vertical-align: baseline; border: none; }
-table.sourceCode { width: 100%; line-height: 100%; }
-td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
-td.sourceCode { padding-left: 5px; }
-code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code > span.dt { color: #902000; } /* DataType */
-code > span.dv { color: #40a070; } /* DecVal */
-code > span.bn { color: #40a070; } /* BaseN */
-code > span.fl { color: #40a070; } /* Float */
-code > span.ch { color: #4070a0; } /* Char */
-code > span.st { color: #4070a0; } /* String */
-code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code > span.ot { color: #007020; } /* Other */
-code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code > span.fu { color: #06287e; } /* Function */
-code > span.er { color: #ff0000; font-weight: bold; } /* Error */
-code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-code > span.cn { color: #880000; } /* Constant */
-code > span.sc { color: #4070a0; } /* SpecialChar */
-code > span.vs { color: #4070a0; } /* VerbatimString */
-code > span.ss { color: #bb6688; } /* SpecialString */
-code > span.im { } /* Import */
-code > span.va { color: #19177c; } /* Variable */
-code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code > span.op { color: #666666; } /* Operator */
-code > span.bu { } /* BuiltIn */
-code > span.ex { } /* Extension */
-code > span.pp { color: #bc7a00; } /* Preprocessor */
-code > span.at { color: #7d9029; } /* Attribute */
-code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; position: absolute; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; }
+pre.numberSource a.sourceLine:empty
+  { position: absolute; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: absolute; left: -5em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 </head>
@@ -137,9 +165,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="4" data-path="mixing-study.html"><a href="mixing-study.html"><i class="fa fa-check"></i><b>4</b> Mixing study</a><ul>
 <li class="chapter" data-level="4.1" data-path="mixing-study.html"><a href="mixing-study.html#average-fraction-of-tumour-cells"><i class="fa fa-check"></i><b>4.1</b> Average fraction of tumour cells</a></li>
 <li class="chapter" data-level="4.2" data-path="mixing-study.html"><a href="mixing-study.html#create-simulated-bulk-tissues"><i class="fa fa-check"></i><b>4.2</b> Create simulated bulk tissues</a></li>
-<li class="chapter" data-level="4.3" data-path="mixing-study.html"><a href="mixing-study.html#run-the-deconvolution"><i class="fa fa-check"></i><b>4.3</b> Run the deconvolution</a><ul>
-<li class="chapter" data-level="4.3.1" data-path="mixing-study.html"><a href="mixing-study.html#run-timer"><i class="fa fa-check"></i><b>4.3.1</b> run TIMER</a></li>
-</ul></li>
+<li class="chapter" data-level="4.3" data-path="mixing-study.html"><a href="mixing-study.html#run-the-deconvolution"><i class="fa fa-check"></i><b>4.3</b> Run the deconvolution</a></li>
 <li class="chapter" data-level="4.4" data-path="mixing-study.html"><a href="mixing-study.html#results"><i class="fa fa-check"></i><b>4.4</b> Results</a><ul>
 <li class="chapter" data-level="4.4.1" data-path="mixing-study.html"><a href="mixing-study.html#correlation-plots"><i class="fa fa-check"></i><b>4.4.1</b> Correlation plots</a></li>
 <li class="chapter" data-level="4.4.2" data-path="mixing-study.html"><a href="mixing-study.html#calculate-correlations-for-each-method-and-cell-type"><i class="fa fa-check"></i><b>4.4.2</b> Calculate correlations for each method and cell type</a></li>
@@ -191,12 +217,13 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
             <section class="normal" id="section-">
 <div id="mixing-study" class="section level1">
 <h1><span class="header-section-number">4</span> Mixing study</h1>
-<p>In this chapter, we will use single cell data from <span class="citation">(Schelker et al. <a href="#ref-Schelker2017">2017</a>)</span> to create simulated bulk RNAseq samples of which we know the true cell proportions. We futher use these samples to benchmark the performance of different recently published immune deconvolution tools.</p>
+<p>In this chapter, we will use single cell data from <span class="citation">(Schelker et al. <a href="#ref-Schelker2017">2017</a>)</span> to create simulated bulk RNAseq samples
+of which we know the true cell proportions. We futher use these samples to benchmark the performance of different recently published immune deconvolution tools.</p>
 <div id="average-fraction-of-tumour-cells" class="section level2">
 <h2><span class="header-section-number">4.1</span> Average fraction of tumour cells</h2>
 <p>To obtain representatitive simulated samples, we are interested in the average fraction of tumour cells vs immune cells in a mixture.</p>
-<p><img src="_main_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cancer_cell_param =<span class="st"> </span>MASS<span class="op">::</span><span class="kw">fitdistr</span>(cancer_cells<span class="op">$</span>freq, <span class="st">&quot;normal&quot;</span>)</code></pre></div>
+<p><img src="_main_files/figure-html/cancer_cell_type_fractions-1.png" width="672" /></p>
+<pre class="sourceCode r"><code class="sourceCode r">cancer_cell_param =<span class="st"> </span>MASS<span class="op">::</span><span class="kw">fitdistr</span>(cancer_cells<span class="op">$</span>freq, <span class="st">&quot;normal&quot;</span>)</code></pre>
 <p>The mean cancer fraction is 0.33 ± 0.3.</p>
 </div>
 <div id="create-simulated-bulk-tissues" class="section level2">
@@ -208,57 +235,50 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li>Assign the remaining fraction (=not cancer cells) randomly to the remaining cell types (B cell, T cell CD8+, Melanoma cell, T cell CD4+ (non-regulatory), Macrophage/Monocyte, T cell regulatory (Tregs), Cancer associated fibroblast, Dendritic cell, Endothelial cell, NK cell, Ovarian carcinoma cell)</li>
 </ol>
 <p>Here, we generate a simulated bulkRNA Expressionset:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set.seed</span>(<span class="dv">42</span>)
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set.seed</span>(<span class="dv">42</span>)
 bulk_eset =<span class="st"> </span><span class="kw">make_bulk_eset</span>(<span class="dt">eset=</span>single_cell_schelker<span class="op">$</span>eset,
                            <span class="dt">cell_fractions =</span> cell_fractions,
-                           <span class="dt">n_cells=</span><span class="dv">500</span>)</code></pre></div>
+                           <span class="dt">n_cells=</span><span class="dv">500</span>)</code></pre>
 </div>
 <div id="run-the-deconvolution" class="section level2">
 <h2><span class="header-section-number">4.3</span> Run the deconvolution</h2>
 <p>We first run all methods that are integrated in the <code>immune_deconvolution_methods</code> are package automatically in a loop.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">all_results =<span class="st"> </span><span class="kw">foreach</span>(<span class="dt">method=</span>immunedeconv<span class="op">::</span>deconvolution_methods,
-                      <span class="dt">.final =</span> <span class="cf">function</span>(x) {<span class="kw">setNames</span>(x, immunedeconv<span class="op">::</span>deconvolution_methods)}) <span class="op">%dopar%</span><span class="st"> </span>{
-  <span class="kw">deconvolute</span>(bulk_eset, method, <span class="dt">column=</span><span class="st">&quot;gene_symbol&quot;</span>)
-}</code></pre></div>
-<div id="run-timer" class="section level3">
-<h3><span class="header-section-number">4.3.1</span> run TIMER</h3>
-<p>TIMER <span class="citation">(B. Li et al. <a href="#ref-TIMER2016">2016</a>)</span> is only available as a web resource. Moreover, the algorithm is adapted for each cancer type, so that we have to choose the corresponding option (Melanoma/Ovarian) when running the algorithm.</p>
-<p>We therefore export the data required to run the algorithm and re-import the results obtained from the web-tool.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">eset_mat =<span class="st"> </span><span class="kw">eset_to_matrix</span>(bulk_eset, <span class="st">&quot;gene_symbol&quot;</span>)
-immunedeconv<span class="op">::</span><span class="kw">export_for_timer</span>(eset_mat[,is_melanoma], <span class="dt">path=</span><span class="st">&quot;../results/timer/mixing/input_melanoma.tsv&quot;</span>)
-immunedeconv<span class="op">::</span><span class="kw">export_for_timer</span>(eset_mat[,<span class="op">!</span>is_melanoma], <span class="dt">path=</span><span class="st">&quot;../results/timer/mixing/input_ovarian.tsv&quot;</span>)
-
-<span class="co"># run web here...</span>
-
-res_timer_melanoma =<span class="st"> </span>immunedeconv<span class="op">::</span><span class="kw">import_from_timer</span>(<span class="st">&quot;../results/timer/mixing/result_melanoma.csv&quot;</span>)
-res_timer_ovarian =<span class="st"> </span>immunedeconv<span class="op">::</span><span class="kw">import_from_timer</span>(<span class="st">&quot;../results/timer/mixing/result_ovarian.csv&quot;</span>)
-res_timer =<span class="st"> </span><span class="kw">inner_join</span>(res_timer_melanoma, res_timer_ovarian, <span class="dt">by=</span><span class="st">&quot;cell_type&quot;</span>) </code></pre></div>
-</div>
 </div>
 <div id="results" class="section level2">
 <h2><span class="header-section-number">4.4</span> Results</h2>
-<p>The following methods have absolute (EPIC, quanTIseq) or pseudo-absolute (CIBERSORT abs. mode, xCell) scores, and we test how well they perform in terms of absolute deviation</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">abs_methods =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;cibersort_abs&quot;</span>, <span class="st">&quot;epic&quot;</span>, <span class="st">&quot;quantiseq&quot;</span>, <span class="st">&quot;xcell&quot;</span>)</code></pre></div>
-<p>We perform an evaluation for the following cell types. Note that some cell types are redundant (T cell CD4+ is a super-category of Tregs and non-regulatory CD4+ T cells). As some methods provide deconvolution only at the CD4+ level, we compare both categories:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">show_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>,
+<p>The following methods have absolute (EPIC, quanTIseq) or pseudo-absolute (CIBERSORT abs. mode, xCell) scores, and we test how well they perform
+in terms of absolute deviation</p>
+<pre class="sourceCode r"><code class="sourceCode r">abs_methods =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;cibersort_abs&quot;</span>, <span class="st">&quot;epic&quot;</span>, <span class="st">&quot;quantiseq&quot;</span>, <span class="st">&quot;xcell&quot;</span>)</code></pre>
+<p>We perform an evaluation for the following cell types.
+Note that some cell types are redundant (T cell CD4+ is a super-category of Tregs and non-regulatory CD4+ T cells).
+As some methods provide deconvolution only at the CD4+ level, we compare both categories:</p>
+<pre class="sourceCode r"><code class="sourceCode r">show_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>,
                     <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD4+ (non-regulatory)&quot;</span>,
                     <span class="st">&quot;T cell regulatory (Tregs)&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>,
-                    <span class="st">&quot;Cancer associated fibroblast&quot;</span>, <span class="st">&quot;Endothelial cell&quot;</span>)</code></pre></div>
-<p>The following methods do not have signatures to quantify “Macrophages/Monocytes”, but only a Macrophage signature. Unfortunately, our single cell dataset does not distinguish between Macrophages and Monocytes. As we are only comparing correlations here, we still benchmark the Macrophage signature on the “Macrophage/Monocyte” data, as an increase in both should also lead to an increase in Macrophages only. To be fair, we label the results accordingly.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">macrophage_signature_only =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;epic&quot;</span>, <span class="st">&quot;timer&quot;</span>)</code></pre></div>
-<p>Here, we map the results back to the “gold standard”. We aggregate the results of the different methods into a single table and clean it up for further processing.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">results_with_gold_standard =<span class="st"> </span><span class="kw">inner_join</span>(all_results_tidy, gold_standard, <span class="dt">by=</span><span class="kw">c</span>(<span class="st">&quot;sample&quot;</span>, <span class="st">&quot;cell_type&quot;</span>))</code></pre></div>
+                    <span class="st">&quot;Cancer associated fibroblast&quot;</span>, <span class="st">&quot;Endothelial cell&quot;</span>)</code></pre>
+<p>The following methods do not have signatures to quantify “Macrophages/Monocytes”, but only a Macrophage signature. Unfortunately,
+our single cell dataset does not distinguish between Macrophages and Monocytes. As we are only comparing correlations here, we still
+benchmark the Macrophage signature on the “Macrophage/Monocyte” data, as an increase in both should also lead to an increase in Macrophages only.
+To be fair, we label the results accordingly.</p>
+<pre class="sourceCode r"><code class="sourceCode r">macrophage_signature_only =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;epic&quot;</span>, <span class="st">&quot;timer&quot;</span>)</code></pre>
+<p>Here, we map the results back to the “gold standard”. We aggregate the results of the different methods
+into a single table and clean it up for further processing.</p>
+<pre class="sourceCode r"><code class="sourceCode r">results_with_gold_standard =<span class="st"> </span><span class="kw">inner_join</span>(all_results_tidy, gold_standard, <span class="dt">by=</span><span class="kw">c</span>(<span class="st">&quot;sample&quot;</span>, <span class="st">&quot;cell_type&quot;</span>))</code></pre>
 <div id="correlation-plots" class="section level3">
 <h3><span class="header-section-number">4.4.1</span> Correlation plots</h3>
-<p><img src="_main_files/figure-html/unnamed-chunk-27-1.png" width="1728" /></p>
+<p><img src="_main_files/figure-html/mixing_correlation_plot-1.png" width="1728" /></p>
 </div>
 <div id="calculate-correlations-for-each-method-and-cell-type" class="section level3">
 <h3><span class="header-section-number">4.4.2</span> Calculate correlations for each method and cell type</h3>
-<p><img src="_main_files/figure-html/unnamed-chunk-29-1.png" width="768" /></p>
+<pre class="sourceCode r"><code class="sourceCode r">correlations_tab =<span class="st"> </span>correlations <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(cell_type, method, pearson) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">spread</span>(cell_type, pearson)
+
+<span class="kw">write_tsv</span>(correlations_tab, <span class="st">&quot;../results/tables/mixing_study_correlations.tsv&quot;</span>, <span class="dt">na=</span><span class="st">&quot;&quot;</span>)</code></pre>
+<p><img src="_main_files/figure-html/unnamed-chunk-19-1.png" width="768" /></p>
 </div>
 <div id="absolute-error-for-all-qualifying-methods" class="section level3">
 <h3><span class="header-section-number">4.4.3</span> Absolute error for all qualifying methods</h3>
-<p><img src="_main_files/figure-html/unnamed-chunk-30-1.png" width="768" /></p>
+<p><img src="_main_files/figure-html/mixing_abs-1.png" width="768" /></p>
 
 </div>
 </div>
@@ -266,10 +286,7 @@ res_timer =<span class="st"> </span><span class="kw">inner_join</span>(res_timer
 <h3> References</h3>
 <div id="refs" class="references">
 <div id="ref-Schelker2017">
-<p>Schelker, Max, Sonia Feau, Jinyan Du, Nav Ranu, Edda Klipp, Gavin MacBeath, Birgit Schoeberl, and Andreas Raue. 2017. “Estimation of immune cell content in tumour tissue using single-cell RNA-seq data.” <em>Nature Communications</em> 8 (1): 2032. doi:<a href="https://doi.org/10.1038/s41467-017-02289-3">10.1038/s41467-017-02289-3</a>.</p>
-</div>
-<div id="ref-TIMER2016">
-<p>Li, Bo, Eric Severson, Jean-Christophe Pignon, Haoquan Zhao, Taiwen Li, Jesse Novak, Peng Jiang, et al. 2016. “Comprehensive analyses of tumor immunity: implications for cancer immunotherapy.” <em>Genome Biology</em> 17 (1): 174. doi:<a href="https://doi.org/10.1186/s13059-016-1028-7">10.1186/s13059-016-1028-7</a>.</p>
+<p>Schelker, Max, Sonia Feau, Jinyan Du, Nav Ranu, Edda Klipp, Gavin MacBeath, Birgit Schoeberl, and Andreas Raue. 2017. “Estimation of immune cell content in tumour tissue using single-cell RNA-seq data.” <em>Nature Communications</em> 8 (1): 2032. <a href="https://doi.org/10.1038/s41467-017-02289-3" class="uri">https://doi.org/10.1038/s41467-017-02289-3</a>.</p>
 </div>
 </div>
             </section>
@@ -324,7 +341,7 @@ gitbook.start({
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    var src = "";
+    var src = "true";
     if (src === "" || src === "true") src = "https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML";
     if (location.protocol !== "file:" && /^https?:/.test(src))
       src = src.replace(/^https?:/, '');

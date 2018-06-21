@@ -18,7 +18,7 @@ use_cell_types = c("T cell", "T cell CD8+", "T cell CD4+",
                    "Dendritic cell", "NK cell", "Neutrophil")
 ```
 
-```{r, echo=FALSE, cache=TRUE, results='hide'}
+```{r, echo=FALSE, cache=TRUE, message=FALSE, echo=FALSE, warning=FALSE, results='hide'}
 # run deconvolution and include TIMER results
 
 ## process a deconvolution result

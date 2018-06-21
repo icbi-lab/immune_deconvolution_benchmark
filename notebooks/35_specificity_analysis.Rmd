@@ -46,7 +46,7 @@ rownames(artificial_bulk_bg) = rownames(single_cell_schelker$eset %>% exprs())
 ```
 
 
-```{r spec_generate_data, cache=TRUE, message=FALSE, echo=FALSE}
+```{r spec_generate_data, cache=TRUE, message=FALSE, echo=FALSE, results='hide'}
 # Run the deconvolution
 datasets = list(
   immune_reference = immune_cell_reference$expr_mat,
@@ -93,7 +93,7 @@ all_results2 =  foreach(dataset = names(datasets),
 
 ## Complete Spillover Matrix
 This figure shows the spillover for all methods, cell types and datasets
-```{r, fig.width=24, fig.height=24, cache=TRUE, echo=FALSE}
+```{r, fig.width=24, fig.height=24, echo=FALSE}
 all_results2 %>%
   filter(true_cell_type %in% show_cell_types, cell_type %in% show_cell_types) %>% 
   ggplot(aes(x=cell_type, y=estimate, fill=dataset)) + 
@@ -111,7 +111,7 @@ all_results2 %>%
 The noise ratio is defined as $\frac{\text{noise}}{\text{signal+noise}}$. Lower values 
 indicate less noise (i.e. predictions of cell types that are not there). 
 
-```{r, fig.width=8, fig.height=8, cache=TRUE, echo=FALSE}
+```{r, fig.width=8, fig.height=8, echo=FALSE}
 signal_noise_res = all_results2 %>% 
   mutate(signal_noise=if_else(cell_type == true_cell_type, "signal", "noise")) %>%
   group_by(dataset, sample, method, true_cell_type, signal_noise) %>%

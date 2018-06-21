@@ -53,7 +53,7 @@ We do not draw any conclusions from this plot.
 
 ### Compare the predicted fractions
 We run all methods on both datasets and compare the results. 
-```{r, cache=TRUE, message=FALSE, echo=FALSE, warning=FALSE}
+```{r, cache=TRUE, message=FALSE, echo=FALSE, warning=FALSE, results='hide'}
 timer_indications = rep("OV", ncol(schelker_ovarian$expr_mat)) 
 all_results_bulk = lapply(immunedeconv::deconvolution_methods, function(method) {
   deconvolute(schelker_ovarian$expr_mat, method, indications=timer_indications) %>%

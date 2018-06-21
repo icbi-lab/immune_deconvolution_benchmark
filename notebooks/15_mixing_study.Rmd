@@ -82,7 +82,7 @@ bulk_eset = make_bulk_eset(eset=single_cell_schelker$eset,
 
 ## Run the deconvolution
 We first run all methods that are integrated in the `immune_deconvolution_methods` are package automatically in a loop.
-```{r mixing_deconvolution, cache=TRUE}
+```{r mixing_deconvolution, cache=TRUE, message=FALSE, echo=FALSE, warning=FALSE, results='hide'}
 timer_indications = ifelse(is_melanoma, "SKCM", "OV")
 all_results = foreach(method=immunedeconv::deconvolution_methods,
                       .final = function(x) {setNames(x, immunedeconv::deconvolution_methods)}) %do% {

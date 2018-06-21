@@ -9,7 +9,7 @@ the signatures are different and we can conclude, that potentially the cell-type
 
 The data has been preprocessed elsewhere, and we obtain the estimates from our database. 
 
-```{r, fig.width=12, fig.height=12, cache=TRUE, echo=FALSE}
+```{r, cache=TRUE, echo=FALSE}
 # Obtain the data from database
 tcga_infiltration = tbl(tcga_db, "infiltration") %>%
   collect() %>% 
@@ -27,14 +27,14 @@ tcga_cor = cor(tcga_infil_mat)
 ```
 
 ## Heatmap clustered by correlation
-```{r, fig.width=12, fig.height=12, cache=TRUE}
+```{r, fig.width=12, fig.height=12}
 pheatmap(tcga_cor, 
          clustering_distance_rows = "correlation",
          clustering_distance_cols = "correlation")
 ```
 
 ## Heatmap unclustered, sorted by cell type
-```{r, fig.width=12, fig.height=12, cache=TRUE}
+```{r, fig.width=12, fig.height=12}
 pheatmap(tcga_cor,
          cluster_rows = FALSE,
          cluster_cols = FALSE)

@@ -54,28 +54,20 @@ We do not draw any conclusions from this plot.
 ### Compare the predicted fractions
 We run all methods on both datasets and compare the results. 
 ```{r, cache=TRUE, message=FALSE, echo=FALSE, warning=FALSE}
-immunedeconv::export_for_timer(schelker_ovarian$expr_mat, "../results/timer/methods_validity/input_ovarian_bulk.tsv")
-immunedeconv::export_for_timer(bulk_sum, "../results/timer/methods_validity/input_ovarian_sum.tsv")
-
-timer_res_bulk = immunedeconv::import_from_timer("../results/timer/methods_validity/result_ovarian_bulk.csv") %>%
-  mutate(method="timer", source="bulk")
-timer_res_sum = immunedeconv::import_from_timer("../results/timer/methods_validity/result_ovarian_sum.csv") %>%
-  mutate(method="timer", source="sum")
-
-
+timer_indications = rep("OV", ncol(schelker_ovarian$expr_mat)) 
 all_results_bulk = lapply(immunedeconv::deconvolution_methods, function(method) {
-  deconvolute(schelker_ovarian$expr_mat, method) %>%
+  deconvolute(schelker_ovarian$expr_mat, method, indications=timer_indications) %>%
     mutate(method=method) %>%
     mutate(source="bulk")
 })
 
 all_results_simulated = lapply(immunedeconv::deconvolution_methods, function(method) {
-  deconvolute(bulk_sum, method) %>%
+  deconvolute(bulk_sum, method, indications=timer_indications) %>%
     mutate(method=method) %>%
     mutate(source="sum")
 })
 
-all_results = bind_rows(all_results_bulk, all_results_simulated, timer_res_bulk, timer_res_sum) %>%
+all_results = bind_rows(all_results_bulk, all_results_simulated) %>%
   gather(donor, fraction, -cell_type, -source, -method) %>%
   spread(source, fraction)
 

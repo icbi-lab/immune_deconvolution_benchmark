@@ -1,23 +1,22 @@
 ```{r setup, include=FALSE}
-if (!require("pacman")) install.packages("pacman")
-pacman::p_load(knitr,
-               tidyverse,
-               cowplot,
-               Biobase,
-               pheatmap,
-               magrittr,
-               testthat,
-               BioQC,
-               readxl,
-               ggpubr,
-               stringr,
-               DBI,
-               foreach,
-               doMC,
-               data.tree,
-               testit)
+library(tidyverse)
+library(cowplot)
+library(Biobase)
+library(pheatmap)
+library(magrittr)
+library(testthat)
+library(readxl)
+library(ggpubr)
+library(stringr)
+library(DBI)
+library(foreach)
+library(doMC)
+library(data.tree)
+library(testit)
+library(knitr)
 
-registerDoMC(detectCores(logical=TRUE))
+registerDoMC(detectCores(logical=FALSE))
+# registerDoSEQ()
 
 devtools::load_all("/storage/home/sturm/projects/immune_deconvolution_methods")
 source("../lib/make_cell_fraction_vector.R")
@@ -38,13 +37,13 @@ tcga_db = dbConnect(RSQLite::SQLite(), "/db/tcga.sqlite", flags = RSQLite::SQLIT
 
 # Input data
 
-In this chapter, we load and preprocess the different input datasets. 
-We use a dedicated environment for each dataset in order not to trash the global namespace. 
+In this chapter, we load and preprocess the different input datasets.
+We use a dedicated environment for each dataset in order not to trash the global namespace.
 
 
 ## cell type hierarchy
-We use a hierachy of immune cell types to map the cell types between different datasets. 
-Here is the hierachy visualized: 
+We use a hierachy of immune cell types to map the cell types between different datasets.
+Here is the hierachy visualized:
 
 ```{r hierarchy, fig.height=8, fig.width=8, echo=FALSE}
 cell_type_hierarchy = new.env()
@@ -52,7 +51,7 @@ with(cell_type_hierarchy, {
   tree = immunedeconv::cell_type_tree
   SetGraphStyle(tree, rankdir = "LR")
   SetEdgeStyle(tree, arrowhead = "vee", color = "grey35", penwidth = 2)
-  SetNodeStyle(tree, style = "filled,rounded", shape = "box", fillcolor = "GreenYellow", 
+  SetNodeStyle(tree, style = "filled,rounded", shape = "box", fillcolor = "GreenYellow",
               fontname = "helvetica", tooltip = GetDefaultTooltip, fontcolor="black")
   plot(tree)
 })
@@ -98,20 +97,20 @@ cell_types$background_cells = c(cell_types$cancer, cell_types$other)
 cell_types$n_background_cells = single_cell_schelker$eset %>% pData() %>%
   filter(cell_type %in% cell_types$background_cells) %>%
   group_by(cell_type) %>%
-  count() %>% 
+  count() %>%
   {'names<-'(.$n, .$cell_type)}
 ```
 
 In this study, we make use of the single cell dataset curated by [@Schelker2017]. They aggregated single cell sequencing data from different sources resulting in a set of ~12,000 single cells. They classified the cells using at set of 45 marker genes into `r length(cell_types$available)` categories:
 `r length(cell_types$cancer)` cancer types (`r str_c(cell_types$cancer, collapse=", ")`),
 `r length(cell_types$immune)` immune cells (`r str_c(cell_types$immune, collapse=", ")`),
-`r length(cell_types$other)` other cells (`r str_c(cell_types$other, collapse=", ")`) and 
-*Unknown cells* which could not have been classified unambiguously. 
+`r length(cell_types$other)` other cells (`r str_c(cell_types$other, collapse=", ")`) and
+*Unknown cells* which could not have been classified unambiguously.
 
-Unknown cells are excluded from the downstream analysis. 
+Unknown cells are excluded from the downstream analysis.
 
-The dataset consists of single cells from PBMC, melanoma and ovarian cancer ascites. 
-As we are interested in the deconvolution of cancer samples, we exclude the PBMC cells from all downstream analyses. 
+The dataset consists of single cells from PBMC, melanoma and ovarian cancer ascites.
+As we are interested in the deconvolution of cancer samples, we exclude the PBMC cells from all downstream analyses.
 
 Table: the ~12,000 samples by cell type
 ```{r, echo=FALSE}
@@ -121,10 +120,10 @@ pData(single_cell_schelker$eset) %>% group_by(cell_type) %>% count() %>% knitr::
 
 
 ```{r, echo=FALSE, fig.width=10, fig.height=10, fig.cap="tSNE-clustering of the ~12000 single cells from [@Schelker2017]. "}
-pData(single_cell_schelker$eset) %>% 
+pData(single_cell_schelker$eset) %>%
   ggplot(aes(x=tsneX1, y=tsneX2, colour=cell_type)) +
-           geom_point(size=1) + 
-           theme(legend.position="bottom") + 
+           geom_point(size=1) +
+           theme(legend.position="bottom") +
            scale_color_manual(values=color_scales$cell_types)
 ```
 
@@ -149,9 +148,9 @@ immune_cell_reference = new.env()
 with(immune_cell_reference, {
   tidy = read_tsv("../data/immune_cell_reference_profiles/immune_cell_reference_tidy.tsv")
 
-  sample_description = tidy %>% 
-    select(sample, method_cell_type=CellType, Study) %>% 
-    distinct() %>% 
+  sample_description = tidy %>%
+    select(sample, method_cell_type=CellType, Study) %>%
+    distinct() %>%
     inner_join(immunedeconv::cell_type_mapping %>% filter(method_dataset == "quantiseq_reference"))
 
   expr = tidy %>%
@@ -162,8 +161,8 @@ with(immune_cell_reference, {
 
   expr_mat = expr %>%
   as.data.frame() %>%
-  column_to_rownames("hgnc_id") %>% 
-  as.matrix() %>% 
+  column_to_rownames("hgnc_id") %>%
+  as.matrix() %>%
   .[, sample_description$sample]
 })
 
@@ -183,61 +182,61 @@ DT::datatable(validation_datasets)
 
 ### Hoeck data
 8 PBMC, RNAseq+flow cytometry
-```{r, echo=FALSE, message=FALSE}
+```{r hoeck, echo=FALSE, message=FALSE}
 tmp_env = new.env()
 with(tmp_env, {
   load("../data/hoeck/HoekPBMC_mixture.RData")
   load("../data/hoeck/HoekPBMC_gtruth.RData")
 })
-hoeck = new.env() 
+hoeck = new.env()
 hoeck$expr_mat = tmp_env$mix.mat
-hoeck$ref = tmp_env$RefData %>% 
-  as_tibble(rownames="sample") %>% 
+hoeck$ref = tmp_env$RefData %>%
+  as_tibble(rownames="sample") %>%
   gather(method_cell_type, true_fraction, -sample) %>%
   inner_join(immunedeconv::cell_type_mapping %>% filter(method_dataset == "hoeck"))
 ```
-Measured cell types: `r unique(hoeck$ref$cell_type)`. 
+Measured cell types: `r unique(hoeck$ref$cell_type)`.
 
 
 
 
-### Schelker data 
+### Schelker data
 Load the data and merge replicates.
-3 ovarian cancer ascites samplese which have matched flow cytometry/single cell/bulk data. 
-```{r, echo=FALSE}
+3 ovarian cancer ascites samplese which have matched flow cytometry/single cell/bulk data.
+```{r schelker_ovarian, echo=FALSE}
 schelker_ovarian = new.env()
 with(schelker_ovarian, {
-  bulk_replicates = read_xls("../data/single_cell_schelker/ascites_bulk_samples.xls") 
+  bulk_replicates = read_xls("../data/single_cell_schelker/ascites_bulk_samples.xls")
 
   samples = list("7873M"=c("ascites_7873_1", "ascites_7873_2"),
                  "7882M"=c("ascites_7882_1", "ascites_7882_2"),
                  "7892M"=c("ascites_7892_1", "ascites_7892_2"))
-  
+
   bulk = lapply(samples, function(cols) {
     apply(bulk_replicates[,cols], 1, mean)
-  }) %>% bind_cols() 
-  
-  bulk %<>% 
+  }) %>% bind_cols()
+
+  bulk %<>%
     mutate(gene_symbol = bulk_replicates$Row)
-  
+
   expr_mat = bulk %>%
     as.data.frame() %>%
     column_to_rownames("gene_symbol") %>%
     as.matrix()
-  
+
   # Load the ground truth
-  
-  true_cell_count_sc = pData(single_cell_schelker$eset) %>% 
-    filter(source == "ascites", donor %in% colnames(bulk)) %>% 
-    group_by(donor, cell_type) %>% 
-    count() %>% 
-    rename(cell_count=n) %>% 
+
+  true_cell_count_sc = pData(single_cell_schelker$eset) %>%
+    filter(source == "ascites", donor %in% colnames(bulk)) %>%
+    group_by(donor, cell_type) %>%
+    count() %>%
+    rename(cell_count=n) %>%
     group_by(donor) %>%
-    mutate(true_fraction=cell_count/sum(cell_count)) %>% 
+    mutate(true_fraction=cell_count/sum(cell_count)) %>%
     arrange(cell_type, donor)
-  
+
   true_cell_count_facs = read_excel("../data/single_cell_schelker/ascites_facs.xlsx") %>%
-    gather(sample, true_fraction, -cell_type) 
+    gather(sample, true_fraction, -cell_type)
 
    ref = true_cell_count_facs %>% select(sample, cell_type, true_fraction) %>% mutate(method_dataset = "schelker_ovarian")
 })
@@ -247,7 +246,7 @@ with(schelker_ovarian, {
 Single cell count for the 3 samples
 ```{r, echo=FALSE}
 
-schelker_ovarian$true_cell_count_sc %>% 
+schelker_ovarian$true_cell_count_sc %>%
   group_by(donor) %>%
   summarise(sum(cell_count)) %>%
   kable()
@@ -258,16 +257,16 @@ schelker_ovarian$true_cell_count_sc %>% DT::datatable()
 
 
 ### Racle data
-4 metastatic melanoma, matched bulkRNAseq with FlowCytometry. 
-```{r, message=FALSE, echo=FALSE}
+4 metastatic melanoma, matched bulkRNAseq with FlowCytometry.
+```{r racle, message=FALSE, echo=FALSE}
 tmp_env = new.env()
 with(tmp_env, {
-  ensg_hgnc = read_tsv("../data/ensemble_hgnc.txt") %>% 
+  ensg_hgnc = read_tsv("../data/ensemble_hgnc.txt") %>%
   rename(gene_id = `Gene stable ID`, hgnc_symbol=`HGNC symbol`)
   racle_cyto = read_excel("../data/racle/racle2017_flow_cytometry.xlsx")
   racle_files = list.files("../data/racle/GSE93722_RAW/", full.names = TRUE)
   racle_identifiers = str_extract(racle_files, "LAU\\d+")
-  racle_expression_raw = lapply(list.files("../data/racle/GSE93722_RAW/", full.names = TRUE), read_tsv) 
+  racle_expression_raw = lapply(list.files("../data/racle/GSE93722_RAW/", full.names = TRUE), read_tsv)
   gene_ids = racle_expression_raw[[1]]$gene_id
   racle_tpm = sapply(racle_expression_raw, function(df) {pull(df, "TPM")}) %>% as.tibble()
   colnames(racle_tpm) = racle_identifiers
@@ -283,10 +282,10 @@ with(tmp_env, {
 racle = new.env()
 racle$expr = tmp_env$racle_expression
 racle$expr_mat = racle$expr %>% as.data.frame() %>% column_to_rownames("hgnc_symbol") %>% as.matrix()
-racle$ref = tmp_env$racle_cyto %>% 
-  rename(sample=`donor ID`) %>% 
-  gather(method_cell_type, true_fraction, -sample) %>% 
-  mutate(true_fraction=true_fraction/100) %>% 
+racle$ref = tmp_env$racle_cyto %>%
+  rename(sample=`donor ID`) %>%
+  gather(method_cell_type, true_fraction, -sample) %>%
+  mutate(true_fraction=true_fraction/100) %>%
   inner_join(immunedeconv::cell_type_mapping %>% filter(method_dataset == "racle"))
 
 

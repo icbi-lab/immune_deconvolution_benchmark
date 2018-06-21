@@ -31,28 +31,18 @@ process_result = function(result, method, dataset_name) {
     mutate(method=method, dataset=dataset_name)
 }
 
-timer_cancer_type = list(racle="melanoma", # actually PBMC
-                         hoeck="melanoma", 
-                         schelker_ovarian="ovarian")
+timer_cancer_type = list(racle="SKCM", # actually PBMC
+                         hoeck="SKCM", 
+                         schelker_ovarian="OV")
 
-foreach(dataset=datasets, dataset_name=names(datasets), cancer_type=timer_cancer_type) %do% {
-  immunedeconv::export_for_timer(dataset$expr_mat, paste0("../results/timer/validation/input_", cancer_type, "_", dataset_name, ".tsv"))
-  NULL
-}
-
-timer_res = foreach(dataset_name=names(datasets), cancer_type=timer_cancer_type, .combine=bind_rows) %do% {
-  immunedeconv::import_from_timer(paste0("../results/timer/validation/result_", cancer_type, "_", dataset_name, ".csv")) %>% 
-    process_result("timer", dataset_name)
-}
 
 # Run the deconvolution...
 all_results = foreach(dataset=datasets, dataset_name=names(datasets), .combine=bind_rows) %:%
-  foreach(method = immunedeconv::deconvolution_methods, .combine=bind_rows) %dopar% {
-    deconvolute(dataset$expr_mat, method) %>%
+  foreach(method = immunedeconv::deconvolution_methods, .combine=bind_rows) %do% {
+    timer_indications = rep(timer_cancer_type[[dataset_name]], ncol(dataset$expr_mat))
+    deconvolute(dataset$expr_mat, method, indications=timer_indications) %>%
       process_result(method, dataset_name)
 }
-
-all_results %<>% bind_rows(timer_res)
 
 all_refs = foreach(dataset=datasets, dataset_name=names(datasets), .combine=bind_rows) %do% {
   dataset$ref %>% 

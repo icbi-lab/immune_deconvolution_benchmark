@@ -16,7 +16,6 @@ show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
                     "NK cell", "T cell CD4+", "T cell CD8+")
 ```
 
-We do not include TIMER in this analysis as we cannot run it in an automated fashion. 
  
 ```{r, cache=TRUE, echo=FALSE}
 # Create datasets 
@@ -47,7 +46,7 @@ rownames(artificial_bulk_bg) = rownames(single_cell_schelker$eset %>% exprs())
 ```
 
 
-```{r, cache=TRUE, message=FALSE, echo=FALSE}
+```{r spec_generate_data, cache=TRUE, message=FALSE, echo=FALSE}
 # Run the deconvolution
 datasets = list(
   immune_reference = immune_cell_reference$expr_mat,
@@ -65,7 +64,9 @@ all_results_file = "../results/cache/specificity_analysis_res.rda"
 if(!file.exists(all_results_file)) {
   all_results = sapply(names(datasets), function(dataset) {
                     sapply(immunedeconv::deconvolution_methods, function(method) {
-                      deconvolute(datasets[[dataset]], method)
+                      # for timer, we use SKCM, although the samples either include no tumor cells, or both melanoma and OV cells. 
+                      timer_indications = rep("SKCM", ncol(datasets[[dataset]]))
+                      deconvolute(datasets[[dataset]], method, indications=timer_indications)
                     }, USE.NAMES = TRUE, simplify = FALSE)
                 }, USE.NAMES = TRUE, simplify = FALSE)
   save(all_results, file=all_results_file)
@@ -96,7 +97,7 @@ This figure shows the spillover for all methods, cell types and datasets
 all_results2 %>%
   filter(true_cell_type %in% show_cell_types, cell_type %in% show_cell_types) %>% 
   ggplot(aes(x=cell_type, y=estimate, fill=dataset)) + 
-    geom_boxplot(position = position_dodge2(preserve = "total")) + 
+    geom_boxplot(position = position_dodge()) + 
     facet_grid(method~true_cell_type+dataset, scales="free_y") + 
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) +
     background_grid(major = "xy", minor = "none")
@@ -123,7 +124,7 @@ signal_noise_res = all_results2 %>%
 
 signal_noise_res %>% 
   ggplot(aes(x=method, y=noise_ratio, color=dataset)) + 
-  geom_boxplot(position = position_dodge2(preserve = "total")) +
+  geom_boxplot(position = position_dodge()) +
   facet_wrap(~true_cell_type) +
   theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1))
 

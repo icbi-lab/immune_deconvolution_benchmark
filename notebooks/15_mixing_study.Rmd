@@ -1,46 +1,46 @@
 # Mixing study
 
-In this chapter, we will use single cell data from [@Schelker2017] to create simulated bulk RNAseq samples 
-of which we know the true cell proportions. We futher use these samples to benchmark the performance of different recently published immune deconvolution tools. 
+In this chapter, we will use single cell data from [@Schelker2017] to create simulated bulk RNAseq samples
+of which we know the true cell proportions. We futher use these samples to benchmark the performance of different recently published immune deconvolution tools.
 
 ## Average fraction of tumour cells
-To obtain representatitive simulated samples, we are interested in the average fraction of tumour cells vs immune cells in a mixture. 
+To obtain representatitive simulated samples, we are interested in the average fraction of tumour cells vs immune cells in a mixture.
 
-```{r, results='hold', echo=FALSE}
+```{r cancer_cell_type_fractions, results='hold', echo=FALSE}
 cell_type_table = pData(single_cell_schelker$eset) %>%
   filter(source %in% c("melanoma", "ascites")) %>%
-  mutate(sample=paste(source, donor, sep="_")) %>% 
-  group_by(source, sample, cell_type) %>% 
+  mutate(sample=paste(source, donor, sep="_")) %>%
+  group_by(source, sample, cell_type) %>%
   summarise(n=n()) %>%
   mutate(freq=n/sum(n))
 
 ggplot(cell_type_table, aes(x=sample, y=freq)) +
-  geom_bar(aes(fill=cell_type), stat="identity") + 
-  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+  geom_bar(aes(fill=cell_type), stat="identity") +
+  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) +
   scale_fill_manual(values=color_scales$cell_types)
 ```
 
 
 ```{r, echo=FALSE}
-cancer_cells = cell_type_table %>% 
-  filter(cell_type %in% cell_types$cancer) 
+cancer_cells = cell_type_table %>%
+  filter(cell_type %in% cell_types$cancer)
 ```
 
 ```{r}
 cancer_cell_param = MASS::fitdistr(cancer_cells$freq, "normal")
 ```
 
-The mean cancer fraction is `r round(cancer_cell_param$estimate[1], 2)` ± `r round(cancer_cell_param$estimate[2], 2)`. 
+The mean cancer fraction is `r round(cancer_cell_param$estimate[1], 2)` ± `r round(cancer_cell_param$estimate[2], 2)`.
 
 
 ## Create simulated bulk tissues
-The fractions of a sample are randomly assigned in the following procedure: 
+The fractions of a sample are randomly assigned in the following procedure:
 
 1. Draw a random tumour cell content from the distribution fitted above
-2. The first half of the samples will use melanoma cells, the second half ovarian cancer cells. 
+2. The first half of the samples will use melanoma cells, the second half ovarian cancer cells.
 3. Assign the remaining fraction (=not cancer cells)  randomly to the remaining cell types (`r cell_types$available`)
 
-```{r, echo=FALSE}
+```{r mixing_make_proportions, echo=FALSE}
 set.seed(42)
 
 is_melanoma = c(rep(TRUE, 50), rep(FALSE, 50))
@@ -49,7 +49,7 @@ cell_fractions = lapply(is_melanoma, function(melanoma) {
   cancer_fraction = rnorm(1, mean=cancer_cell_param$estimate[1], sd=cancer_cell_param$estimate[2])
   cancer_fraction = ifelse(cancer_fraction < 0, 0, cancer_fraction)
   cancer_fraction = ifelse(cancer_fraction > 1, 1, cancer_fraction)
-  
+
   # associate fraction randomly ot Melanoma or Ovarian
   if(melanoma) {
     cancer_fractions = list(cancer_fraction, 0)
@@ -57,21 +57,21 @@ cell_fractions = lapply(is_melanoma, function(melanoma) {
     cancer_fractions = list(0, cancer_fraction)
   }
   names(cancer_fractions) = cell_types$cancer
-  
+
   # compute random fractions for other cells
   use_cell_types = c(cell_types$immune_cells, cell_types$other)
   remaining_fraction = 1 - cancer_fraction
   rnd = sample(0:100, length(use_cell_types), TRUE)
   tmp_fractions = (remaining_fraction * rnd) / sum(rnd)
   names(tmp_fractions) = use_cell_types
-  
+
   c(cancer_fractions, tmp_fractions)
 }) %>% bind_rows()
 
 testthat::test_that("all fractions sum up to 1", expect_equal(apply(cell_fractions, 1, sum), rep(1, 100)))
 ```
 
-Here, we generate a simulated bulkRNA Expressionset: 
+Here, we generate a simulated bulkRNA Expressionset:
 ```{r, cache=TRUE}
 set.seed(42)
 bulk_eset = make_bulk_eset(eset=single_cell_schelker$eset,
@@ -81,43 +81,26 @@ bulk_eset = make_bulk_eset(eset=single_cell_schelker$eset,
 
 
 ## Run the deconvolution
-We first run all methods that are integrated in the `immune_deconvolution_methods` are package automatically in a loop. 
-```{r, cache=TRUE}
+We first run all methods that are integrated in the `immune_deconvolution_methods` are package automatically in a loop.
+```{r mixing_deconvolution, cache=TRUE}
+timer_indications = ifelse(is_melanoma, "SKCM", "OV")
 all_results = foreach(method=immunedeconv::deconvolution_methods,
-                      .final = function(x) {setNames(x, immunedeconv::deconvolution_methods)}) %dopar% {
-  deconvolute(bulk_eset, method, column="gene_symbol")
+                      .final = function(x) {setNames(x, immunedeconv::deconvolution_methods)}) %do% {
+  deconvolute(bulk_eset, method, column="gene_symbol", indications = timer_indications)
 }
 ```
-
-### run TIMER
-TIMER [@TIMER2016] is only available as a web resource. Moreover, the algorithm is adapted for each cancer type, so that we have to choose the corresponding option (Melanoma/Ovarian) when running the algorithm. 
-
-We therefore export the data required to run the algorithm and re-import the results obtained from the web-tool. 
-
-```{r, cache=TRUE, message=FALSE}
-eset_mat = eset_to_matrix(bulk_eset, "gene_symbol")
-immunedeconv::export_for_timer(eset_mat[,is_melanoma], path="../results/timer/mixing/input_melanoma.tsv")
-immunedeconv::export_for_timer(eset_mat[,!is_melanoma], path="../results/timer/mixing/input_ovarian.tsv")
-
-# run web here...
-
-res_timer_melanoma = immunedeconv::import_from_timer("../results/timer/mixing/result_melanoma.csv")
-res_timer_ovarian = immunedeconv::import_from_timer("../results/timer/mixing/result_ovarian.csv")
-res_timer = inner_join(res_timer_melanoma, res_timer_ovarian, by="cell_type") 
-```
-
 
 
 
 ## Results
-The following methods have absolute (EPIC, quanTIseq) or pseudo-absolute (CIBERSORT abs. mode, xCell) scores, and we test how well they perform 
+The following methods have absolute (EPIC, quanTIseq) or pseudo-absolute (CIBERSORT abs. mode, xCell) scores, and we test how well they perform
 in terms of absolute deviation
 ```{r}
 abs_methods = c("cibersort_abs", "epic", "quantiseq", "xcell")
 ```
 
 We perform an evaluation for the following cell types.
-Note that some cell types are redundant (T cell CD4+ is a super-category of Tregs and non-regulatory CD4+ T cells). 
+Note that some cell types are redundant (T cell CD4+ is a super-category of Tregs and non-regulatory CD4+ T cells).
 As some methods provide deconvolution only at the CD4+ level, we compare both categories:
 ```{r}
 show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
@@ -126,39 +109,36 @@ show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
                     "Cancer associated fibroblast", "Endothelial cell")
 ```
 
-The following methods do not have signatures to quantify "Macrophages/Monocytes", but only a Macrophage signature. Unfortunately, 
-our single cell dataset does not distinguish between Macrophages and Monocytes. As we are only comparing correlations here, we still 
-benchmark the Macrophage signature on the "Macrophage/Monocyte" data, as an increase in both should also lead to an increase in Macrophages only. 
-To be fair, we label the results accordingly. 
+The following methods do not have signatures to quantify "Macrophages/Monocytes", but only a Macrophage signature. Unfortunately,
+our single cell dataset does not distinguish between Macrophages and Monocytes. As we are only comparing correlations here, we still
+benchmark the Macrophage signature on the "Macrophage/Monocyte" data, as an increase in both should also lead to an increase in Macrophages only.
+To be fair, we label the results accordingly.
 
 ```{r}
 macrophage_signature_only = c("epic", "timer")
 ```
 
 Here, we map the results back to the "gold standard". We aggregate the results of the different methods
-into a single table and clean it up for further processing. 
-```{r, cache=TRUE, echo=FALSE}
-all_results2 = all_results %>% 
-  c(list("timer"=res_timer))
-  
-all_results3 = lapply(names(all_results2), function(method) {
-  map_result_to_celltypes(all_results2[[method]], show_cell_types, method) %>%
+into a single table and clean it up for further processing.
+```{r mixing_data_postprocessing, cache=TRUE, echo=FALSE}
+all_results2 = lapply(names(all_results), function(method) {
+  map_result_to_celltypes(all_results[[method]], show_cell_types, method) %>%
     as_tibble(rownames="cell_type") %>%
     mutate(method=method)
-}) 
+})
 
-all_results_tidy = all_results3 %>%
+all_results_tidy = all_results2 %>%
   bind_rows() %>%
-  na.omit() %>% 
+  na.omit() %>%
   gather(sample, estimate, -cell_type, -method) %>%
   mutate(macrophage_only=if_else(method %in% macrophage_signature_only & cell_type == "Macrophage/Monocyte", "yes", "no")) %>%
-  arrange(method, cell_type, sample) 
+  arrange(method, cell_type, sample)
 
 gold_standard = pData(bulk_eset) %>%
   t() %>%
-  as_tibble(rownames="cell_type") %>% 
-  map_result_to_celltypes(show_cell_types, "schelker_single_cell") %>% 
-  rownames_to_column("cell_type") %>% 
+  as_tibble(rownames="cell_type") %>%
+  map_result_to_celltypes(show_cell_types, "schelker_single_cell") %>%
+  rownames_to_column("cell_type") %>%
   gather(sample, true_fraction, -cell_type)
 ```
 
@@ -167,20 +147,20 @@ results_with_gold_standard = inner_join(all_results_tidy, gold_standard, by=c("s
 ```
 
 ### Correlation plots
-```{r, fig.width=18, fig.height=10, echo=FALSE}
+```{r mixing_correlation_plot, fig.width=18, fig.height=10, echo=FALSE}
 results_with_gold_standard %>%
   ggplot(aes(x=true_fraction, y=estimate)) +
   facet_grid(method ~ cell_type, scales="free") +
   geom_point() +
-  stat_smooth(aes(color=method), method="lm") + 
-  scale_color_manual(values=color_scales$methods) + 
-  scale_x_continuous(breaks=c(.2, .3)) + 
+  stat_smooth(aes(color=method), method="lm") +
+  scale_color_manual(values=color_scales$methods) +
+  scale_x_continuous(breaks=c(.2, .3)) +
   stat_cor()
 ```
 
 
 ### Calculate correlations for each method and cell type
-```{r, fig.width=8, fig.height=6, echo=FALSE}
+```{r mixing_correlation_summary, fig.width=8, fig.height=6, echo=FALSE}
 make_cor = function(estimate, true_fraction) {
   test_res = cor.test(estimate, true_fraction, method="pearson")
   data.frame(
@@ -192,36 +172,46 @@ make_cor = function(estimate, true_fraction) {
 
 correlations = results_with_gold_standard %>%
   group_by(cell_type, method, macrophage_only) %>%
-  do(make_cor(.$estimate, .$true_fraction))
+  do(make_cor(.$estimate, .$true_fraction)) %>% 
+  ungroup()
 ```
 
+```{r export_correlations}
+correlations_tab = correlations %>% select(cell_type, method, pearson) %>% 
+  spread(cell_type, pearson)
+
+write_tsv(correlations_tab, "../results/tables/mixing_study_correlations.tsv", na="")
+
+```
+
+
 ```{r, fig.width=8, fig.height=6, echo=FALSE}
-correlations %>% 
+correlations %>%
   ggplot(aes(x=method, y=pearson, alpha=macrophage_only)) +
     geom_bar(aes(fill=method), stat="identity") +
-    geom_errorbar(aes(ymin=conf_int_lower, ymax=conf_int_upper), width=.2) + 
-    facet_wrap(~cell_type, nrow=2, labeller = label_wrap_gen()) + 
+    geom_errorbar(aes(ymin=conf_int_lower, ymax=conf_int_upper), width=.2) +
+    facet_wrap(~cell_type, nrow=2, labeller = label_wrap_gen()) +
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
           legend.position="top",
           strip.text.x = element_text(size=9)) +
-    scale_fill_manual(values=color_scales$methods) + 
+    scale_fill_manual(values=color_scales$methods) +
     scale_alpha_manual(values=c("yes"=.3, "no"=1.))
 ```
 
 
 ### Absolute error for all qualifying methods
-```{r, fig.width=8, fig.height=6, echo=FALSE}
-results_with_gold_standard %>% 
-  filter(method %in% abs_methods) %>% 
+```{r mixing_abs, fig.width=8, fig.height=6, echo=FALSE}
+results_with_gold_standard %>%
+  filter(method %in% abs_methods) %>%
   mutate(error=abs(estimate-true_fraction)) %>%
-  mutate(square_error=error^2) %>% 
-  ggplot(aes(x=method, y=error, alpha=macrophage_only)) + 
-    geom_boxplot(aes(fill=method), width=1, position="dodge") + 
-    facet_wrap(~cell_type, nrow=2, labeller = label_wrap_gen()) + 
+  mutate(square_error=error^2) %>%
+  ggplot(aes(x=method, y=error, alpha=macrophage_only)) +
+    geom_boxplot(aes(fill=method), width=1, position="dodge") +
+    facet_wrap(~cell_type, nrow=2, labeller = label_wrap_gen()) +
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
         legend.position="top",
         strip.text.x = element_text(size=9)) +
-    scale_fill_manual(values=color_scales$methods)  + 
+    scale_fill_manual(values=color_scales$methods)  +
     scale_alpha_manual(values=c("yes"=.3, "no"=1.))
 ```
 

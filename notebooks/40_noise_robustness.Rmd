@@ -7,12 +7,13 @@ First, we retrieve 100 random samples from TCGA:
 set.seed(42)
 
 samples = tbl(tcga_db, "sample") %>%
-  select(sample) %>% 
-  pull(sample) %>% 
-  sample(100)
+  select(sample, cohort) %>% 
+  collect() %>%
+  filter(cohort %in% toupper(immunedeconv::timer_available_cancers)) %>% 
+  sample_n(100)
           
 sample_expr = tbl(tcga_db, "expression") %>% 
-  filter(sample %in% samples) %>% 
+  filter(sample %in% samples$sample) %>% 
   select(sample, gene_symbol, tpm) %>% 
   collect()
 
@@ -41,16 +42,17 @@ sample_noise_mat = lapply(noise_levels, function(x) {
 }) 
 
 sample_noise_mat = do.call("cbind", sample_noise_mat)
+timer_indications = rep(samples$cohort, length(noise_levels))
 ```
 
 We then run the deconvolution methods on both the original and the 'noisy' samples. 
-```{r, echo=FALSE}
+```{r noise_generate_data, echo=FALSE}
 noise_robustness_file = "../results/cache/noise_robustness.rda"
 
 if(!file.exists(noise_robustness_file)) {
   all_results = foreach(method = immunedeconv::deconvolution_methods,
                         .final = function(x) setNames(x, immunedeconv::deconvolution_methods)) %dopar% {
-                          deconvolute(sample_noise_mat, method) 
+                          deconvolute(sample_noise_mat, method, indications=timer_indications) 
                         }
   save(all_results, file=noise_robustness_file)
 }

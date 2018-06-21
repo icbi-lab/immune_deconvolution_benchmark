@@ -16,7 +16,8 @@ tcga_infiltration = tbl(tcga_db, "infiltration") %>%
   filter(method != "cibersort") %>% # cibersort does not make senes here, as it only compares relative fractions. 
   mutate(method_cell_type = paste0(cell_type, " [", method, "]")) %>%
   select(sample, method_cell_type, estimate) %>%
-  spread(method_cell_type, estimate)
+  spread(method_cell_type, estimate) %>% 
+  na.omit() # remove all samples that do not have estimates by all methods (LAML does not have TIMER estimates. )
 
 tcga_infil_mat = tcga_infiltration %>%
   select(-sample) %>% 

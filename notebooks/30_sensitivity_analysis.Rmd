@@ -24,7 +24,7 @@ n_immune_cells = rep(c(seq(0, 50, 5)
 We do not include TIMER in this analysis, as we cannot run it in an automated fashion. 
 
 
-```{r, fig.height=18, fig.width=25, cache=TRUE, echo=FALSE}
+```{r sens_generate_data, fig.height=18, fig.width=25, cache=TRUE, echo=FALSE}
 sensitivity_analysis_file = "../results/cache/sensitivity_analysis_res.rda"
 if(!file.exists(sensitivity_analysis_file)) {
   set.seed(42)
@@ -42,7 +42,9 @@ if(!file.exists(sensitivity_analysis_file)) {
       
       rownames(expr_mat) = rownames(single_cell_schelker$eset %>% exprs())
       
-      deconvolute(expr_mat, method)
+      # use SKCM, although samples will also contain ovarian cancer acsites cells. 
+      timer_indications = rep("SKCM", ncol(expr_mat))
+      deconvolute(expr_mat, method, indications=timer_indications)
     }
   
   sensitivity_analysis_res = res
@@ -52,7 +54,7 @@ if(!file.exists(sensitivity_analysis_file)) {
 
 ```
 
-```{r, cache=TRUE, echo=FALSE, message=FALSE}
+```{r sens_process_data, cache=TRUE, echo=FALSE, message=FALSE}
 # post process the deconvolution results
 load(sensitivity_analysis_file)
 
@@ -135,7 +137,7 @@ sensitivity_plot = all_results3 %>%
 
 ```
 
-```{r, fig.width=7, fig.height=6, echo=FALSE}
+```{r sens_plot, fig.width=7, fig.height=6, echo=FALSE}
 sensitivity_plot %>%
   mutate(min_frac=ifelse(is.infinite(min_frac), 100, min_frac)) %>% 
   mutate(not_measured=ifelse(is.na(min_frac), "yes", "no")) %>%
@@ -154,7 +156,7 @@ sensitivity_plot %>%
 
 
 ### Summary figure: predicted amount of cells when there are none
-```{r, fig.height=6, fig.width=6, echo=FALSE}
+```{r sens_spec_plot, fig.height=6, fig.width=6, echo=FALSE}
 all_results %>% 
   filter(frac_immune_cells == 0, cell_type == input_cell_type) %>%
   filter(method != "mcp_counter") %>% 

@@ -70,6 +70,7 @@ all_results_ref %>%
     geom_point(aes(color=cell_type)) + 
     scale_color_manual(values=color_scales$validation) + 
     facet_grid(method~dataset, scales = "free_y") + 
+    theme_bw() + 
     theme(legend.position = "top",
           strip.text.x = element_text(size=9)) + 
     background_grid(major="xy") + 

@@ -24,6 +24,7 @@ book: $(RMD_FILES)
 
 .PHONY: upload-book
 upload-book: book
+	cp ./tables/summary.xlsx gh-pages/files
 	cd gh-pages && cp -R ../_book/* ./ && git add --all * && git commit --allow-empty -m "update docs" && git push github gh-pages
 
 # render a chapter only by calling `make chapter1.Rmd.preview`

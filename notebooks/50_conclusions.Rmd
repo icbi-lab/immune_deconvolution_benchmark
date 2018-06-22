@@ -1,3 +1,8 @@
 # Conclusions
 
 (TODO)
+
+[Download Summary Table](files/summary.xlsx)
+
+* quanTIseq and EPIC predict absolute fractions and perform in the mixing study at least as good as other methods. 
+* Marker based methods (xCell, MCPCounter) as opposed to deconvolution-methods are superior when it comes to detecting minimal fractions (Sensitivity) and not predicting a small fraction when a cell type is not present (Specificity). 

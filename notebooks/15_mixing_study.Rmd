@@ -199,19 +199,39 @@ correlations %>%
 ```
 
 
-### Absolute error for all qualifying methods
+### Deviation from slope (x=y) for all absolute methods
+If the absolute devoncolution was perfect, the slope would equal 1 ($y \mapsto x$ ). 
+The figure shows the deviation from the 1, i.e. values > 0 indicate the method over-estimates the fraction
+of these cells; values < 0 indicate the method under-estiamtes the fraction of these cells. 
+
+Confidence intervals are two-sided 95% confidence intervales derived using `confint` and `lm`. 
 ```{r mixing_abs, fig.width=8, fig.height=6, echo=FALSE}
-results_with_gold_standard %>%
-  filter(method %in% abs_methods) %>%
-  mutate(error=abs(estimate-true_fraction)) %>%
-  mutate(square_error=error^2) %>%
-  ggplot(aes(x=method, y=error, alpha=macrophage_only)) +
-    geom_boxplot(aes(fill=method), width=1, position="dodge") +
+get_slope = function(df) {
+  fit = lm(estimate~true_fraction, data=df)
+  conf_int = confint(fit, "true_fraction", level=0.95)
+  data.frame(
+    slope = fit$coefficients[2],
+    ci_lower = conf_int[1],
+    ci_upper = conf_int[2]
+  )
+}
+
+
+deviation_from_slope = results_with_gold_standard %>%
+  filter(method %in% abs_methods) %>% 
+  group_by(macrophage_only, cell_type, method) %>% 
+  do(get_slope(.)) %>% 
+  mutate(deviation=slope-1, ci_lower=ci_lower-1, ci_upper=ci_upper-1)
+
+deviation_from_slope %>% 
+ ggplot(aes(x=method, y=deviation, alpha=macrophage_only)) +
+    geom_bar(aes(fill=method), stat="identity") +
+    geom_errorbar(aes(ymin=ci_lower, ymax=ci_upper), width=.2) +
     facet_wrap(~cell_type, nrow=2, labeller = label_wrap_gen()) +
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position="top",
-        strip.text.x = element_text(size=9)) +
-    scale_fill_manual(values=color_scales$methods)  +
-    scale_alpha_manual(values=c("yes"=.3, "no"=1.))
+          legend.position="top",
+          strip.text.x = element_text(size=9)) +
+    scale_fill_manual(values=color_scales$methods) +
+    scale_alpha_manual(values=c("yes"=.3, "no"=1.))   
 ```
 

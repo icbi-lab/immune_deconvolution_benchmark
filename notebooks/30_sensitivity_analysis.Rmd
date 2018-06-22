@@ -178,7 +178,8 @@ sens_spec_table %>%
 ```
 
 ```{r sens_spec_plot, fig.height=6, fig.width=6, echo=FALSE}
-sens_spec_table %>%
+sens_spec_table = all_results %>% 
+  filter(frac_immune_cells == 0, cell_type == input_cell_type) %>%
   filter(method != "mcp_counter") %>% 
   ggplot(aes(x=method, y=estimate, color=method)) + 
     geom_boxplot(position="dodge") + 

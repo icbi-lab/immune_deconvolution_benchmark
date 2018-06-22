@@ -81,6 +81,7 @@ all_results3 = all_results2 %>%
   spread(noise_level, estimate) %>% 
   gather(noise_level, estimate, -sample, -cell_type, -method, -`0`) %>%
   rename(no_noise=`0`) %>% 
+  mutate(noise_level=factor(noise_level, levels = noise_levels)) %>%
   na.omit()
 ```
 
@@ -93,7 +94,8 @@ all_results3 %>%
   scale_color_manual(values=color_scales$methods) + 
   geom_point() + 
   stat_cor() + 
-  facet_wrap(method~cell_type, scales = "free", ncol=length(show_cell_types))
+  facet_wrap(method~cell_type, scales = "free", ncol=8) + 
+  theme_bw()
 ```
 
 ```{r, fig.width=14, fig.height=7, echo=FALSE}
@@ -101,7 +103,8 @@ all_results3 %>%
   ggplot(aes(x=no_noise, y=estimate)) +
   geom_point(aes(color=cell_type)) + 
   stat_cor() + 
-  facet_wrap(noise_level~method, scales = "free", nrow=length(noise_levels)-1)
+  facet_wrap(noise_level~method, scales = "free", nrow=length(noise_levels)-1) + 
+  theme_bw()
 ```
 
 ### Correlations
@@ -128,23 +131,26 @@ correlations %>% ggplot(aes(x=method, y=pearson)) +
   geom_bar(stat="identity", aes(fill=method)) +
   geom_errorbar(aes(ymin=conf_int_lower, ymax=conf_int_upper), width=.2) + 
   facet_grid(noise_level~cell_type, labeller = label_wrap_gen()) + 
+  theme_bw() + 
   theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
         legend.position="top",
         strip.text.x = element_text(size=9)) +
+  coord_cartesian(ylim=c(0,1)) + 
   scale_fill_manual(values=color_scales$methods)  
 
 ```
 
 
-```{r, fig.width=12, fig.height=7, echo=FALSE, message=FALSE, warning=FALSE}
+```{r, fig.width=10, fig.height=5, echo=FALSE, message=FALSE, warning=FALSE}
 correlations %>% ggplot(aes(x=method, y=pearson)) +
   geom_boxplot() +
   geom_point(aes(color=cell_type)) + 
   facet_grid(~noise_level, labeller = label_wrap_gen()) + 
+  theme_bw() + 
   theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position="top",
-        strip.text.x = element_text(size=9)) +
-  scale_color_manual(values=color_scales$cell_types)  
+        legend.position="right",
+        strip.text.x = element_text(size=9)) 
+#   scale_color_manual(values=color_scales$cell_types)  
 
 ```
 

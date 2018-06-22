@@ -99,6 +99,7 @@ all_results2 %>%
   ggplot(aes(x=cell_type, y=estimate, fill=dataset)) + 
     geom_boxplot(position = position_dodge()) + 
     facet_grid(method~true_cell_type+dataset, scales="free_y") + 
+    theme_bw() + 
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) +
     background_grid(major = "xy", minor = "none")
    
@@ -111,21 +112,34 @@ all_results2 %>%
 The noise ratio is defined as $\frac{\text{noise}}{\text{signal+noise}}$. Lower values 
 indicate less noise (i.e. predictions of cell types that are not there). 
 
-```{r, fig.width=8, fig.height=8, echo=FALSE}
+```{r, fig.width=10, fig.height=8, echo=FALSE}
 signal_noise_res = all_results2 %>% 
   mutate(signal_noise=if_else(cell_type == true_cell_type, "signal", "noise")) %>%
   group_by(dataset, sample, method, true_cell_type, signal_noise) %>%
   summarise(estimate=sum(estimate)) %>% 
   spread(signal_noise, estimate) %>% 
   mutate(noise_ratio = noise/(noise+signal)) %>%
+  mutate(signal_ratio = signal/(noise+signal)) %>% 
   ungroup() %>% 
   na.omit()
 
 
 signal_noise_res %>% 
-  ggplot(aes(x=method, y=noise_ratio, color=dataset)) + 
+  ggplot(aes(x=method, y=signal_ratio, fill=method)) + 
   geom_boxplot(position = position_dodge()) +
-  facet_wrap(~true_cell_type) +
-  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1))
+  facet_grid(dataset~true_cell_type) +
+  theme_bw() + 
+  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+  scale_fill_manual(values=color_scales$methods) + 
+  theme(legend.position = "top")
+```
+
+```{r}
+signal_noise_res %>% 
+  select(dataset, method, true_cell_type, signal_ratio) %>%
+  group_by(dataset, method, true_cell_type) %>%
+  summarise(median_signal_ratio = median(signal_ratio)) %>% 
+  spread(true_cell_type, median_signal_ratio) %>% 
+  write_tsv("../results/tables/spillover_signal_noise.tsv", na="")
 
 ```

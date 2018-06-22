@@ -92,7 +92,8 @@ all_results2 = all_results %>%
 all_results2 %>% 
   ggplot(aes(x=frac_immune_cells, y=mean, colour=cell_type)) +
   #   geom_line() + 
-    geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) + 
+    geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) +
+    theme_bw() + 
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
         legend.position="top") + 
     facet_grid(method~input_cell_type, scales = "free_y") + 
@@ -137,6 +138,14 @@ sensitivity_plot = all_results3 %>%
 
 ```
 
+```{r sens_table, echo=FALSE, message=FALSE}
+sensitivity_plot %>% 
+  mutate(min_frac = ifelse(is.infinite(min_frac), 100, min_frac)) %>% 
+  mutate(min_frac = min_frac / 100) %>% 
+  spread(input_cell_type, min_frac) %>%
+  write_tsv("../results/tables/sensitivity.tsv", na="")
+```
+
 ```{r sens_plot, fig.width=7, fig.height=6, echo=FALSE}
 sensitivity_plot %>%
   mutate(min_frac=ifelse(is.infinite(min_frac), 100, min_frac)) %>% 
@@ -156,9 +165,20 @@ sensitivity_plot %>%
 
 
 ### Summary figure: predicted amount of cells when there are none
-```{r sens_spec_plot, fig.height=6, fig.width=6, echo=FALSE}
-all_results %>% 
+```{r sens_spec_table, echo=FALSE, message=FALSE}
+sens_spec_table = all_results %>% 
   filter(frac_immune_cells == 0, cell_type == input_cell_type) %>%
+  select(cell_type, method, estimate) %>% 
+  group_by(cell_type, method) %>%
+  summarise(median_estimate=median(estimate)) %>% 
+  spread(cell_type, median_estimate)
+
+sens_spec_table %>% 
+  write_tsv("../results/tables/specificity.tsv", na="")
+```
+
+```{r sens_spec_plot, fig.height=6, fig.width=6, echo=FALSE}
+sens_spec_table %>%
   filter(method != "mcp_counter") %>% 
   ggplot(aes(x=method, y=estimate, color=method)) + 
     geom_boxplot(position="dodge") + 

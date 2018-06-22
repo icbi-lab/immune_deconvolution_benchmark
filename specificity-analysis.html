@@ -25,7 +25,7 @@
 <meta name="author" content="Gregor Sturm">
 
 
-<meta name="date" content="2018-06-21">
+<meta name="date" content="2018-06-22">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -238,7 +238,13 @@ known as “spillover”.</p>
 <h2><span class="header-section-number">8.2</span> Summary figure: Noise ratio</h2>
 <p>The noise ratio is defined as <span class="math inline">\(\frac{\text{noise}}{\text{signal+noise}}\)</span>. Lower values
 indicate less noise (i.e. predictions of cell types that are not there).</p>
-<p><img src="_main_files/figure-html/unnamed-chunk-36-1.png" width="768" /></p>
+<p><img src="_main_files/figure-html/unnamed-chunk-36-1.png" width="960" /></p>
+<pre class="sourceCode r"><code class="sourceCode r">signal_noise_res <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">select</span>(dataset, method, true_cell_type, signal_ratio) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(dataset, method, true_cell_type) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarise</span>(<span class="dt">median_signal_ratio =</span> <span class="kw">median</span>(signal_ratio)) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">spread</span>(true_cell_type, median_signal_ratio) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">write_tsv</span>(<span class="st">&quot;../results/tables/spillover_signal_noise.tsv&quot;</span>, <span class="dt">na=</span><span class="st">&quot;&quot;</span>)</code></pre>
 
 </div>
 </div>

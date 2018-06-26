@@ -1,4 +1,8 @@
 # Validation with real data
+```{r}
+res_validation = new.env()
+
+```
 We the curated datasets with gold standard as an additional validation on top of the mixing study. 
 
 We use the following three validation datasets (see table \@ref(tab:validation_data)), which are the only ones
@@ -60,6 +64,8 @@ Here, we combine the predictions with the 'gold standard' reference data.
 ```{r, cache=TRUE}
 all_results_ref = inner_join(all_results, all_refs, 
                              by=c("sample"="sample", "dataset"="dataset", "cell_type"="cell_type"))
+
+res_validation$all_results = all_results_ref
 ```
 
 

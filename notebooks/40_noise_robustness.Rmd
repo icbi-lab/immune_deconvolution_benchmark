@@ -115,15 +115,6 @@ all_results3 %>%
 
 ### Correlations
 ```{r, cache=TRUE, echo=FALSE}
-make_cor = function(no_noise, true_fraction) {
-  test_res = cor.test(no_noise, true_fraction, method="pearson")
-  data.frame(
-    pearson=test_res$estimate,
-    conf_int_lower=test_res$conf.int[1],
-    conf_int_upper=test_res$conf.int[2]
-  )
-}
-
 correlations = all_results3 %>%
   select(-sample) %>%
   group_by(method, cell_type, noise_level) %>%

@@ -20,6 +20,7 @@ registerDoMC(detectCores(logical=FALSE))
 
 devtools::load_all("/storage/home/sturm/projects/immune_deconvolution_methods")
 source("../lib/make_cell_fraction_vector.R")
+source("../lib/make_cor.R")
 set_cibersort_binary("../lib/CIBERSORT/CIBERSORT.R")
 set_cibersort_mat("../lib/CIBERSORT/LM22.txt")
 

@@ -166,15 +166,6 @@ results_with_gold_standard %>%
 
 ### Calculate correlations for each method and cell type
 ```{r mixing_correlation_summary, fig.width=8, fig.height=6, echo=FALSE}
-make_cor = function(estimate, true_fraction) {
-  test_res = cor.test(estimate, true_fraction, method="pearson")
-  data.frame(
-    pearson=test_res$estimate,
-    conf_int_lower=test_res$conf.int[1],
-    conf_int_upper=test_res$conf.int[2]
-  )
-}
-
 correlations = results_with_gold_standard %>%
   group_by(cell_type, method, macrophage_only) %>%
   do(make_cor(.$estimate, .$true_fraction)) %>% 

@@ -1,5 +1,163 @@
 # Creating publication ready figures
 ```{r cache_fig_results, include=FALSE}
-save(res_mixing_study, res_noise, res_sensitivity, res_spillover, res_methods_validity, file="../results/cache/results_for_figures.rda")
+save(res_mixing_study, res_noise, res_validation, 
+     res_sensitivity, res_spillover, res_methods_validity,
+     file="../results/cache/results_for_figures.rda")
 load("../results/cache/results_for_figures.rda")
+theme_set(theme_cowplot(font_size=11)) # reduce default font siz
+```
+
+```{r correlations_noise}
+noise_sc = res_methods_validity$all_results %>% 
+  group_by(method) %>% 
+  do(make_cor(.$bulk, .$sum)) %>% 
+  mutate(column="stability single cell/bulk")
+
+noise_normal = res_noise$all_results %>%
+  filter(noise_level == "10") %>% 
+  group_by(method) %>% 
+  do(make_cor(.$no_noise, .$estimate)) %>%
+  mutate(column="stability noise ~N(0, 10)")
+
+noise = bind_rows(noise_sc, noise_normal)
+```
+
+```{r}
+mixing = res_mixing_study$correlations %>% 
+  rename(column=cell_type)
+```
+
+```{r}
+validation_datasets = data.frame(
+  dataset = c("hoeck", "racle", "schelker_ovarian"),
+  description = c("Hoeck", "Racle", "Schelker")
+)
+validation =  res_validation$all_results %>%
+  group_by(method, dataset) %>% 
+  do(make_cor(.$estimate, .$true_fraction)) %>% 
+  ungroup() %>% 
+  inner_join(validation_datasets) %>%
+  rename(column=description) 
+```
+
+```{r}
+plot_cor_table = function(data) {
+  data %>% 
+    mutate(pearson_text = if_else(pearson < 0, "< 0", as.character(round(pearson, 2))),
+         pearson = if_else(pearson < 0, 0, pearson)) %>%
+    ggplot(aes(x=column, y=method)) + 
+      geom_tile(aes(fill=pearson)) + 
+      geom_text(aes(label=pearson_text), size=3) + 
+      scale_fill_distiller(type="div", palette = "RdYlGn", direction=1, values=c(0,1)) + 
+      theme(axis.text.x.top=element_text(angle = 90, vjust = .5, hjust=0),
+              legend.position="none",
+              strip.text.x = element_text(size=11)) + 
+      # facet_grid(~category, scales="free_x", space="free") + 
+      scale_x_discrete(position = "top") + 
+      xlab(NULL) + 
+      ylab(NULL)  
+}
+
+```
+
+```{r, fig.height=3.5}
+p_noise = plot_cor_table(noise) + ggtitle("Noise")
+p_mixing = plot_cor_table(mixing) + ggtitle("Mixing Benchmark")
+p_validation = plot_cor_table(validation) + ggtitle("Validation")
+
+print(p_noise)
+print(p_mixing)
+print(p_validation)
+```
+
+```{r, fig.height=3.5}
+plot_levels = res_sensitivity$sensitivity %>% pull(input_cell_type) %>% unique()
+
+p_sensitivity = res_sensitivity$sensitivity %>%
+  mutate(category="Sensitivity") %>%
+  mutate(min_frac=ifelse(is.infinite(min_frac), 100, min_frac)) %>% 
+  mutate(min_frac = min_frac/100) %>%
+  mutate(min_frac_text = as.character(round(min_frac, 2))) %>% 
+  na.omit() %>% 
+  ggplot(aes(x=input_cell_type, y=method)) + 
+    geom_tile(aes(fill=min_frac)) + 
+    geom_text(aes(label=min_frac_text), size=3) + 
+    scale_fill_distiller(type="div", palette = "RdYlGn", direction=-1, values=c(0, .02, .1, 1)) +
+    scale_alpha_manual(values=c("yes"=.3, "no"=1.)) + 
+    theme(axis.text.x.top=element_text(angle = 90, vjust = .5, hjust=0),
+            legend.position="none",
+            strip.text.x = element_text(size=11)) + 
+    # facet_grid(~category) + 
+    scale_x_discrete(position = "top") + 
+    xlab(NULL) + 
+    ylab(NULL) +
+    ggtitle("Sensitivity")
+
+print(p_sensitivity)
+```
+
+```{r}
+p_specificity = res_sensitivity$specificity %>%
+  ggplot(aes(x=method, y=estimate)) + 
+    geom_boxplot(position="dodge") + 
+    facet_grid(~cell_type) + 
+    theme_bw() + 
+    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
+          legend.position="top",
+          strip.text.x = element_text(size=9)) +
+    # scale_fill_manual(values=color_scales$methods) +
+    theme(legend.position = "none") + 
+    xlab(NULL)
+
+print(p_specificity)
+```
+
+```{r}
+p_spillover = res_spillover$signal_noise %>% 
+  mutate(true_cell_type = factor(true_cell_type, levels=plot_levels)) %>%
+  filter(dataset == "immune_reference") %>% 
+    ggplot(aes(x=method, y=signal_ratio)) + 
+    geom_boxplot(position = position_dodge()) +
+    facet_grid(~true_cell_type, drop=FALSE, labeller = label_wrap_gen()) +
+    theme_bw() + 
+    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+    # scale_fill_manual(values=color_scales$methods) + 
+    theme(legend.position = "none")
+
+print(p_spillover)
+
+```
+
+
+
+
+
+
+```{r, fig.width=8, fig.height=3.5}
+plot_heatmap = plot_grid(p_noise + theme(plot.margin=margin(r=.5, unit="cm")),
+          p_mixing + theme(axis.text.y=element_blank()),
+          p_validation + theme(axis.text.y=element_blank(), plot.margin=margin(l=.5, r=1, unit="cm")), 
+          p_sensitivity + theme(axis.text.y=element_blank()),
+          align = "h", ncol = 4,
+          axis="t",
+          rel_widths = c(.3, .5, .25, .3), labels = c("A","B", "C", "D"))
+
+print(plot_heatmap)
+```
+
+
+```{r}
+plot_boxplot = plot_grid(p_specificity + theme(axis.text.x = element_blank()),
+          p_spillover,
+          labels=c("E", "F"), ncol=1, align = "v", 
+          rel_heights = c(.2, .3))
+
+print(plot_boxplot)
+```
+
+
+```{r, fig.height=8, fig.width=8}
+plot_grid(plot_heatmap, plot_boxplot, ncol=1,
+          rel_heights = c(.45, .55))
+
 ```

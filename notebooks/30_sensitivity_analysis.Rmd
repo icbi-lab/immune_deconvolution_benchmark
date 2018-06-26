@@ -191,7 +191,8 @@ res_sensitivity$specificity = specificity_data
 ```
   
 ```{r, sens_spec_plot, fig.height=6, fig.width=6, echo=FALSE}
-ggplot(aes(x=method, y=estimate, color=method)) + 
+specificity_data %>% 
+  ggplot(aes(x=method, y=estimate, color=method)) + 
     geom_boxplot(position="dodge") + 
     facet_wrap(~cell_type) + 
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),

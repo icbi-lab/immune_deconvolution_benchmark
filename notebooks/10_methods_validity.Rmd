@@ -14,6 +14,9 @@ To test, we try:
 
 
 ### Compare simululated samples to bulk samples
+```{r, include=FALSE}
+res_methods_validity = new.env()
+```
 
 Simulate bulk samples by summing up the expression values of all cells. Theoretically, it should not matter whether to use
 `sum` or `mean` as they only differ by a constant scaling factor. However, we ran into numerical issues with CIBERSORT 
@@ -71,6 +74,7 @@ all_results = bind_rows(all_results_bulk, all_results_simulated) %>%
   gather(donor, fraction, -cell_type, -source, -method) %>%
   spread(source, fraction)
 
+res_methods_validity$all_results = all_results
 ```
 
 ```{r, fig.width=12, fig.height=10, echo=FALSE}

@@ -27,10 +27,12 @@ tcga_cor = cor(tcga_infil_mat)
 ```
 
 ## Heatmap clustered by correlation
-```{r, fig.width=12, fig.height=12}
-pheatmap(tcga_cor, 
+```{r, fig.width=12, fig.height=12, message=FALSE}
+tcga_clustered = pheatmap(tcga_cor, 
          clustering_distance_rows = "correlation",
          clustering_distance_cols = "correlation")
+
+ggsave("../results/figures/tcga_correlation_clustered.pdf", plot=tcga_clustered$gtable)
 ```
 
 ## Heatmap unclustered, sorted by cell type

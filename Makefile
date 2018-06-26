@@ -37,6 +37,7 @@ clean:
 	rm -rfv _book/*
 	rm -rfv notebooks/_bookdown_files/*_files
 	rm -fv notebooks/_main*
+	rm -fv results/figures/*
 
 .PHONY: wipe
 wipe: clean

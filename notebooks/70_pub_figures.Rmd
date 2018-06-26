@@ -1,0 +1,5 @@
+# Creating publication ready figures
+```{r cache_fig_results, include=FALSE}
+save(res_mixing_study, res_noise, res_sensitivity, res_spillover, res_methods_validity, file="../results/cache/results_for_figures.rda")
+load("../results/cache/results_for_figures.rda")
+```

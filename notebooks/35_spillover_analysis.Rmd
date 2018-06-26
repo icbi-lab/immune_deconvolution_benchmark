@@ -1,4 +1,7 @@
-# Specificity Analysis
+# Spillover Analysis
+```{r, include=FALSE}
+res_spillover = new.env()
+```
 
 In this chapter, we investigate which other cell types a method predicts, 
 if there is actually only a certain one. In FACS, this phenomenon is 
@@ -89,6 +92,8 @@ all_results2 =  foreach(dataset = names(datasets),
                               inner_join(gold_standard)
                 } %>% 
   na.omit()
+
+res_spillover$all_results = all_results2
 ```
 
 ## Complete Spillover Matrix
@@ -123,7 +128,11 @@ signal_noise_res = all_results2 %>%
   ungroup() %>% 
   na.omit()
 
+res_spillover$signal_noise = signal_noise_res
+```
 
+
+```{r, fig.width=10, fig.height=8, echo=FALSE}
 signal_noise_res %>% 
   ggplot(aes(x=method, y=signal_ratio, fill=method)) + 
   geom_boxplot(position = position_dodge()) +

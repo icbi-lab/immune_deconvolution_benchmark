@@ -2,6 +2,10 @@
 We use random samples from TCGA, add different noise levels and check how the predictions of the different 
 method compare to the original predictions. 
 
+```{r, include=FALSE}
+res_noise = new.env()
+```
+
 First, we retrieve 100 random samples from TCGA: 
 ```{r}
 set.seed(42)
@@ -96,6 +100,8 @@ all_results3 %>%
   stat_cor() + 
   facet_wrap(method~cell_type, scales = "free", ncol=8) + 
   theme_bw()
+
+res_noise$all_results = all_results3
 ```
 
 ```{r, fig.width=14, fig.height=7, echo=FALSE}
@@ -123,6 +129,8 @@ correlations = all_results3 %>%
   group_by(method, cell_type, noise_level) %>%
   do(make_cor(.$no_noise, .$estimate)) %>% 
   ungroup()
+
+res_noise$correlations = correlations
 ```
 
 

@@ -1,4 +1,8 @@
 # Sensitivity analysis
+```{r, include=FALSE}
+res_sensitivity = new.env()
+```
+
 How many cells do we need for a method to detect immune cell infiltration?
 
 We again use the single cell dataset to simulate samples that consist of background cells
@@ -135,7 +139,8 @@ sensitivity_plot = all_results3 %>%
   summarise(min_frac = max(as.numeric(as.character(min_frac)))) %>% 
   right_join(all_combinations)
   
-
+res_sensitivity$all_results = all_results3
+res_sensitivity$sensitivity = sensitivity_plot
 ```
 
 ```{r sens_table, echo=FALSE, message=FALSE}
@@ -177,16 +182,20 @@ sens_spec_table %>%
   write_tsv("../results/tables/specificity.tsv", na="")
 ```
 
-```{r sens_spec_plot, fig.height=6, fig.width=6, echo=FALSE}
-all_results %>% 
+```{r sens_spec_data, fig.height=6, fig.width=6, echo=FALSE}
+specificity_data = all_results %>% 
   filter(frac_immune_cells == 0, cell_type == input_cell_type) %>%
-  filter(method != "mcp_counter") %>% 
-  ggplot(aes(x=method, y=estimate, color=method)) + 
+  filter(method != "mcp_counter")
+
+res_sensitivity$specificity = specificity_data
+```
+  
+```{r, sens_spec_plot, fig.height=6, fig.width=6, echo=FALSE}
+ggplot(aes(x=method, y=estimate, color=method)) + 
     geom_boxplot(position="dodge") + 
     facet_wrap(~cell_type) + 
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
           legend.position="top",
           strip.text.x = element_text(size=9)) +
     scale_color_manual(values=color_scales$methods) 
-
 ```

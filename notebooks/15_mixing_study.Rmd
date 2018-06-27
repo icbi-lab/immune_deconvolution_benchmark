@@ -224,7 +224,7 @@ deviation_from_slope = results_with_gold_standard %>%
 res_mixing_study$deviation_from_slope = deviation_from_slope
 ```
 
-```{r, fig.width=8, fig.height=4, echo=FALSE}
+```{r, fig.width=8, fig.height=6, echo=FALSE}
 deviation_from_slope %>% 
  ggplot(aes(x=method, y=deviation, alpha=macrophage_only)) +
     geom_bar(aes(fill=method), stat="identity") +

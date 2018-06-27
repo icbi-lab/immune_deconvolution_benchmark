@@ -8,7 +8,7 @@ load("../results/cache/results_for_figures.rda")
 theme_set(theme_cowplot(font_size=11)) # reduce default font siz
 ```
 
-```{r}
+```{r define_names, include=TRUE}
 # Define names
 method_names = data.frame(
   method = c("cibersort", "cibersort_abs", "epic", "mcp_counter", "quantiseq", "timer", "xcell"),
@@ -21,7 +21,7 @@ validation_datasets = data.frame(
 )
 ```
 
-```{r}
+```{r define_theme, include=FALSE}
 # Collection of theme functions to add to every individual plot
 theme_title = function(...) theme(plot.title = element_text(face="bold", size=11, ...))
 theme_benchmark = function(...) {
@@ -31,7 +31,7 @@ theme_benchmark = function(...) {
 ```
 
 
-```{r}
+```{r, define_boxplot, include=FALSE}
 #' Plot a boxplot for `ycol` for all methods and cell types. 
 method_boxplot = function(data, ycol) {
   data %<>% mutate(cell_type = if_else(cell_type == "Macrophage/Monocyte", "Macrophage/ Monocyte", cell_type)) %>%
@@ -53,7 +53,7 @@ method_boxplot = function(data, ycol) {
 ```
 
 
-```{r}
+```{r, define_cor_table, include=FALSE}
 #' plot correlations as a table colored by the absolute value. 
 plot_cor_table = function(data) {
   if(!("macrophage_only" %in% names(data))) {
@@ -82,9 +82,7 @@ plot_cor_table = function(data) {
 ```
 
 
-
-
-```{r correlation_plots}
+```{r correlation_plots, include=FALSE}
 # Prepare data for correlation plots
 
 # Noise benchmark
@@ -119,7 +117,7 @@ validation =  res_validation$all_results %>%
 
 
 
-```{r, fig.height=3.5}
+```{r, fig.height=3.5, include=FALSE}
 # make the correlation plots
 p_noise = plot_cor_table(noise) + ggtitle("Noise")
 p_mixing = plot_cor_table(mixing) + ggtitle("Mixing Benchmark")
@@ -130,7 +128,7 @@ print(p_mixing)
 print(p_validation)
 ```
 
-```{r, fig.height=3.5}
+```{r, fig.height=3.5, include=FALSE}
 # Make sensitivity plot. This plot looks similar to the correlation plots, however
 # the colors are inversed and use a non-linear scale (as .5 would already be really bad)
 
@@ -166,7 +164,7 @@ print(p_sensitivity)
 
 
 
-```{r}
+```{r, include=FALSE}
 # Specificity box plot
 
 p_specificity = res_sensitivity$specificity %>%
@@ -176,7 +174,7 @@ p_specificity = res_sensitivity$specificity %>%
 print(p_specificity)
 ```
 
-```{r}
+```{r, include=FALSE}
 # Spillover boxplot
 p_spillover = res_spillover$signal_noise %>% 
   filter(dataset == "immune_reference") %>% 
@@ -188,7 +186,7 @@ print(p_spillover)
 ```
 
 
-```{r, fig.height=3.5, fig.width=8}
+```{r, fig.height=3.5, fig.width=8, include=FALSE}
 # Absolute deviation plot
 p_abs_deviation = res_mixing_study$deviation_from_slope %>% 
  inner_join(method_names) %>% 
@@ -213,7 +211,7 @@ print(p_abs_deviation)
 ```
 
 
-```{r, fig.height=12, fig.width=9}
+```{r, fig.height=12, fig.width=9, echo=FALSE, message=FALSE}
 # combine heatmaps
 p2_noise = p_noise 
 p2_mixing = p_mixing + theme(axis.text.y=element_blank())
@@ -228,7 +226,7 @@ plots = align_plots(p2_noise, p2_specificity, p2_spillover, p2_abs_deviation, al
 plot_heatmap = plot_grid(plots[[1]], p2_mixing, p2_validation, p2_sensitivity,
           align = "h", ncol = 4,
           axis="t",
-          rel_widths = c(.6, .75, .3, .5), labels = c("A","B", "C", "D"))
+          rel_widths = c(.65, .75, .28, .5), labels = c("A","B", "C", "D"))
 
 # combine boxplots
 plot_boxplot = plot_grid(plots[[2]],
@@ -247,4 +245,5 @@ plot_grid(plot_heatmap,
           align = "h",
           axis="tl")
 
+ggsave("../results/figures/summary.pdf")
 ```

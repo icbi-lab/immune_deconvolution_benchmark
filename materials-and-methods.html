@@ -5,11 +5,11 @@
 
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Immune Deconvolution Benchmark</title>
+  <title>Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)</title>
   <meta name="description" content="Systematic Evaluation of state-of-the-art Immune deconvolution methods.">
   <meta name="generator" content="bookdown 0.7.13 and GitBook 2.6.7">
 
-  <meta property="og:title" content="Immune Deconvolution Benchmark" />
+  <meta property="og:title" content="Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)" />
   <meta property="og:type" content="book" />
   
   
@@ -17,15 +17,16 @@
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Immune Deconvolution Benchmark" />
+  <meta name="twitter:title" content="Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)" />
   
   <meta name="twitter:description" content="Systematic Evaluation of state-of-the-art Immune deconvolution methods." />
   
 
-<meta name="author" content="Gregor Sturm">
+<meta name="author" content="manuscript in preparation">
+<meta name="author" content="Gregor Sturm^{1,2}">
+<meta name="author" content="Tatsiana Aneichyk^1">
 
 
-<meta name="date" content="2018-06-22">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -33,7 +34,7 @@
   
   
 <link rel="prev" href="conclusions.html">
-<link rel="next" href="references.html">
+<link rel="next" href="creating-publication-ready-figures.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -47,7 +48,7 @@
 
 
 
-<script src="libs/htmlwidgets-1.0/htmlwidgets.js"></script>
+<script src="libs/htmlwidgets-1.2/htmlwidgets.js"></script>
 <script src="libs/viz-0.3/viz.js"></script>
 <link href="libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
 <script src="libs/grViz-binding-1.0.0/grViz.js"></script>
@@ -183,9 +184,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="7.1.2" data-path="sensitivity-analysis.html"><a href="sensitivity-analysis.html#summary-figure-predicted-amount-of-cells-when-there-are-none"><i class="fa fa-check"></i><b>7.1.2</b> Summary figure: predicted amount of cells when there are none</a></li>
 </ul></li>
 </ul></li>
-<li class="chapter" data-level="8" data-path="specificity-analysis.html"><a href="specificity-analysis.html"><i class="fa fa-check"></i><b>8</b> Specificity Analysis</a><ul>
-<li class="chapter" data-level="8.1" data-path="specificity-analysis.html"><a href="specificity-analysis.html#complete-spillover-matrix"><i class="fa fa-check"></i><b>8.1</b> Complete Spillover Matrix</a></li>
-<li class="chapter" data-level="8.2" data-path="specificity-analysis.html"><a href="specificity-analysis.html#summary-figure-noise-ratio"><i class="fa fa-check"></i><b>8.2</b> Summary figure: Noise ratio</a></li>
+<li class="chapter" data-level="8" data-path="spillover-analysis.html"><a href="spillover-analysis.html"><i class="fa fa-check"></i><b>8</b> Spillover Analysis</a><ul>
+<li class="chapter" data-level="8.1" data-path="spillover-analysis.html"><a href="spillover-analysis.html#complete-spillover-matrix"><i class="fa fa-check"></i><b>8.1</b> Complete Spillover Matrix</a></li>
+<li class="chapter" data-level="8.2" data-path="spillover-analysis.html"><a href="spillover-analysis.html#summary-figure-noise-ratio"><i class="fa fa-check"></i><b>8.2</b> Summary figure: Noise ratio</a></li>
 </ul></li>
 <li class="chapter" data-level="9" data-path="robustness-against-noise.html"><a href="robustness-against-noise.html"><i class="fa fa-check"></i><b>9</b> Robustness against noise</a><ul>
 <li class="chapter" data-level="9.1" data-path="robustness-against-noise.html"><a href="robustness-against-noise.html#result-figures"><i class="fa fa-check"></i><b>9.1</b> Result figures</a><ul>
@@ -197,7 +198,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="11.1" data-path="materials-and-methods.html"><a href="materials-and-methods.html#data-acquisition"><i class="fa fa-check"></i><b>11.1</b> Data acquisition</a></li>
 <li class="chapter" data-level="11.2" data-path="materials-and-methods.html"><a href="materials-and-methods.html#validation-datasets-flow-cytometry-scrnaseq-imageing-matched-rna-seq"><i class="fa fa-check"></i><b>11.2</b> Validation datasets (Flow cytometry, scRNAseq, Imageing + matched RNA seq)</a></li>
 </ul></li>
-<li class="chapter" data-level="12" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i><b>12</b> References</a></li>
+<li class="chapter" data-level="12" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html"><i class="fa fa-check"></i><b>12</b> Creating publication ready figures</a></li>
+<li class="chapter" data-level="13" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i><b>13</b> References</a></li>
 </ul>
 
       </nav>
@@ -207,7 +209,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <div class="body-inner">
         <div class="book-header" role="navigation">
           <h1>
-            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Immune Deconvolution Benchmark</a>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)</a>
           </h1>
         </div>
 
@@ -241,7 +243,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
         </div>
       </div>
 <a href="conclusions.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="references.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="creating-publication-ready-figures.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>

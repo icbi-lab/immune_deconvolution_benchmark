@@ -5,11 +5,11 @@
 
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Immune Deconvolution Benchmark</title>
+  <title>Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)</title>
   <meta name="description" content="Systematic Evaluation of state-of-the-art Immune deconvolution methods.">
   <meta name="generator" content="bookdown 0.7.13 and GitBook 2.6.7">
 
-  <meta property="og:title" content="Immune Deconvolution Benchmark" />
+  <meta property="og:title" content="Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)" />
   <meta property="og:type" content="book" />
   
   
@@ -17,15 +17,16 @@
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Immune Deconvolution Benchmark" />
+  <meta name="twitter:title" content="Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)" />
   
   <meta name="twitter:description" content="Systematic Evaluation of state-of-the-art Immune deconvolution methods." />
   
 
-<meta name="author" content="Gregor Sturm">
+<meta name="author" content="manuscript in preparation">
+<meta name="author" content="Gregor Sturm^{1,2}">
+<meta name="author" content="Tatsiana Aneichyk^1">
 
 
-<meta name="date" content="2018-06-22">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -47,7 +48,7 @@
 
 
 
-<script src="libs/htmlwidgets-1.0/htmlwidgets.js"></script>
+<script src="libs/htmlwidgets-1.2/htmlwidgets.js"></script>
 <script src="libs/viz-0.3/viz.js"></script>
 <link href="libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
 <script src="libs/grViz-binding-1.0.0/grViz.js"></script>
@@ -183,9 +184,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="7.1.2" data-path="sensitivity-analysis.html"><a href="sensitivity-analysis.html#summary-figure-predicted-amount-of-cells-when-there-are-none"><i class="fa fa-check"></i><b>7.1.2</b> Summary figure: predicted amount of cells when there are none</a></li>
 </ul></li>
 </ul></li>
-<li class="chapter" data-level="8" data-path="specificity-analysis.html"><a href="specificity-analysis.html"><i class="fa fa-check"></i><b>8</b> Specificity Analysis</a><ul>
-<li class="chapter" data-level="8.1" data-path="specificity-analysis.html"><a href="specificity-analysis.html#complete-spillover-matrix"><i class="fa fa-check"></i><b>8.1</b> Complete Spillover Matrix</a></li>
-<li class="chapter" data-level="8.2" data-path="specificity-analysis.html"><a href="specificity-analysis.html#summary-figure-noise-ratio"><i class="fa fa-check"></i><b>8.2</b> Summary figure: Noise ratio</a></li>
+<li class="chapter" data-level="8" data-path="spillover-analysis.html"><a href="spillover-analysis.html"><i class="fa fa-check"></i><b>8</b> Spillover Analysis</a><ul>
+<li class="chapter" data-level="8.1" data-path="spillover-analysis.html"><a href="spillover-analysis.html#complete-spillover-matrix"><i class="fa fa-check"></i><b>8.1</b> Complete Spillover Matrix</a></li>
+<li class="chapter" data-level="8.2" data-path="spillover-analysis.html"><a href="spillover-analysis.html#summary-figure-noise-ratio"><i class="fa fa-check"></i><b>8.2</b> Summary figure: Noise ratio</a></li>
 </ul></li>
 <li class="chapter" data-level="9" data-path="robustness-against-noise.html"><a href="robustness-against-noise.html"><i class="fa fa-check"></i><b>9</b> Robustness against noise</a><ul>
 <li class="chapter" data-level="9.1" data-path="robustness-against-noise.html"><a href="robustness-against-noise.html#result-figures"><i class="fa fa-check"></i><b>9.1</b> Result figures</a><ul>
@@ -197,7 +198,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="11.1" data-path="materials-and-methods.html"><a href="materials-and-methods.html#data-acquisition"><i class="fa fa-check"></i><b>11.1</b> Data acquisition</a></li>
 <li class="chapter" data-level="11.2" data-path="materials-and-methods.html"><a href="materials-and-methods.html#validation-datasets-flow-cytometry-scrnaseq-imageing-matched-rna-seq"><i class="fa fa-check"></i><b>11.2</b> Validation datasets (Flow cytometry, scRNAseq, Imageing + matched RNA seq)</a></li>
 </ul></li>
-<li class="chapter" data-level="12" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i><b>12</b> References</a></li>
+<li class="chapter" data-level="12" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html"><i class="fa fa-check"></i><b>12</b> Creating publication ready figures</a></li>
+<li class="chapter" data-level="13" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i><b>13</b> References</a></li>
 </ul>
 
       </nav>
@@ -207,7 +209,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <div class="body-inner">
         <div class="book-header" role="navigation">
           <h1>
-            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Immune Deconvolution Benchmark</a>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)</a>
           </h1>
         </div>
 
@@ -237,8 +239,8 @@ and quanTIseq using mean, as the valuese are much smaller.</p>
   ind =<span class="st"> </span><span class="kw">pData</span>(single_cell_schelker<span class="op">$</span>eset)<span class="op">$</span>donor <span class="op">==</span><span class="st"> </span>donor
   <span class="kw">apply</span>(<span class="kw">exprs</span>(single_cell_schelker<span class="op">$</span>eset)[,ind], <span class="dv">1</span>, sum)
 })</code></pre>
-<div class="figure"><span id="fig:unnamed-chunk-8"></span>
-<img src="_main_files/figure-html/unnamed-chunk-8-1.png" alt="Correlation of bulkRNAseq data vs. simulated bulk data. Data has been log-tranformed" width="1536" />
+<div class="figure"><span id="fig:unnamed-chunk-9"></span>
+<img src="_main_files/figure-html/unnamed-chunk-9-1.png" alt="Correlation of bulkRNAseq data vs. simulated bulk data. Data has been log-tranformed" width="1536" />
 <p class="caption">
 Figure 3.1: Correlation of bulkRNAseq data vs. simulated bulk data. Data has been log-tranformed
 </p>
@@ -249,7 +251,7 @@ We do not draw any conclusions from this plot.</p>
 <div id="compare-the-predicted-fractions" class="section level3">
 <h3><span class="header-section-number">3.1.2</span> Compare the predicted fractions</h3>
 <p>We run all methods on both datasets and compare the results.</p>
-<p><img src="_main_files/figure-html/unnamed-chunk-10-1.png" width="1152" /></p>
+<p><img src="_main_files/figure-html/unnamed-chunk-11-1.png" width="1152" /></p>
 <p>The results suggest a reasonable correlation between the estimates on bulkRNAseq and simulated bulkRNAseq. The results depend on the
 method, however. The very good agreement of EPIC and MCPCounter suggest, that the methodology itself is valid; just some methods appear to be more dependent on noise than others. xCell does not pick up a signal here as is “does not work on homogeneous samples”, as stated on their github page.</p>
 </div>
@@ -258,7 +260,7 @@ method, however. The very good agreement of EPIC and MCPCounter suggest, that th
 <h2><span class="header-section-number">3.2</span> Correlated simulated samples with bulk of the same tissue.</h2>
 <p>We generate simulated bulk tissues of various cell types and correlate them with
 bulk RNA seq samples from sorted cells.
-<img src="_main_files/figure-html/unnamed-chunk-11-1.png" width="768" /></p>
+<img src="_main_files/figure-html/unnamed-chunk-12-1.png" width="768" /></p>
 <p>In general, the highest correlation is observed between the expression of the sorted cells and the simulated bulk sample.
 However, the simulated Dendritic cells do not correlate well with any of the reference profiles.</p>
 

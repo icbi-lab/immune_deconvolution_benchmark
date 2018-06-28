@@ -33,8 +33,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-
-<link rel="next" href="input-data.html">
+<link rel="prev" href="materials-and-methods.html">
+<link rel="next" href="references.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -217,100 +217,28 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)</h1>
-<p class="author"><em>manuscript in preparation</em></p>
-<p class="author"><em>Gregor Sturm<span class="math inline">\(^{1,2}\)</span></em></p>
-<p class="author"><em>Tatsiana Aneichyk<span class="math inline">\(^1\)</span></em></p>
-<p class="date"><em><p><span class="math inline">\(^1\)</span>Pieris Pharmaceuticals GmbH, Lise-Meitner-Straße 30, 85354 Freising, Germany</p>
-<p><span class="math inline">\(^2\)</span>Experimental Bioinformatics, TUM School of Life Sciences Weihenstephan, Technical University of Munich, Maximus-von-Imhof-Forum 3, 85354 Freising, Germany</p>
-2018-06-28</em></p>
-</div>
-<div id="introduction" class="section level1">
-<h1><span class="header-section-number">1</span> Introduction</h1>
-<p>There is urgent need for an unbiased comparison of existing immune deconvolution methods.
-We focus on RNA-seq only in this review, as current data, including large public efforts like TCGA, are likely generated using this technology.</p>
-<p>To our best knowlege, no such benchmark study has been performed yet, maybe due to the lack of an appropriate gold standard. Now, with the advent of large, publicly availble single-cell datasets this such a comparison becomes feasible.</p>
-<p>Systematic, methodological comparisons of such methods are available <span class="citation">(Newman and Alizadeh <a href="#ref-Newman2016">2016</a>; Finotello and Trajanoski <a href="#ref-Finotello2018">2018</a>; Avila Cobos et al. <a href="#ref-AvilaCobos2018">2018</a>)</span>. Here, we focus on algorithms, specifically developed for tumour immune cell deconvolution shipping with the appropriate signature matrix. While other, generic deconvolution altorithms are available (also reviewd in <span class="citation">Finotello and Trajanoski (<a href="#ref-Finotello2018">2018</a>)</span>), we do not take them into account here, as the resulting performance depends at least as much on the signature as on the method.</p>
-<p>The methods:
-MCPCounter <span class="citation">(Becht et al. <a href="#ref-Becht2016">2016</a>)</span></p>
-<p>xCell <span class="citation">(Aran, Hu, and Butte <a href="#ref-XCELL2017">2017</a>)</span></p>
-<p>CIBERSORT <span class="citation">(Aaron M. Newman, Chih Long Liu, Michael R. Green, Andrew J. Gentles, Weiguo Feng, Yue Xu, Chuong D. Hoang, Maximilian Diehn, A., and Alizadeh <a href="#ref-CIBERSORT2016">2016</a>)</span></p>
-<p>TIMER <span class="citation">(Li et al. <a href="#ref-TIMER2016">2016</a>)</span></p>
-<p>EPIC <span class="citation">(Racle et al. <a href="#ref-EPIC2017">2017</a>)</span></p>
-<p>quanTIseq <span class="citation">(Finotello et al. <a href="#ref-quantiseq2017">2017</a>)</span></p>
-<p>TODO refer schelker paper</p>
-<div id="conceptual-differences-between-methods" class="section level2">
-<h2><span class="header-section-number">1.1</span> Conceptual differences between methods</h2>
-<p>There are three conceptually different approaches to deconvolution.</p>
-<p>First, one can try to achieve scores suitable for inter-sample comparison. In that case, one can ask “Do I have more T cells in sample A than in sample B”, but one cannot ask “Do I have more B cells than T cells in sample A.”.
-This approach is used by GSEA-based methods like MCP counter.</p>
-<p>Second, one can try to build scores suitable for intra-sample comparison. In that case, one can ask “Do I have more B cells than T cells in sample A”, however one cannot draw conclusions about the abundance of T cells in sample A versus B, given there could also be other, unknown cell types in the sample (e.g. cancer cells). This approach is used by the default version of CIBERSORT)</p>
-<p>Last, ideally, one can build a score, that reflects the absolute quantity of a certain cell type in the sample. This approach allows both intra- and inter-sample comparisons.</p>
-<div id="gene-set-based-methods-allow-comparison-between-samples-but-not-between-cell-types" class="section level3">
-<h3><span class="header-section-number">1.1.1</span> Gene-set based methods (allow comparison between samples, but not between cell types)</h3>
-<ul>
-<li>xCell (the authors apply some sort of normalization that makes xCell scores resemble percentages, although they advise doing this analysis with caution (<a href="https://github.com/dviraran/xCell#notes-for-correct-usage">ref</a>). In this Benchmark, we will nonetheless try xCell both as “relative” and “absolute” method.</li>
-<li>MCPCounter (purely gene-expression based -&gt; between cell type comparison is simply wrong)</li>
-<li>TIMER (“not comparable between cancer types or different immune cells”)</li>
-</ul>
-</div>
-<div id="deconvolution-based-methods-relative-fractions-allow-comparisons-between-cell-types-but-not-samples" class="section level3">
-<h3><span class="header-section-number">1.1.2</span> Deconvolution-based methods (relative fractions, allow comparisons between cell types, but not samples)</h3>
-<p>“relative to the total immune content”</p>
-<ul>
-<li>CIBERSORT (default mode)</li>
-</ul>
-</div>
-<div id="deconvolution-based-methods-absolute-fractions-allow-comparisons-between-cell-types-and-samples" class="section level3">
-<h3><span class="header-section-number">1.1.3</span> Deconvolution-based methods (absolute fractions, allow comparisons between cell types and samples)</h3>
-<ul>
-<li>CIBERSORT absolute mode (“Absolute mode scales relative cellular fractions into a score of arbitrary units that reflects the absolute proportion of each cell type in a mixture. Although not currently expressed as a fraction, the absolute score can be directly compared across cell types (i.e., relative differences between cell types are maintained)” [cibersort FAQ])</li>
-<li>quanTIseq (uses cell fractions)</li>
-<li>EPIC (uses cell fractions)</li>
-</ul>
-<p>As CIBERSORT absolute scores are expressed in arbitrary units and not fractions, estimating the abundance of “Other cells” can be misleading. We will still try…</p>
+<div id="creating-publication-ready-figures" class="section level1">
+<h1><span class="header-section-number">12</span> Creating publication ready figures</h1>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Define names</span>
+method_names =<span class="st"> </span><span class="kw">data.frame</span>(
+  <span class="dt">method =</span> <span class="kw">c</span>(<span class="st">&quot;cibersort&quot;</span>, <span class="st">&quot;cibersort_abs&quot;</span>, <span class="st">&quot;epic&quot;</span>, <span class="st">&quot;mcp_counter&quot;</span>, <span class="st">&quot;quantiseq&quot;</span>, <span class="st">&quot;timer&quot;</span>, <span class="st">&quot;xcell&quot;</span>),
+  <span class="dt">method_name =</span> <span class="kw">c</span>(<span class="st">&quot;CIBERSORT&quot;</span>, <span class="st">&quot;CIBERSORT (abs.)&quot;</span>, <span class="st">&quot;EPIC&quot;</span>, <span class="st">&quot;MCPCounter&quot;</span>, <span class="st">&quot;quanTIseq&quot;</span>, <span class="st">&quot;TIMER&quot;</span>, <span class="st">&quot;xCell&quot;</span>)
+)
 
-</div>
-</div>
-</div>
-<h3> References</h3>
-<div id="refs" class="references">
-<div id="ref-Newman2016">
-<p>Newman, Aaron M., and Ash A. Alizadeh. 2016. “High-throughput genomic profiling of tumor-infiltrating leukocytes.” <em>Current Opinion in Immunology</em> 41 (August). Elsevier Ltd: 77–84. <a href="https://doi.org/10.1016/j.coi.2016.06.006" class="uri">https://doi.org/10.1016/j.coi.2016.06.006</a>.</p>
-</div>
-<div id="ref-Finotello2018">
-<p>Finotello, Francesca, and Zlatko Trajanoski. 2018. “Quantifying tumor-infiltrating immune cells from transcriptomics data.” <em>Cancer Immunology, Immunotherapy</em> 0. <a href="https://doi.org/10.1007/s00262-018-2150-z" class="uri">https://doi.org/10.1007/s00262-018-2150-z</a>.</p>
-</div>
-<div id="ref-AvilaCobos2018">
-<p>Avila Cobos, Francisco, Jo Vandesompele, Pieter Mestdagh, and Katleen De Preter. 2018. “Computational deconvolution of transcriptomics data from mixed cell populations.” <em>Bioinformatics</em>, January. <a href="https://doi.org/10.1093/bioinformatics/bty019" class="uri">https://doi.org/10.1093/bioinformatics/bty019</a>.</p>
-</div>
-<div id="ref-Becht2016">
-<p>Becht, Etienne, Nicolas A. Giraldo, Laetitia Lacroix, Bénédicte Buttard, Nabila Elarouci, Florent Petitprez, Janick Selves, et al. 2016. “Estimating the population abundance of tissue-infiltrating immune and stromal cell populations using gene expression.” <em>Genome Biology</em> 17 (1). Genome Biology: 218. <a href="https://doi.org/10.1186/s13059-016-1070-5" class="uri">https://doi.org/10.1186/s13059-016-1070-5</a>.</p>
-</div>
-<div id="ref-XCELL2017">
-<p>Aran, Dvir, Zicheng Hu, and Atul J Butte. 2017. “xCell: digitally portraying the tissue cellular heterogeneity landscape.” <em>Genome Biology</em> 18 (1): 220. <a href="https://doi.org/10.1186/s13059-017-1349-1" class="uri">https://doi.org/10.1186/s13059-017-1349-1</a>.</p>
-</div>
-<div id="ref-CIBERSORT2016">
-<p>Aaron M. Newman, Chih Long Liu, Michael R. Green, Andrew J. Gentles, Weiguo Feng, Yue Xu, Chuong D. Hoang, Maximilian Diehn, Ash A., and Alizadeh. 2016. “Robust enumeration of cell subsets from tissue expression profiles.” <em>Nat Methods.</em> 21 (3): 193–201. <a href="https://doi.org/10.1016/j.molmed.2014.11.008.Mitochondria" class="uri">https://doi.org/10.1016/j.molmed.2014.11.008.Mitochondria</a>.</p>
-</div>
-<div id="ref-TIMER2016">
-<p>Li, Bo, Eric Severson, Jean-Christophe Pignon, Haoquan Zhao, Taiwen Li, Jesse Novak, Peng Jiang, et al. 2016. “Comprehensive analyses of tumor immunity: implications for cancer immunotherapy.” <em>Genome Biology</em> 17 (1): 174. <a href="https://doi.org/10.1186/s13059-016-1028-7" class="uri">https://doi.org/10.1186/s13059-016-1028-7</a>.</p>
-</div>
-<div id="ref-EPIC2017">
-<p>Racle, Julien, Kaat de Jonge, Petra Baumgaertner, Daniel E Speiser, and David Gfeller. 2017. “Simultaneous enumeration of cancer and immune cell types from bulk tumor gene expression data.” <em>eLife</em> 6 (November). eLife Sciences Publications Limited: e26476. <a href="https://doi.org/10.7554/eLife.26476" class="uri">https://doi.org/10.7554/eLife.26476</a>.</p>
-</div>
-<div id="ref-quantiseq2017">
-<p>Finotello, Francesca, Clemens Mayer, Christina Plattner, Gerhard Laschober, Dietmar Rieder, Hubert Hackl, Anne Krogsdam, et al. 2017. “quanTIseq: quantifying immune contexture of human tumors.” <em>bioRxiv</em>, November. Cold Spring Harbor Laboratory, 223180. <a href="https://doi.org/10.1101/223180" class="uri">https://doi.org/10.1101/223180</a>.</p>
-</div>
+validation_datasets =<span class="st"> </span><span class="kw">data.frame</span>(
+  <span class="dt">dataset =</span> <span class="kw">c</span>(<span class="st">&quot;hoeck&quot;</span>, <span class="st">&quot;racle&quot;</span>, <span class="st">&quot;schelker_ovarian&quot;</span>),
+  <span class="dt">description =</span> <span class="kw">c</span>(<span class="st">&quot;Hoeck (PBMC)&quot;</span>, <span class="st">&quot;Racle (melanoma)&quot;</span>, <span class="st">&quot;Schelker (ovarian)&quot;</span>)
+)</code></pre>
+<p><img src="_main_files/figure-html/unnamed-chunk-61-1.png" width="864" /></p>
+
 </div>
             </section>
 
           </div>
         </div>
       </div>
-
-<a href="input-data.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="materials-and-methods.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="references.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>

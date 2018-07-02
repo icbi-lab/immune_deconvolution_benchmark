@@ -36,7 +36,8 @@ theme_benchmark = function(...) {
 method_boxplot = function(data, ycol) {
   data %<>% mutate(cell_type = if_else(cell_type == "Macrophage/Monocyte", "Macrophage/ Monocyte", cell_type)) %>%
     mutate(cell_type = factor(cell_type, levels = plot_levels)) %>%
-    inner_join(method_names)
+    inner_join(method_names) %>% 
+    mutate(method_name = factor(method_name, levels=method_names$method_name))
   data %>% 
     ggplot(aes_string(x="method_name", y=ycol)) + 
       geom_boxplot(position="dodge") + 
@@ -47,7 +48,8 @@ method_boxplot = function(data, ycol) {
             strip.text.x = element_text(size=9)) +
       # scale_color_manual(values=color_scales$methods) +
       xlab(NULL) +
-      theme_title()
+      theme_title() + 
+      scale_x_discrete(drop=FALSE)
 }
 
 ```
@@ -246,4 +248,5 @@ plot_grid(plot_heatmap,
           axis="tl")
 
 ggsave("../results/figures/summary.pdf")
+ggsave("../results/figures/summary.png", dpi=1200)
 ```

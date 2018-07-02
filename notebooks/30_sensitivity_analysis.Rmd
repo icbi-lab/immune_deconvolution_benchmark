@@ -25,8 +25,6 @@ n_immune_cells = rep(c(seq(0, 50, 5)
                      ), 5)
 ```
 
-We do not include TIMER in this analysis, as we cannot run it in an automated fashion. 
-
 
 ```{r sens_generate_data, fig.height=18, fig.width=25, cache=TRUE, echo=FALSE}
 sensitivity_analysis_file = "../results/cache/sensitivity_analysis_res.rda"
@@ -130,7 +128,8 @@ sensitivity_plot = all_results3 %>%
   select(cell_type, method, input_cell_type, mean, ci, frac_immune_cells) %>% 
   inner_join(ref_cell_type) %>% 
   # at least 0.001 predicted to avoid numerical problems with very small values (-> xCell). 
-  mutate(significantly_enriched = ref_mean-ci > mean+ci & ref_mean > 1e-3) %>%
+  # mutate(significantly_enriched = ref_mean-ci > mean+ci & ref_mean > 1e-3) %>%
+  mutate(significantly_enriched = ref_mean-ci > 0 & ref_mean > 1e-4) %>%
   filter(significantly_enriched) %>%
   group_by(method, input_cell_type, cell_type) %>% 
   summarise(min_frac = min(as.numeric(as.character(frac_immune_cells)))) %>% 

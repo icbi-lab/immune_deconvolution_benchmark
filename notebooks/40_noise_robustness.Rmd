@@ -34,7 +34,7 @@ noise_mat = matrix(rnorm(length(sample_mat)), nrow = nrow(sample_mat), ncol = nc
 ```
 
 Then we add noise to the samples. 
-Noise is $\sim\mathsf{N}(0, \text{noise_level})$. 
+Noise is $\sim\mathsf{N}(0, \text{noise\_level})$. 
 
 ```{r}
 noise_levels = c(0, 1, 5, 10)

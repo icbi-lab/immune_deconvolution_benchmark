@@ -1,33 +1,32 @@
 ---
 title: "Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)"
-author: 
+author:
   - manuscript in preparation
   - Gregor Sturm$^{1,2}$
   - Tatsiana Aneichyk$^1$
 date: |
-  $^1$Pieris Pharmaceuticals GmbH, Lise-Meitner-Straße 30, 85354 Freising, Germany 
-  
+  $^1$Pieris Pharmaceuticals GmbH, Lise-Meitner-Straße 30, 85354 Freising, Germany
   $^2$Experimental Bioinformatics, TUM School of Life Sciences Weihenstephan, Technical University of Munich, Maximus-von-Imhof-Forum 3, 85354 Freising, Germany
-  
-  `r Sys.Date()` 
-documentclass: book 
+  `r Sys.Date()`
+documentclass: book
 bibliography: bibliography.bib
 biblio-style: apalike
 link-citations: yes
 colorlinks: yes
-description: Systematic Evaluation of state-of-the-art Immune deconvolution methods.  
+description: Systematic Evaluation of state-of-the-art Immune deconvolution methods.
+always_allow_html: yes
 ---
 
 
 
 # Introduction
 
-There is urgent need for an unbiased comparison of existing immune deconvolution methods. 
-We focus on RNA-seq only in this review, as current data, including large public efforts like TCGA, are likely generated using this technology. 
+There is urgent need for an unbiased comparison of existing immune deconvolution methods.
+We focus on RNA-seq only in this review, as current data, including large public efforts like TCGA, are likely generated using this technology.
 
-To our best knowlege, no such benchmark study has been performed yet, maybe due to the lack of an appropriate gold standard. Now, with the advent of large, publicly availble single-cell datasets this such a comparison becomes feasible. 
+To our best knowlege, no such benchmark study has been performed yet, maybe due to the lack of an appropriate gold standard. Now, with the advent of large, publicly availble single-cell datasets this such a comparison becomes feasible.
 
-Systematic, methodological comparisons of such methods are available [@Newman2016; @Finotello2018; @AvilaCobos2018]. Here, we focus on algorithms, specifically developed for tumour immune cell deconvolution shipping with the appropriate signature matrix. While other, generic deconvolution altorithms are available (also reviewd in @Finotello2018), we do not take them into account here, as the resulting performance depends at least as much on the signature as on the method. 
+Systematic, methodological comparisons of such methods are available [@Newman2016; @Finotello2018; @AvilaCobos2018]. Here, we focus on algorithms, specifically developed for tumour immune cell deconvolution shipping with the appropriate signature matrix. While other, generic deconvolution altorithms are available (also reviewd in @Finotello2018), we do not take them into account here, as the resulting performance depends at least as much on the signature as on the method.
 
 The methods:
 MCPCounter [@Becht2016]
@@ -50,18 +49,18 @@ TODO refer schelker paper
 
 
 ## Conceptual differences between methods
-There are three conceptually different approaches to deconvolution. 
+There are three conceptually different approaches to deconvolution.
 
 First, one can try to achieve scores suitable for inter-sample comparison. In that case, one can ask "Do I have more T cells in sample A than in sample B", but one cannot ask "Do I have more B cells than T cells in sample A.".
-This approach is used by GSEA-based methods like MCP counter. 
+This approach is used by GSEA-based methods like MCP counter.
 
 Second, one can try to build scores suitable for intra-sample comparison. In that case, one can ask "Do I have more B cells than T cells in sample A", however one cannot draw conclusions about the abundance of T cells in sample A versus B, given there could also be other, unknown cell types in the sample (e.g. cancer cells). This approach is used by the default version of CIBERSORT)
 
-Last, ideally, one can build a score, that reflects the absolute quantity of a certain cell type in the sample. This approach allows both intra- and inter-sample comparisons. 
+Last, ideally, one can build a score, that reflects the absolute quantity of a certain cell type in the sample. This approach allows both intra- and inter-sample comparisons.
 
-### Gene-set based methods (allow comparison between samples, but not between cell types)
+### Marker gene based methods (allow comparison between samples, but not between cell types)
 
-* xCell (the authors apply some sort of normalization that makes xCell scores resemble percentages, although they advise doing this analysis with caution ([ref](https://github.com/dviraran/xCell#notes-for-correct-usage)). In this Benchmark, we will nonetheless try xCell both as "relative" and "absolute" method. 
+* xCell (the authors apply some sort of normalization that makes xCell scores resemble percentages, although they advise doing this analysis with caution ([ref](https://github.com/dviraran/xCell#notes-for-correct-usage)). In this Benchmark, we will nonetheless try xCell both as "relative" and "absolute" method.
 * MCPCounter (purely gene-expression based -> between cell type comparison is simply wrong)
 * TIMER ("not comparable between cancer types or different immune cells")
 

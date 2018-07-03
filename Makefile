@@ -20,7 +20,7 @@ help:
 
 .PHONY: book
 book: $(RMD_FILES)
-	cd notebooks && Rscript -e "bookdown::render_book('index.Rmd', 'bookdown::gitbook')"
+	cd notebooks && Rscript -e "bookdown::render_book('index.Rmd')"
 
 .PHONY: upload-book
 upload-book: book

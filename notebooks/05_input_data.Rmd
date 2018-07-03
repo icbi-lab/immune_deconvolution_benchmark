@@ -133,6 +133,7 @@ pData(single_cell_schelker$eset) %>%
            labs(color="cell type")
 
 ggsave("../results/figures/schelker_single_cell_tsne.pdf")
+ggsave("../results/figures/schelker_single_cell_tsne.png", dpi=1200)
 ```
 
 <!-- ### Attempting to distinguish between macrophages and monocytes -->

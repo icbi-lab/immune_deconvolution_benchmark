@@ -98,6 +98,7 @@ res_spillover$all_results = all_results2
 
 ## Complete Spillover Matrix
 This figure shows the spillover for all methods, cell types and datasets
+
 ```{r, fig.width=24, fig.height=24, echo=FALSE}
 all_results2 %>%
   filter(true_cell_type %in% show_cell_types, cell_type %in% show_cell_types) %>% 
@@ -108,8 +109,6 @@ all_results2 %>%
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) +
     background_grid(major = "xy", minor = "none")
    
-
-
 ```
 
 

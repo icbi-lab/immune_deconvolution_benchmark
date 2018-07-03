@@ -191,7 +191,8 @@ print(p_spillover)
 ```{r, fig.height=3.5, fig.width=8, include=FALSE}
 # Absolute deviation plot
 p_abs_deviation = res_mixing_study$deviation_from_slope %>% 
- inner_join(method_names) %>% 
+  filter(method %in% c("epic", "quantiseq")) %>% 
+  inner_join(method_names) %>% 
    ggplot(aes(x=cell_type, y=deviation, alpha=macrophage_only)) +
       geom_bar(fill="black", stat="identity") +
       geom_errorbar(aes(ymin=ci_lower, ymax=ci_upper), width=.2, color="red") +
@@ -206,7 +207,7 @@ p_abs_deviation = res_mixing_study$deviation_from_slope %>%
       ggtitle("Absolute deviation") + 
       xlab(NULL) + 
       ylab("deviation from slope=1") + 
-      coord_flip() + 
+      coord_flip(ylim=c(-1.5, 1.5)) + 
       theme_title(hjust=0)  
 
 print(p_abs_deviation)

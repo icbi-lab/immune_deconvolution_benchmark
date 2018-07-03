@@ -141,7 +141,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul class="summary">
 <li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction</a><ul>
 <li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#conceptual-differences-between-methods"><i class="fa fa-check"></i><b>1.1</b> Conceptual differences between methods</a><ul>
-<li class="chapter" data-level="1.1.1" data-path="index.html"><a href="index.html#gene-set-based-methods-allow-comparison-between-samples-but-not-between-cell-types"><i class="fa fa-check"></i><b>1.1.1</b> Gene-set based methods (allow comparison between samples, but not between cell types)</a></li>
+<li class="chapter" data-level="1.1.1" data-path="index.html"><a href="index.html#marker-gene-based-methods-allow-comparison-between-samples-but-not-between-cell-types"><i class="fa fa-check"></i><b>1.1.1</b> Marker gene based methods (allow comparison between samples, but not between cell types)</a></li>
 <li class="chapter" data-level="1.1.2" data-path="index.html"><a href="index.html#deconvolution-based-methods-relative-fractions-allow-comparisons-between-cell-types-but-not-samples"><i class="fa fa-check"></i><b>1.1.2</b> Deconvolution-based methods (relative fractions, allow comparisons between cell types, but not samples)</a></li>
 <li class="chapter" data-level="1.1.3" data-path="index.html"><a href="index.html#deconvolution-based-methods-absolute-fractions-allow-comparisons-between-cell-types-and-samples"><i class="fa fa-check"></i><b>1.1.3</b> Deconvolution-based methods (absolute fractions, allow comparisons between cell types and samples)</a></li>
 </ul></li>
@@ -222,9 +222,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p class="author"><em>manuscript in preparation</em></p>
 <p class="author"><em>Gregor Sturm<span class="math inline">\(^{1,2}\)</span></em></p>
 <p class="author"><em>Tatsiana Aneichyk<span class="math inline">\(^1\)</span></em></p>
-<p class="date"><em><p><span class="math inline">\(^1\)</span>Pieris Pharmaceuticals GmbH, Lise-Meitner-Straße 30, 85354 Freising, Germany</p>
-<p><span class="math inline">\(^2\)</span>Experimental Bioinformatics, TUM School of Life Sciences Weihenstephan, Technical University of Munich, Maximus-von-Imhof-Forum 3, 85354 Freising, Germany</p>
-2018-06-28</em></p>
+<p class="date"><em><span class="math inline">\(^1\)</span>Pieris Pharmaceuticals GmbH, Lise-Meitner-Straße 30, 85354 Freising, Germany
+<span class="math inline">\(^2\)</span>Experimental Bioinformatics, TUM School of Life Sciences Weihenstephan, Technical University of Munich, Maximus-von-Imhof-Forum 3, 85354 Freising, Germany
+2018-07-03</em></p>
 </div>
 <div id="introduction" class="section level1">
 <h1><span class="header-section-number">1</span> Introduction</h1>
@@ -247,8 +247,8 @@ MCPCounter <span class="citation">(Becht et al. <a href="#ref-Becht2016">2016</a
 This approach is used by GSEA-based methods like MCP counter.</p>
 <p>Second, one can try to build scores suitable for intra-sample comparison. In that case, one can ask “Do I have more B cells than T cells in sample A”, however one cannot draw conclusions about the abundance of T cells in sample A versus B, given there could also be other, unknown cell types in the sample (e.g. cancer cells). This approach is used by the default version of CIBERSORT)</p>
 <p>Last, ideally, one can build a score, that reflects the absolute quantity of a certain cell type in the sample. This approach allows both intra- and inter-sample comparisons.</p>
-<div id="gene-set-based-methods-allow-comparison-between-samples-but-not-between-cell-types" class="section level3">
-<h3><span class="header-section-number">1.1.1</span> Gene-set based methods (allow comparison between samples, but not between cell types)</h3>
+<div id="marker-gene-based-methods-allow-comparison-between-samples-but-not-between-cell-types" class="section level3">
+<h3><span class="header-section-number">1.1.1</span> Marker gene based methods (allow comparison between samples, but not between cell types)</h3>
 <ul>
 <li>xCell (the authors apply some sort of normalization that makes xCell scores resemble percentages, although they advise doing this analysis with caution (<a href="https://github.com/dviraran/xCell#notes-for-correct-usage">ref</a>). In this Benchmark, we will nonetheless try xCell both as “relative” and “absolute” method.</li>
 <li>MCPCounter (purely gene-expression based -&gt; between cell type comparison is simply wrong)</li>

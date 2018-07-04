@@ -12,7 +12,7 @@ theme_set(theme_cowplot(font_size=11)) # reduce default font siz
 # Define names
 method_names = data.frame(
   method = c("cibersort", "cibersort_abs", "epic", "mcp_counter", "quantiseq", "timer", "xcell"),
-  method_name = c("CIBERSORT", "CIBERSORT (abs.)", "EPIC", "MCPCounter", "quanTIseq", "TIMER", "xCell")
+  method_name = c("CIBERSORT", "CIBERSORT (abs.)", "EPIC", "MCPcounter", "quanTIseq", "TIMER", "xCell")
 )
 
 validation_datasets = data.frame(
@@ -138,7 +138,6 @@ plot_levels = res_sensitivity$sensitivity %>% pull(input_cell_type) %>% unique()
 plot_levels[plot_levels == "Macrophage/Monocyte"] = "Macrophage/ Monocyte"
 
 p_sensitivity = res_sensitivity$sensitivity %>%
-  mutate(category="Sensitivity") %>%
   mutate(min_frac=ifelse(is.infinite(min_frac), 100, min_frac)) %>% 
   mutate(min_frac = min_frac/100) %>%
   mutate(min_frac_text = as.character(round(min_frac, 2))) %>% 
@@ -163,15 +162,31 @@ p_sensitivity = res_sensitivity$sensitivity %>%
 print(p_sensitivity)
 ```
 
-
-
-
 ```{r, include=FALSE}
-# Specificity box plot
+# Specificity heatmap
 
-p_specificity = res_sensitivity$specificity %>%
-  method_boxplot("estimate") + 
-  ggtitle("Specificity") 
+# summarise by mean. 
+p_specificity = res_sensitivity$specificity %>% 
+  group_by(method, cell_type) %>% 
+  summarise(estimate = mean(estimate)) %>% 
+  mutate(estimate_text = as.character(round(estimate, 2))) %>%
+  inner_join(method_names) %>%
+  mutate(method_name = factor(method_name, levels=method_names$method_name)) %>% 
+  ggplot(aes(x=cell_type, y=method_name)) + 
+    geom_tile(aes(fill=estimate)) + 
+    geom_text(aes(label=estimate_text), size=3) + 
+    scale_fill_distiller(type="div", palette = "RdYlGn", direction=-1, values=c(0, .02, .1, 1)) +
+    scale_alpha_manual(values=c("yes"=.3, "no"=1.)) + 
+    theme_benchmark() + 
+    theme(axis.text.x.top=element_text(angle = 90, vjust = .5, hjust=0),
+            legend.position="none",
+            strip.text.x = element_text(size=11)) + 
+    scale_x_discrete(position = "top", drop=FALSE) + 
+    scale_y_discrete(drop=FALSE) + 
+    xlab(NULL) + 
+    ylab(NULL) +
+    theme_title() + 
+    ggtitle("Specificity")
 
 print(p_specificity)
 ```
@@ -214,37 +229,35 @@ print(p_abs_deviation)
 ```
 
 
-```{r, fig.height=12, fig.width=9, echo=FALSE, message=FALSE}
+```{r, fig.height=12, fig.width=8, echo=FALSE, message=FALSE}
 # combine heatmaps
 p2_noise = p_noise 
 p2_mixing = p_mixing + theme(axis.text.y=element_blank())
 p2_validation = p_validation + theme(axis.text.y=element_blank()) 
-p2_sensitivity = p_sensitivity + theme(axis.text.y=element_blank(), plot.margin = margin(l=1, unit = "cm"))
-p2_specificity = p_specificity + theme(axis.text.x = element_blank()) + ylab("predicted fraction")
-p2_spillover = p_spillover + ylab("signal ratio")
+p2_sensitivity = p_sensitivity 
+p2_specificity = p_specificity + theme(axis.text.y = element_blank()) 
 p2_abs_deviation = p_abs_deviation + scale_x_discrete(position = "bottom") 
 
-plots = align_plots(p2_noise, p2_specificity, p2_spillover, p2_abs_deviation, align="v", axis="l")
+plots = align_plots(p2_noise, p2_sensitivity, p2_abs_deviation, align="v", axis="l")
 
-plot_heatmap = plot_grid(plots[[1]], p2_mixing, p2_validation, p2_sensitivity,
-          align = "h", ncol = 4,
+plot_heatmap = plot_grid(plots[[1]], p2_mixing, p2_validation, 
+          align = "h", ncol = 3,
           axis="t",
-          rel_widths = c(.65, .75, .28, .5), labels = c("A","B", "C", "D"))
+          rel_widths = c(.65, .75, .28), labels = c("A", "B", "C"))
 
-# combine boxplots
-plot_boxplot = plot_grid(plots[[2]],
-          plots[[3]],
-          plots[[4]], 
-          labels=c("E", "F", "G"), ncol=1, align = "v", axis = "l",
-          rel_heights = c(.2, .3, .25))
+plot_sens_spec = plot_grid(plots[[2]], p2_specificity,
+                           align = "h", ncol = 2,
+                           axis = "t",
+                           rel_widths = c(.65, .35), labels = c("D", "E"))
 
 
 # combine all
 plot_grid(plot_heatmap,
-          plot_boxplot,
+          plot_sens_spec,
+          plots[[3]],
           ncol=1,
-          rel_heights = c(.3, .7),
-          labels = c("", "", "G"), 
+          rel_heights = c(.4, .3, .3),
+          labels = c("", "", "F"), 
           align = "h",
           axis="tl")
 

@@ -1,4 +1,4 @@
-# Sensitivity analysis
+# Sensitivity and Specificity
 ```{r, include=FALSE}
 res_sensitivity = new.env()
 ```
@@ -79,10 +79,10 @@ all_results = foreach(input_cell_type = show_cell_types,
       mutate(method=method, input_cell_type=input_cell_type) %>%
       inner_join(n_cell_df, by="sample")
 } %>% 
-  select(-sample) %>% 
   mutate(frac_immune_cells = as.factor(round(n_immune_cells/sum(cell_types$n_background_cells) * 100, 2)))
 
 all_results2 = all_results %>% 
+  select(-sample) %>%
   group_by_at(vars(-estimate)) %>% 
   summarise_all(funs(mean, sd, n=length)) %>%
   mutate(ci=qt(0.975,df=n-1)*sd/sqrt(n)) %>%
@@ -102,7 +102,10 @@ all_results2 %>%
     scale_color_manual(values = color_scales$immune_cells)
 ```
 
-### Summary figure: At which percentage the method captures the cell type above noise level? 
+## Sensitivity
+
+At which percentage the method captures the cell types significantly?
+
 ```{r, warning=FALSE, message=FALSE, cache=TRUE, echo=FALSE}
 # add fallback values, if none of the fractions exceed the specified value
 results_inf_fallback = all_results2 %>%
@@ -168,7 +171,11 @@ sensitivity_plot %>%
 ```
 
 
-### Summary figure: predicted amount of cells when there are none
+## Specificity
+
+predicted amount of cells when there are none.
+This analysis is based on all of the data above where only background cells are present, i.e. fraction of immune cells = 0. 
+
 ```{r sens_spec_table, echo=FALSE, message=FALSE}
 sens_spec_table = all_results %>% 
   filter(frac_immune_cells == 0, cell_type == input_cell_type) %>%
@@ -183,7 +190,8 @@ sens_spec_table %>%
 
 ```{r sens_spec_data, fig.height=6, fig.width=6, echo=FALSE}
 specificity_data = all_results %>% 
-  filter(frac_immune_cells == 0, cell_type == input_cell_type) %>%
+  select(-sample) %>%
+  filter(frac_immune_cells == 0) %>%
   filter(method != "mcp_counter")
 
 res_sensitivity$specificity = specificity_data
@@ -199,3 +207,29 @@ specificity_data %>%
           strip.text.x = element_text(size=9)) +
     scale_color_manual(values=color_scales$methods) 
 ```
+
+<!-- ### Separate test for MCP counter -->
+
+<!-- //this does not make sense, as the null models are platform specific. --> 
+
+<!-- Since MCPcounter score does not have a clear "0", as it uses raw gene expression values,  -->
+<!-- it cannot be directly compared to the other methods in the figure above.  -->
+
+<!-- However, it does come with a function `test_for_infiltration` which can be used to formally test -->
+<!-- if an immune cell type is detected or not.  -->
+
+
+<!-- ```{r} -->
+<!-- map_celltype_to_mcp = cell_type_mapping %>% filter(method_dataset == "mcp_counter") -->
+<!-- mcp_results = all_results %>% -->
+<!--   filter(method == "mcp_counter", n_immune_cells == 0) %>% -->
+<!--   mutate(sample_id = paste(input_cell_type, sample, sep="_")) %>%  -->
+<!--   select(cell_type, sample_id, estimate) %>%  -->
+<!--   spread(sample_id, estimate) %>%  -->
+<!--   inner_join(map_celltype_to_mcp) %>%  -->
+<!--   select(-cell_type, -method_dataset) %>%  -->
+<!--   as.data.frame() %>%  -->
+<!--   column_to_rownames("method_cell_type") -->
+
+<!-- MCPcounter::test_for_infiltration(mcp_results) -->
+<!-- ``` -->

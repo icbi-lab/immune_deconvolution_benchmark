@@ -93,7 +93,7 @@ cell_types = as.environment(list(
   cancer=c("Melanoma cell", "Ovarian carcinoma cell"),
   other=c("Cancer associated fibroblast", "Endothelial cell")
 ))
-cell_types$immune_cells = cell_types$available[!cell_types$available %in% c(cell_types$cancer, cell_types$other)]
+cell_types$immune_cells = cell_types$available[!cell_types$available %in% c(cell_types$cancer, cell_types$other, "PBMC")]
 
 cell_types$background_cells = c(cell_types$cancer, cell_types$other)
 cell_types$n_background_cells = single_cell_schelker$eset %>% pData() %>%

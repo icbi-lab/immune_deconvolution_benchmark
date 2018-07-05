@@ -151,3 +151,41 @@ signal_noise_res %>%
   write_tsv("../results/tables/spillover_signal_noise.tsv", na="")
 
 ```
+
+## Summary figure: migration charts
+
+```{r, fig.width = 10, fig.height=24}
+methods = immunedeconv::deconvolution_methods
+layout(matrix(seq(1, length(datasets) * length(methods)), length(methods), length(datasets)))
+par(mar=rep(0.5, 4))
+circos.par(cell.padding = rep(0, 4))
+x = lapply(names(datasets), function(dataset) {
+  lapply(methods, function(method) {
+    migration = all_results2 %>% 
+        filter(method == !!method, dataset == !!dataset) %>% 
+        filter(true_cell_type != "Neutrophil") %>% 
+        group_by(method, true_cell_type, cell_type) %>% 
+        summarise(estimate = mean(estimate)) %>% 
+        ungroup() %>% 
+        select(-method) %>% 
+        spread(cell_type, estimate) %>%
+        as.data.frame() %>% 
+        column_to_rownames("true_cell_type") %>% 
+        as.matrix()
+      
+      chordDiagram(migration, directional = TRUE, transparency = .5, 
+                   grid.col = color_scales$immune_cells
+                   # annotationTrack = c("track", "grid")
+                   )
+     
+      text(0, 0, method, cex = 1.5) 
+      
+      # first method, add title. 
+      if(method == "mcp_counter") {
+        title(dataset)
+      }
+    })
+})
+
+
+``` 

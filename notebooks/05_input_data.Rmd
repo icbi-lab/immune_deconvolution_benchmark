@@ -14,6 +14,8 @@ library(doMC)
 library(data.tree)
 library(testit)
 library(knitr)
+library(circlize)
+library(gridGraphics)
 
 registerDoMC(detectCores(logical=FALSE))
 # registerDoSEQ()

@@ -67,6 +67,7 @@ dependencies:
   - r-broom=0.4.4=r3.4.1_0
   - r-catools=1.17.1=r3.4.1_0
   - r-cellranger=1.1.0=r3.4.1_0
+  - r-circlize=0.4.4=r341_0
   - r-class=7.3_14=r3.4.1_0
   - r-cli=1.0.0=r3.4.1_0
   - r-cluster=2.0.6=r3.4.1_0
@@ -103,9 +104,11 @@ dependencies:
   - r-ggsci=2.8=r3.4.1_0
   - r-ggsignif=0.4.0=r3.4.1_0
   - r-git2r=0.21.0=r341h0c37787_0
+  - r-globaloptions=0.1.0=r341_0
   - r-glue=1.2.0=r3.4.1_0
   - r-gridbase=0.4_7=r3.4.1_0
   - r-gridextra=2.3=r3.4.1_0
+  - r-gridgraphics=0.3_0=r341h6115d3f_0
   - r-gtable=0.2.0=r3.4.1_0
   - r-haven=1.1.1=r3.4.1_0
   - r-highr=0.7=r341_0
@@ -170,6 +173,7 @@ dependencies:
   - r-rvest=0.3.2=r3.4.1_0
   - r-scales=0.5.0=r3.4.1_0
   - r-selectr=0.3_1=r3.4.1_0
+  - r-shape=1.4.3=r3.4.1_0
   - r-shiny=1.0.5=r3.4.1_0
   - r-shinythemes=1.1.1=r3.4.1_0
   - r-snow=0.4_2=r3.4.1_0

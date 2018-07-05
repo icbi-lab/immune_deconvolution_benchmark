@@ -222,7 +222,7 @@ p_abs_deviation = res_mixing_study$deviation_from_slope %>%
 print(p_abs_deviation)
 ```
 
-
+## Benchmark results, Sensitivity, Specificity and absolute deviation
 ```{r, fig.height=10, fig.width=7, echo=FALSE, message=FALSE}
 # combine heatmaps
 
@@ -270,4 +270,75 @@ plot_grid(plot_heatmap,
 
 ggsave("../results/figures/summary.pdf")
 ggsave("../results/figures/summary.png", dpi=1200)
+```
+
+
+## Migration charts for Spillover analysis
+```{r, fig.width = 16, fig.height=10, include=FALSE}
+methods = immunedeconv::deconvolution_methods
+
+# cibersort and cibersort abs are identical in this analysis, no need to include both. 
+methods = sort(methods[methods != "cibersort_abs"])
+tmp_method_names = as.list(method_names %>% pull(method_name))
+names(tmp_method_names) = method_names$method
+
+migration = res_spillover$all_results %>% 
+  filter(dataset == "immune_reference") %>% 
+  # exclude neutrophils as not measured by most methods
+  filter(true_cell_type != "Neutrophil") %>% 
+  # aggregate macro/mono into a single category
+  mutate(true_cell_type = ifelse(true_cell_type %in% c("Macrophage M1", "Macrophage M2", "Monocyte"), "Macrophage/Monocyte", true_cell_type)) %>% 
+  mutate(true_cell_type = ifelse(true_cell_type == "T cell regulatory (Tregs)", "T cell CD4+", true_cell_type)) %>% 
+  group_by(method, cell_type, true_cell_type) %>% 
+  summarise(estimate = mean(estimate)) %>% 
+  ungroup()
+
+layout(matrix(seq(1, 6), 2, 3))
+par(mar=rep(0.5, 4))
+circos.par(cell.padding = rep(0, 4))
+x = lapply(methods, function(method) {
+      tmp_migration = migration %>%
+        filter(method == !!method) %>% 
+        select(-method) %>% 
+        spread(cell_type, estimate) %>%
+        as.data.frame() %>% 
+        column_to_rownames("true_cell_type") %>% 
+        as.matrix()
+      
+      chordDiagram(tmp_migration, directional = TRUE, transparency = .5, 
+                   grid.col = color_scales$immune_cells,
+                   annotationTrack = c("grid"), 
+                   annotationTrackHeight = uh(5, "mm")
+                   )
+     
+      text(0, 0, tmp_method_names[[method]], cex = 3) 
+})
+
+grid.echo()
+migration_plot = grid.grab()
+``` 
+
+```{r, include=FALSE}
+# make legend using ggplot
+tmp_barplot_data = migration %>% 
+  select("cell type" = cell_type) %>% 
+  # add arbitrary value
+  mutate(value = 1)
+
+p = tmp_barplot_data %>% 
+  ggplot(aes(x=`cell type`, y=value, fill=`cell type`)) + 
+  geom_bar(stat='identity') + 
+  scale_fill_manual(values=color_scales$immune_cells) + 
+  theme(legend.position = "right")
+p
+
+migration_legend = get_legend(p)
+```
+
+```{r fig.width = 13, fig.height=7, echo=FALSE}
+# combine legend and plot
+plot_grid(migration_plot, migration_legend, nrow=1, rel_widths = c(.9, .15))
+
+ggsave("../results/figures/spillover_migration_chart.pdf")
+ggsave("../results/figures/spillover_migration_chart.png", dpi=1200)
 ```

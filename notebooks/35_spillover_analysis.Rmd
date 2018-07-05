@@ -154,6 +154,8 @@ signal_noise_res %>%
 
 ## Summary figure: migration charts
 
+Download this figure as high quality [pdf](files/spillover_migration_all.pdf)
+
 ```{r, fig.width = 10, fig.height=24}
 methods = immunedeconv::deconvolution_methods
 layout(matrix(seq(1, length(datasets) * length(methods)), length(methods), length(datasets)))
@@ -187,5 +189,8 @@ x = lapply(names(datasets), function(dataset) {
     })
 })
 
-
+p = recordPlot()
+pdf("../results/figures/spillover_migration_all.pdf", width=10, height=24)
+p
+dev.off()
 ``` 

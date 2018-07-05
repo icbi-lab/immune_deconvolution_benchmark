@@ -192,14 +192,8 @@ print(p_specificity)
 ```
 
 ```{r, include=FALSE}
-# Spillover boxplot
-p_spillover = res_spillover$signal_noise %>% 
-  filter(dataset == "immune_reference") %>% 
-  rename(cell_type = true_cell_type)  %>% 
-  method_boxplot("signal_ratio") + 
-  ggtitle("Spillover Benchmark")
+# Spillover migration plots
 
-print(p_spillover)
 ```
 
 
@@ -229,37 +223,50 @@ print(p_abs_deviation)
 ```
 
 
-```{r, fig.height=12, fig.width=8, echo=FALSE, message=FALSE}
+```{r, fig.height=10, fig.width=7, echo=FALSE, message=FALSE}
 # combine heatmaps
-p2_noise = p_noise 
-p2_mixing = p_mixing + theme(axis.text.y=element_blank())
-p2_validation = p_validation + theme(axis.text.y=element_blank()) 
-p2_sensitivity = p_sensitivity 
-p2_specificity = p_specificity + theme(axis.text.y = element_blank()) 
-p2_abs_deviation = p_abs_deviation + scale_x_discrete(position = "bottom") 
 
-plots = align_plots(p2_noise, p2_sensitivity, p2_abs_deviation, align="v", axis="l")
+## margins
+MT1 = .2
+MB1 = .5
+MT2 = .2
+MB2 = .7
 
-plot_heatmap = plot_grid(plots[[1]], p2_mixing, p2_validation, 
+## fine-tune formatting
+p2_noise = p_noise + theme(plot.margin = margin(t=MT1, b=MB1, unit="cm"))
+p2_mixing = p_mixing + theme(axis.text.y=element_blank(), plot.margin = margin(t=MT1, l=0.5, b=MB1, unit="cm"))
+p2_validation = p_validation + theme(axis.text.y=element_blank(), plot.margin = margin(t=MT1, l=.5, b=MB1, unit="cm")) 
+p2_sensitivity = p_sensitivity + theme(plot.margin = margin(t=MT2, b=MB2, r=.5, unit= "cm")) 
+p2_specificity = p_specificity + theme(axis.text.y = element_blank(),
+                                       plot.margin = margin(l = 1, t=MT2, b=MB2, unit="cm")) 
+p2_abs_deviation = p_abs_deviation + scale_x_discrete(position = "bottom") +
+  theme(plot.margin = margin(t=0, unit="cm"))
+
+# align plots
+plots_left = align_plots(p2_noise, p2_sensitivity, p2_abs_deviation, align="v", axis="l")
+plots_right = align_plots(p2_validation, p2_specificity, plots_left[[3]], align="v", axis="r")
+
+# first row
+plot_heatmap = plot_grid(plots_left[[1]], p2_mixing, plots_right[[1]], 
           align = "h", ncol = 3,
           axis="t",
-          rel_widths = c(.65, .75, .28), labels = c("A", "B", "C"))
+          rel_widths = c(.6, .75, .28), labels = c("A", "B", "C"))
 
-plot_sens_spec = plot_grid(plots[[2]], p2_specificity,
+# second row
+plot_sens_spec = plot_grid(plots_left[[2]], plots_right[[2]],
                            align = "h", ncol = 2,
                            axis = "t",
-                           rel_widths = c(.65, .35), labels = c("D", "E"))
-
+                           rel_widths = c(.55, .35), labels = c("D", "E"))
 
 # combine all
 plot_grid(plot_heatmap,
           plot_sens_spec,
-          plots[[3]],
+          plots_right[[3]],
           ncol=1,
-          rel_heights = c(.4, .3, .3),
-          labels = c("", "", "F"), 
-          align = "h",
-          axis="tl")
+          rel_heights = c(.42, .4, .3),
+          labels = c("", "", "F"),
+          align="h",
+          axis="l")
 
 ggsave("../results/figures/summary.pdf")
 ggsave("../results/figures/summary.png", dpi=1200)

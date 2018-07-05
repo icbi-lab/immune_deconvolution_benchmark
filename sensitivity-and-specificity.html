@@ -33,8 +33,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-<link rel="prev" href="input-data.html">
-<link rel="next" href="mixing-study.html">
+<link rel="prev" href="correlation-of-methods-across-tcga-samples-.html">
+<link rel="next" href="spillover-analysis.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -215,59 +215,50 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="validitiy-of-single-cell-rna-seq-as-reference" class="section level1">
-<h1><span class="header-section-number">3</span> Validitiy of single cell RNA-seq as reference</h1>
-<p><span class="citation">Schelker et al. (<a href="#ref-Schelker2017">2017</a>)</span> have shown that measurements from single cell sequencing are highly consistent with flow cytometry.</p>
-<div id="validity-of-simulated-bulk-tissues-from-single-cell-sequencing-data" class="section level2">
-<h2><span class="header-section-number">3.1</span> Validity of simulated bulk tissues from single cell sequencing data</h2>
-<p>We use simulated samples from single cell gene expression data. Does this approach make sense after all?
-We have 3 samples of single cell samples matched to bulk RNA sequencing.</p>
-<p>To test, we try:</p>
-<ul>
-<li>correlation of the simulated gene expression with the measured bulk gene expression.</li>
-<li>correlation of the predicted fractions with all methods on bulk vs. simulated tissue.</li>
-<li>correlation of the simulated gene expression with bulk gene expression from the same tissue.</li>
-</ul>
-<div id="compare-simululated-samples-to-bulk-samples" class="section level3">
-<h3><span class="header-section-number">3.1.1</span> Compare simululated samples to bulk samples</h3>
-<p>Simulate bulk samples by summing up the expression values of all cells. Theoretically, it should not matter whether to use
-<code>sum</code> or <code>mean</code> as they only differ by a constant scaling factor. However, we ran into numerical issues with CIBERSORT
-and quanTIseq using mean, as the valuese are much smaller.</p>
-<pre class="sourceCode r"><code class="sourceCode r">bulk_sum =<span class="st"> </span><span class="kw">sapply</span>(<span class="kw">colnames</span>(schelker_ovarian<span class="op">$</span>expr_mat), <span class="cf">function</span>(donor) {
-  ind =<span class="st"> </span><span class="kw">pData</span>(single_cell_schelker<span class="op">$</span>eset)<span class="op">$</span>donor <span class="op">==</span><span class="st"> </span>donor
-  <span class="kw">apply</span>(<span class="kw">exprs</span>(single_cell_schelker<span class="op">$</span>eset)[,ind], <span class="dv">1</span>, sum)
-})</code></pre>
-<div class="figure"><span id="fig:unnamed-chunk-9"></span>
-<img src="_main_files/figure-html/unnamed-chunk-9-1.png" alt="Correlation of bulkRNAseq data vs. simulated bulk data. Data has been log-tranformed" width="1536" />
-<p class="caption">
-Figure 3.1: Correlation of bulkRNAseq data vs. simulated bulk data. Data has been log-tranformed
-</p>
+<div id="sensitivity-and-specificity" class="section level1">
+<h1><span class="header-section-number">7</span> Sensitivity and Specificity</h1>
+<p>How many cells do we need for a method to detect immune cell infiltration?</p>
+<p>We again use the single cell dataset to simulate samples that consist of background cells
+(i.e. non-immune cells: fibroblasts, endothelial cells cancer cells) and add an increasing amount
+of immune cells of a certain type.</p>
+<p>For each amount of immune cells, we generate 5 random samples to compute a confidence interval.</p>
+<p>We use the following cell types:</p>
+<pre class="sourceCode r"><code class="sourceCode r">show_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>,
+                    <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</code></pre>
+<div id="predictions-with-increasing-immune-cell-content" class="section level2">
+<h2><span class="header-section-number">7.1</span> Predictions with increasing immune cell content</h2>
+<p><img src="_main_files/figure-html/unnamed-chunk-35-1.png" width="2400" /></p>
 </div>
-<p>We observe a good correlation, although one can argue that it is very noisy and far from perfect.
-We do not draw any conclusions from this plot.</p>
+<div id="sensitivity" class="section level2">
+<h2><span class="header-section-number">7.2</span> Sensitivity</h2>
+<p>At which percentage the method captures the cell types significantly?</p>
+<p><img src="_main_files/figure-html/sens_plot-1.png" width="672" /></p>
 </div>
-<div id="compare-the-predicted-fractions" class="section level3">
-<h3><span class="header-section-number">3.1.2</span> Compare the predicted fractions</h3>
-<p>We run all methods on both datasets and compare the results.</p>
-<p><img src="_main_files/figure-html/unnamed-chunk-11-1.png" width="1152" /></p>
-<p>The results suggest a reasonable correlation between the estimates on bulkRNAseq and simulated bulkRNAseq. The results depend on the
-method, however. The very good agreement of EPIC and MCPCounter suggest, that the methodology itself is valid; just some methods appear to be more dependent on noise than others. xCell does not pick up a signal here as is “does not work on homogeneous samples”, as stated on their github page.</p>
-</div>
-</div>
-<div id="correlated-simulated-samples-with-bulk-of-the-same-tissue." class="section level2">
-<h2><span class="header-section-number">3.2</span> Correlated simulated samples with bulk of the same tissue.</h2>
-<p>We generate simulated bulk tissues of various cell types and correlate them with
-bulk RNA seq samples from sorted cells.
-<img src="_main_files/figure-html/unnamed-chunk-12-1.png" width="768" /></p>
-<p>In general, the highest correlation is observed between the expression of the sorted cells and the simulated bulk sample.
-However, the simulated Dendritic cells do not correlate well with any of the reference profiles.</p>
+<div id="specificity" class="section level2">
+<h2><span class="header-section-number">7.3</span> Specificity</h2>
+<p>predicted amount of cells when there are none.
+This analysis is based on all of the data above where only background cells are present, i.e. fraction of immune cells = 0.</p>
+<p><img src="_main_files/figure-html/sens_spec_plot-1.png" width="576" /></p>
+<!-- ### Separate test for MCP counter -->
+<!-- //this does not make sense, as the null models are platform specific. -->
+<!-- Since MCPcounter score does not have a clear "0", as it uses raw gene expression values,  -->
+<!-- it cannot be directly compared to the other methods in the figure above.  -->
+<!-- However, it does come with a function `test_for_infiltration` which can be used to formally test -->
+<!-- if an immune cell type is detected or not.  -->
+<!-- ```{r} -->
+<!-- map_celltype_to_mcp = cell_type_mapping %>% filter(method_dataset == "mcp_counter") -->
+<!-- mcp_results = all_results %>% -->
+<!--   filter(method == "mcp_counter", n_immune_cells == 0) %>% -->
+<!--   mutate(sample_id = paste(input_cell_type, sample, sep="_")) %>%  -->
+<!--   select(cell_type, sample_id, estimate) %>%  -->
+<!--   spread(sample_id, estimate) %>%  -->
+<!--   inner_join(map_celltype_to_mcp) %>%  -->
+<!--   select(-cell_type, -method_dataset) %>%  -->
+<!--   as.data.frame() %>%  -->
+<!--   column_to_rownames("method_cell_type") -->
+<!-- MCPcounter::test_for_infiltration(mcp_results) -->
+<!-- ``` -->
 
-</div>
-</div>
-<h3> References</h3>
-<div id="refs" class="references">
-<div id="ref-Schelker2017">
-<p>Schelker, Max, Sonia Feau, Jinyan Du, Nav Ranu, Edda Klipp, Gavin MacBeath, Birgit Schoeberl, and Andreas Raue. 2017. “Estimation of immune cell content in tumour tissue using single-cell RNA-seq data.” <em>Nature Communications</em> 8 (1): 2032. <a href="https://doi.org/10.1038/s41467-017-02289-3" class="uri">https://doi.org/10.1038/s41467-017-02289-3</a>.</p>
 </div>
 </div>
             </section>
@@ -275,8 +266,8 @@ However, the simulated Dendritic cells do not correlate well with any of the ref
           </div>
         </div>
       </div>
-<a href="input-data.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="mixing-study.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="correlation-of-methods-across-tcga-samples-.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="spillover-analysis.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>

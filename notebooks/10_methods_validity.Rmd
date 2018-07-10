@@ -18,9 +18,9 @@ To test, we try:
 res_methods_validity = new.env()
 ```
 
-Simulate bulk samples by summing up the expression values of all cells. Theoretically, it should not matter whether to use
+Simulate bulk samples by summing up the TPM gene expression values of all cells. Theoretically, it should not matter whether to use
 `sum` or `mean` as they only differ by a constant scaling factor. However, we ran into numerical issues with CIBERSORT 
-and quanTIseq using mean, as the valuese are much smaller. 
+and quanTIseq using mean, due to the fact that some values may be really small due to the zero inflation of single cell data. 
 ```{r, cache=TRUE}
 bulk_sum = sapply(colnames(schelker_ovarian$expr_mat), function(donor) {
   ind = pData(single_cell_schelker$eset)$donor == donor
@@ -41,11 +41,13 @@ expr_all = bind_rows(
 ```
 
 
-```{r, fig.width=16, fig.height=8, echo=FALSE, fig.cap="Correlation of bulkRNAseq data vs. simulated bulk data. Data has been log-tranformed" }
+```{r, fig.width=16, fig.height=8, echo=FALSE, fig.cap="Correlation of bulkRNAseq data vs. simulated bulk data." }
 expr_all %>%
   mutate(bulk=log2(bulk+1), single_cell_aggregate=log2(single_cell_aggregate+1)) %>%
   ggplot(aes(x=bulk, y=single_cell_aggregate)) + geom_point() + stat_cor() + facet_wrap(~sample) + 
-  geom_smooth(method = lm)
+  geom_smooth(method = lm) + 
+  xlab("log2(TPM + 1) of bulk RNA-seq sample") + 
+  ylab("log2(sum(TPM) + 1)) of single cell RNA-seq samples ")
 
 ```
 

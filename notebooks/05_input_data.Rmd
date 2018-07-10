@@ -73,10 +73,10 @@ with(tmp_env, {
   #   as.data.frame() %>%
   #   column_to_rownames("Input")
   valid_cells = pData(single_cell_schelker)$cell_type != "Unknown"
-  pbmc_cells = pData(single_cell_schelker)$source == "pbmc"
   eset = single_cell_schelker[, valid_cells]
   pData(eset) %<>% rename(method_cell_type=cell_type) %>%
     inner_join(immunedeconv::cell_type_mapping %>% filter(method_dataset == "schelker_single_cell"))
+  pbmc_cells = pData(eset)$source == "pbmc"
   pData(eset)[pbmc_cells, "cell_type"] = "PBMC"
   # rownames(eset) = symbol_remap[,rownames(eset)]$`Approved symbol`
   assert("no unknown cells left", !any(pData(eset)$cell_type == "Unknown"))
@@ -190,6 +190,7 @@ e.g. IHC, Flow cytometry, single cell
 validation_datasets = read_excel("../tables/validation-datasets.xlsx")
 DT::datatable(validation_datasets)
 ```
+
 
 ### Hoeck data
 8 PBMC, RNAseq+flow cytometry

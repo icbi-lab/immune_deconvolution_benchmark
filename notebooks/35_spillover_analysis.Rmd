@@ -3,25 +3,25 @@
 res_spillover = new.env()
 ```
 
-In this chapter, we investigate which other cell types a method predicts, 
-if there is actually only a certain one. In FACS, this phenomenon is 
-known as "spillover". 
+In this chapter, we investigate which other cell types a method predicts,
+if there is actually only a certain one. In FACS, this phenomenon is
+known as "spillover".
 
 To this end, we create three datasets
 
  * *immune reference*: bulk RNA seq profiles from sorted immune cells (=quanTIseq training data)
  * *artificial bulk*: simulated bulk RNA seq profiles from single cells (e.g. only T cells)
  * *artificial bulk with background*: simulated bulk RNA seq profiles from single cells with ~80% other cells (cancer, fibroblasts, ...)
- 
-We test the following cell types: 
+
+We test the following cell types:
 ```{r}
 show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
                     "NK cell", "T cell CD4+", "T cell CD8+")
 ```
 
- 
-```{r, cache=TRUE, echo=FALSE}
-# Create datasets 
+
+```{r, cache=TRUE, include=FALSE}
+# Create datasets
 
 set.seed(42)
 
@@ -49,7 +49,7 @@ rownames(artificial_bulk_bg) = rownames(single_cell_schelker$eset %>% exprs())
 ```
 
 
-```{r spec_generate_data, cache=TRUE, message=FALSE, echo=FALSE, results='hide'}
+```{r spec_generate_data, cache=TRUE, include=FALSE}
 # Run the deconvolution
 datasets = list(
   immune_reference = immune_cell_reference$expr_mat,
@@ -67,7 +67,7 @@ all_results_file = "../results/cache/specificity_analysis_res.rda"
 if(!file.exists(all_results_file)) {
   all_results = sapply(names(datasets), function(dataset) {
                     sapply(immunedeconv::deconvolution_methods, function(method) {
-                      # for timer, we use SKCM, although the samples either include no tumor cells, or both melanoma and OV cells. 
+                      # for timer, we use SKCM, although the samples either include no tumor cells, or both melanoma and OV cells.
                       timer_indications = rep("SKCM", ncol(datasets[[dataset]]))
                       deconvolute(datasets[[dataset]], method, indications=timer_indications)
                     }, USE.NAMES = TRUE, simplify = FALSE)
@@ -79,18 +79,18 @@ load(all_results_file)
 
 ```{r, cache=TRUE, message=FALSE, echo=FALSE}
 # Postprocess the deconvolution results
-all_results2 =  foreach(dataset = names(datasets), 
+all_results2 =  foreach(dataset = names(datasets),
                         gold_standard = dataset_gold_standard,
-                        .combine = bind_rows) %:% 
+                        .combine = bind_rows) %:%
                   foreach(method = immunedeconv::deconvolution_methods,
                           .combine = bind_rows) %do% {
-                            all_results[[dataset]][[method]] %>% 
-                              map_result_to_celltypes(show_cell_types, method) %>% 
+                            all_results[[dataset]][[method]] %>%
+                              map_result_to_celltypes(show_cell_types, method) %>%
                               as_tibble(rownames = "cell_type") %>%
                               gather(sample, estimate, -cell_type) %>%
-                              mutate(method=method, dataset=dataset) %>% 
+                              mutate(method=method, dataset=dataset) %>%
                               inner_join(gold_standard)
-                } %>% 
+                } %>%
   na.omit()
 
 res_spillover$all_results = all_results2
@@ -101,30 +101,30 @@ This figure shows the spillover for all methods, cell types and datasets
 
 ```{r, fig.width=24, fig.height=24, echo=FALSE}
 all_results2 %>%
-  filter(true_cell_type %in% show_cell_types, cell_type %in% show_cell_types) %>% 
-  ggplot(aes(x=cell_type, y=estimate, fill=dataset)) + 
-    geom_boxplot(position = position_dodge()) + 
-    facet_grid(method~true_cell_type+dataset, scales="free_y") + 
-    theme_bw() + 
+  filter(true_cell_type %in% show_cell_types, cell_type %in% show_cell_types) %>%
+  ggplot(aes(x=cell_type, y=estimate, fill=dataset)) +
+    geom_boxplot(position = position_dodge()) +
+    facet_grid(method~true_cell_type+dataset, scales="free_y") +
+    theme_bw() +
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) +
     background_grid(major = "xy", minor = "none")
-   
+
 ```
 
 
 ## Summary figure: Noise ratio
-The noise ratio is defined as $\frac{\text{noise}}{\text{signal+noise}}$. Lower values 
-indicate less noise (i.e. predictions of cell types that are not there). 
+The noise ratio is defined as $\frac{\text{noise}}{\text{signal+noise}}$. Lower values
+indicate less noise (i.e. predictions of cell types that are not there).
 
 ```{r, fig.width=10, fig.height=8, echo=FALSE}
-signal_noise_res = all_results2 %>% 
+signal_noise_res = all_results2 %>%
   mutate(signal_noise=if_else(cell_type == true_cell_type, "signal", "noise")) %>%
   group_by(dataset, sample, method, true_cell_type, signal_noise) %>%
-  summarise(estimate=sum(estimate)) %>% 
-  spread(signal_noise, estimate) %>% 
+  summarise(estimate=sum(estimate)) %>%
+  spread(signal_noise, estimate) %>%
   mutate(noise_ratio = noise/(noise+signal)) %>%
-  mutate(signal_ratio = signal/(noise+signal)) %>% 
-  ungroup() %>% 
+  mutate(signal_ratio = signal/(noise+signal)) %>%
+  ungroup() %>%
   na.omit()
 
 res_spillover$signal_noise = signal_noise_res
@@ -132,22 +132,22 @@ res_spillover$signal_noise = signal_noise_res
 
 
 ```{r, fig.width=10, fig.height=8, echo=FALSE}
-signal_noise_res %>% 
-  ggplot(aes(x=method, y=signal_ratio, fill=method)) + 
+signal_noise_res %>%
+  ggplot(aes(x=method, y=signal_ratio, fill=method)) +
   geom_boxplot(position = position_dodge()) +
   facet_grid(dataset~true_cell_type) +
-  theme_bw() + 
-  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) + 
-  scale_fill_manual(values=color_scales$methods) + 
+  theme_bw() +
+  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  scale_fill_manual(values=color_scales$methods) +
   theme(legend.position = "top")
 ```
 
-```{r}
-signal_noise_res %>% 
+```{r include=FALSE}
+signal_noise_res %>%
   select(dataset, method, true_cell_type, signal_ratio) %>%
   group_by(dataset, method, true_cell_type) %>%
-  summarise(median_signal_ratio = median(signal_ratio)) %>% 
-  spread(true_cell_type, median_signal_ratio) %>% 
+  summarise(median_signal_ratio = median(signal_ratio)) %>%
+  spread(true_cell_type, median_signal_ratio) %>%
   write_tsv("../results/tables/spillover_signal_noise.tsv", na="")
 
 ```
@@ -156,33 +156,33 @@ signal_noise_res %>%
 
 Download this figure as high quality [pdf](files/spillover_migration_all.pdf)
 
-```{r, fig.width = 10, fig.height=24}
+```{r, fig.width = 10, fig.height=24, echo=FALSE}
 methods = immunedeconv::deconvolution_methods
 layout(matrix(seq(1, length(datasets) * length(methods)), length(methods), length(datasets)))
 par(mar=rep(0.5, 4))
 circos.par(cell.padding = rep(0, 4))
 x = lapply(names(datasets), function(dataset) {
   lapply(methods, function(method) {
-    migration = all_results2 %>% 
-        filter(method == !!method, dataset == !!dataset) %>% 
-        filter(true_cell_type != "Neutrophil") %>% 
-        group_by(method, true_cell_type, cell_type) %>% 
-        summarise(estimate = mean(estimate)) %>% 
-        ungroup() %>% 
-        select(-method) %>% 
+    migration = all_results2 %>%
+        filter(method == !!method, dataset == !!dataset) %>%
+        filter(true_cell_type != "Neutrophil") %>%
+        group_by(method, true_cell_type, cell_type) %>%
+        summarise(estimate = mean(estimate)) %>%
+        ungroup() %>%
+        select(-method) %>%
         spread(cell_type, estimate) %>%
-        as.data.frame() %>% 
-        column_to_rownames("true_cell_type") %>% 
+        as.data.frame() %>%
+        column_to_rownames("true_cell_type") %>%
         as.matrix()
-      
-      chordDiagram(migration, directional = TRUE, transparency = .5, 
+
+      chordDiagram(migration, directional = TRUE, transparency = .5,
                    grid.col = color_scales$immune_cells
                    # annotationTrack = c("track", "grid")
                    )
-     
-      text(0, 0, method, cex = 1.5) 
-      
-      # first method, add title. 
+
+      text(0, 0, method, cex = 1.5)
+
+      # first method, add title.
       if(method == "mcp_counter") {
         title(dataset)
       }
@@ -193,4 +193,4 @@ p = recordPlot()
 pdf("../results/figures/spillover_migration_all.pdf", width=10, height=24)
 p
 dev.off()
-``` 
+```

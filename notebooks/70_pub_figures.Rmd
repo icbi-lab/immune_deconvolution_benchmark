@@ -1,7 +1,7 @@
 # Creating publication ready figures
 ```{r cache_fig_results, include=FALSE}
 ### Cache and load data
-save(res_mixing_study, res_noise, res_validation, 
+save(res_mixing_study, res_noise, res_validation,
      res_sensitivity, res_spillover, res_methods_validity,
      file="../results/cache/results_for_figures.rda")
 load("../results/cache/results_for_figures.rda")
@@ -32,23 +32,23 @@ theme_benchmark = function(...) {
 
 
 ```{r, define_boxplot, include=FALSE}
-#' Plot a boxplot for `ycol` for all methods and cell types. 
+#' Plot a boxplot for `ycol` for all methods and cell types.
 method_boxplot = function(data, ycol) {
   data %<>% mutate(cell_type = if_else(cell_type == "Macrophage/Monocyte", "Macrophage/ Monocyte", cell_type)) %>%
     mutate(cell_type = factor(cell_type, levels = plot_levels)) %>%
-    inner_join(method_names) %>% 
+    inner_join(method_names) %>%
     mutate(method_name = factor(method_name, levels=method_names$method_name))
-  data %>% 
-    ggplot(aes_string(x="method_name", y=ycol)) + 
-      geom_boxplot(position="dodge") + 
-      facet_grid(~cell_type, drop=FALSE, labeller = label_wrap_gen(width=15)) + 
-      theme_benchmark() + 
+  data %>%
+    ggplot(aes_string(x="method_name", y=ycol)) +
+      geom_boxplot(position="dodge") +
+      facet_grid(~cell_type, drop=FALSE, labeller = label_wrap_gen(width=15)) +
+      theme_benchmark() +
       theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
             legend.position="none",
             strip.text.x = element_text(size=9)) +
       # scale_color_manual(values=color_scales$methods) +
       xlab(NULL) +
-      theme_title() + 
+      theme_title() +
       scale_x_discrete(drop=FALSE)
 }
 
@@ -56,28 +56,28 @@ method_boxplot = function(data, ycol) {
 
 
 ```{r, define_cor_table, include=FALSE}
-#' plot correlations as a table colored by the absolute value. 
+#' plot correlations as a table colored by the absolute value.
 plot_cor_table = function(data) {
   if(!("macrophage_only" %in% names(data))) {
     data %<>% mutate(macrophage_only = "no")
   }
-  data %>% 
+  data %>%
     mutate(pearson_text = if_else(pearson < 0, "< 0", as.character(round(pearson, 2))),
            pearson = if_else(pearson < 0, 0, pearson)) %>%
-    mutate(pearson_text = if_else(macrophage_only == "yes", paste0(pearson_text, "*"), pearson_text)) %>% 
+    mutate(pearson_text = if_else(macrophage_only == "yes", paste0(pearson_text, "*"), pearson_text)) %>%
     inner_join(method_names) %>%
-    ggplot(aes(x=column, y=method_name)) + 
-      geom_tile(aes(fill=pearson)) + 
-      geom_text(aes(label=pearson_text), size=3) + 
-      scale_fill_distiller(type="div", palette = "RdYlGn", direction=1, values=c(0,1)) + 
-      theme_benchmark() + 
+    ggplot(aes(x=column, y=method_name)) +
+      geom_tile(aes(fill=pearson)) +
+      geom_text(aes(label=pearson_text), size=3) +
+      scale_fill_distiller(type="div", palette = "RdYlGn", direction=1, values=c(0,1)) +
+      theme_benchmark() +
       theme(axis.text.x.top=element_text(angle = 90, vjust = .5, hjust=0),
               legend.position="none",
-              strip.text.x = element_text(size=11)) + 
-      # facet_grid(~category, scales="free_x", space="free") + 
-      scale_x_discrete(position = "top") + 
-      xlab(NULL) + 
-      ylab(NULL) + 
+              strip.text.x = element_text(size=11)) +
+      # facet_grid(~category, scales="free_x", space="free") +
+      scale_x_discrete(position = "top") +
+      xlab(NULL) +
+      ylab(NULL) +
       theme_title(hjust=0.5)
 }
 
@@ -88,14 +88,14 @@ plot_cor_table = function(data) {
 # Prepare data for correlation plots
 
 # Noise benchmark
-noise_sc = res_methods_validity$all_results %>% 
-  group_by(method) %>% 
-  do(make_cor(.$bulk, .$sum)) %>% 
+noise_sc = res_methods_validity$all_results %>%
+  group_by(method) %>%
+  do(make_cor(.$bulk, .$sum)) %>%
   mutate(column="stability single cell/bulk")
 
 noise_normal = res_noise$all_results %>%
-  filter(noise_level == "10") %>% 
-  group_by(method) %>% 
+  filter(noise_level == "10") %>%
+  group_by(method) %>%
   do(make_cor(.$no_noise, .$estimate)) %>%
   mutate(column="stability noise ~N(0, 10)")
 
@@ -103,18 +103,18 @@ noise = bind_rows(noise_sc, noise_normal)
 
 
 # Mixing Benchmark
-mixing = res_mixing_study$correlations %>% 
+mixing = res_mixing_study$correlations %>%
   rename(column=cell_type)
 
 
 # Validation Benchmark
 
 validation =  res_validation$all_results %>%
-  group_by(method, dataset) %>% 
-  do(make_cor(.$estimate, .$true_fraction)) %>% 
-  ungroup() %>% 
+  group_by(method, dataset) %>%
+  do(make_cor(.$estimate, .$true_fraction)) %>%
+  ungroup() %>%
   inner_join(validation_datasets) %>%
-  rename(column=description) 
+  rename(column=description)
 ```
 
 
@@ -138,25 +138,25 @@ plot_levels = res_sensitivity$sensitivity %>% pull(input_cell_type) %>% unique()
 plot_levels[plot_levels == "Macrophage/Monocyte"] = "Macrophage/ Monocyte"
 
 p_sensitivity = res_sensitivity$sensitivity %>%
-  mutate(min_frac=ifelse(is.infinite(min_frac), 100, min_frac)) %>% 
+  mutate(min_frac=ifelse(is.infinite(min_frac), 100, min_frac)) %>%
   mutate(min_frac = min_frac/100) %>%
-  mutate(min_frac_text = as.character(round(min_frac, 2))) %>% 
+  mutate(min_frac_text = as.character(round(min_frac, 2))) %>%
   na.omit() %>%
   inner_join(method_names) %>%
-  ggplot(aes(x=input_cell_type, y=method_name)) + 
-    geom_tile(aes(fill=min_frac)) + 
-    geom_text(aes(label=min_frac_text), size=3) + 
+  ggplot(aes(x=input_cell_type, y=method_name)) +
+    geom_tile(aes(fill=min_frac)) +
+    geom_text(aes(label=min_frac_text), size=3) +
     scale_fill_distiller(type="div", palette = "RdYlGn", direction=-1, values=c(0, .02, .1, 1)) +
-    scale_alpha_manual(values=c("yes"=.3, "no"=1.)) + 
-    theme_benchmark() + 
+    scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
+    theme_benchmark() +
     theme(axis.text.x.top=element_text(angle = 90, vjust = .5, hjust=0),
             legend.position="none",
-            strip.text.x = element_text(size=11)) + 
-    # facet_grid(~category) + 
-    scale_x_discrete(position = "top") + 
-    xlab(NULL) + 
+            strip.text.x = element_text(size=11)) +
+    # facet_grid(~category) +
+    scale_x_discrete(position = "top") +
+    xlab(NULL) +
     ylab(NULL) +
-    theme_title() + 
+    theme_title() +
     ggtitle("Sensitivity")
 
 print(p_sensitivity)
@@ -165,27 +165,27 @@ print(p_sensitivity)
 ```{r, include=FALSE}
 # Specificity heatmap
 
-# summarise by mean. 
-p_specificity = res_sensitivity$specificity %>% 
-  group_by(method, cell_type) %>% 
-  summarise(estimate = mean(estimate)) %>% 
+# summarise by mean.
+p_specificity = res_sensitivity$specificity %>%
+  group_by(method, cell_type) %>%
+  summarise(estimate = mean(estimate)) %>%
   mutate(estimate_text = as.character(round(estimate, 2))) %>%
   inner_join(method_names) %>%
-  mutate(method_name = factor(method_name, levels=method_names$method_name)) %>% 
-  ggplot(aes(x=cell_type, y=method_name)) + 
-    geom_tile(aes(fill=estimate)) + 
-    geom_text(aes(label=estimate_text), size=3) + 
+  mutate(method_name = factor(method_name, levels=method_names$method_name)) %>%
+  ggplot(aes(x=cell_type, y=method_name)) +
+    geom_tile(aes(fill=estimate)) +
+    geom_text(aes(label=estimate_text), size=3) +
     scale_fill_distiller(type="div", palette = "RdYlGn", direction=-1, values=c(0, .02, .1, 1)) +
-    scale_alpha_manual(values=c("yes"=.3, "no"=1.)) + 
-    theme_benchmark() + 
+    scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
+    theme_benchmark() +
     theme(axis.text.x.top=element_text(angle = 90, vjust = .5, hjust=0),
             legend.position="none",
-            strip.text.x = element_text(size=11)) + 
-    scale_x_discrete(position = "top", drop=FALSE) + 
-    scale_y_discrete(drop=FALSE) + 
-    xlab(NULL) + 
+            strip.text.x = element_text(size=11)) +
+    scale_x_discrete(position = "top", drop=FALSE) +
+    scale_y_discrete(drop=FALSE) +
+    xlab(NULL) +
     ylab(NULL) +
-    theme_title() + 
+    theme_title() +
     ggtitle("Specificity")
 
 print(p_specificity)
@@ -199,25 +199,25 @@ print(p_specificity)
 
 ```{r, fig.height=3.5, fig.width=8, include=FALSE}
 # Absolute deviation plot
-p_abs_deviation = res_mixing_study$deviation_from_slope %>% 
-  filter(method %in% c("epic", "quantiseq")) %>% 
-  inner_join(method_names) %>% 
+p_abs_deviation = res_mixing_study$deviation_from_slope %>%
+  filter(method %in% c("epic", "quantiseq")) %>%
+  inner_join(method_names) %>%
    ggplot(aes(x=cell_type, y=deviation, alpha=macrophage_only)) +
       geom_bar(fill="black", stat="identity") +
       geom_errorbar(aes(ymin=ci_lower, ymax=ci_upper), width=.2, color="red") +
       facet_wrap(~method_name, nrow=1, labeller = label_wrap_gen()) +
-      theme_benchmark() + 
+      theme_benchmark() +
       theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
             legend.position="none",
             strip.text.x = element_text(size=9)) +
       # scale_fill_manual(values=color_scales$methods) +
       scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
-      geom_hline(yintercept=0, col="grey") + 
-      ggtitle("Absolute deviation") + 
-      xlab(NULL) + 
-      ylab("deviation from slope=1") + 
-      coord_flip(ylim=c(-1.5, 1.5)) + 
-      theme_title(hjust=0)  
+      geom_hline(yintercept=0, col="grey") +
+      ggtitle("Absolute deviation") +
+      xlab(NULL) +
+      ylab("deviation from slope=1") +
+      coord_flip(ylim=c(-1.5, 1.5)) +
+      theme_title(hjust=0)
 
 print(p_abs_deviation)
 ```
@@ -235,10 +235,10 @@ MB2 = .7
 ## fine-tune formatting
 p2_noise = p_noise + theme(plot.margin = margin(t=MT1, b=MB1, unit="cm"))
 p2_mixing = p_mixing + theme(axis.text.y=element_blank(), plot.margin = margin(t=MT1, l=0.5, b=MB1, unit="cm"))
-p2_validation = p_validation + theme(axis.text.y=element_blank(), plot.margin = margin(t=MT1, l=.5, b=MB1, unit="cm")) 
-p2_sensitivity = p_sensitivity + theme(plot.margin = margin(t=MT2, b=MB2, r=.5, unit= "cm")) 
+p2_validation = p_validation + theme(axis.text.y=element_blank(), plot.margin = margin(t=MT1, l=.5, b=MB1, unit="cm"))
+p2_sensitivity = p_sensitivity + theme(plot.margin = margin(t=MT2, b=MB2, r=.5, unit= "cm"))
 p2_specificity = p_specificity + theme(axis.text.y = element_blank(),
-                                       plot.margin = margin(l = 1, t=MT2, b=MB2, unit="cm")) 
+                                       plot.margin = margin(l = 1, t=MT2, b=MB2, unit="cm"))
 p2_abs_deviation = p_abs_deviation + scale_x_discrete(position = "bottom") +
   theme(plot.margin = margin(t=0, unit="cm"))
 
@@ -247,7 +247,7 @@ plots_left = align_plots(p2_noise, p2_sensitivity, p2_abs_deviation, align="v", 
 plots_right = align_plots(p2_validation, p2_specificity, plots_left[[3]], align="v", axis="r")
 
 # first row
-plot_heatmap = plot_grid(plots_left[[1]], p2_mixing, plots_right[[1]], 
+plot_heatmap = plot_grid(plots_left[[1]], p2_mixing, plots_right[[1]],
           align = "h", ncol = 3,
           axis="t",
           rel_widths = c(.6, .75, .28), labels = c("A", "B", "C"))
@@ -277,20 +277,20 @@ ggsave("../results/figures/summary.png", dpi=1200)
 ```{r, fig.width = 16, fig.height=10, include=FALSE}
 methods = immunedeconv::deconvolution_methods
 
-# cibersort and cibersort abs are identical in this analysis, no need to include both. 
+# cibersort and cibersort abs are identical in this analysis, no need to include both.
 methods = sort(methods[methods != "cibersort_abs"])
 tmp_method_names = as.list(method_names %>% pull(method_name))
 names(tmp_method_names) = method_names$method
 
-migration = res_spillover$all_results %>% 
-  filter(dataset == "immune_reference") %>% 
+migration = res_spillover$all_results %>%
+  filter(dataset == "immune_reference") %>%
   # exclude neutrophils as not measured by most methods
-  filter(true_cell_type != "Neutrophil") %>% 
+  filter(true_cell_type != "Neutrophil") %>%
   # aggregate macro/mono into a single category
-  mutate(true_cell_type = ifelse(true_cell_type %in% c("Macrophage M1", "Macrophage M2", "Monocyte"), "Macrophage/Monocyte", true_cell_type)) %>% 
-  mutate(true_cell_type = ifelse(true_cell_type == "T cell regulatory (Tregs)", "T cell CD4+", true_cell_type)) %>% 
-  group_by(method, cell_type, true_cell_type) %>% 
-  summarise(estimate = mean(estimate)) %>% 
+  mutate(true_cell_type = ifelse(true_cell_type %in% c("Macrophage M1", "Macrophage M2", "Monocyte"), "Macrophage/Monocyte", true_cell_type)) %>%
+  mutate(true_cell_type = ifelse(true_cell_type == "T cell regulatory (Tregs)", "T cell CD4+", true_cell_type)) %>%
+  group_by(method, cell_type, true_cell_type) %>%
+  summarise(estimate = mean(estimate)) %>%
   ungroup()
 
 layout(matrix(seq(1, 6), 2, 3))
@@ -298,44 +298,44 @@ par(mar=rep(0.5, 4))
 circos.par(cell.padding = rep(0, 4))
 x = lapply(methods, function(method) {
       tmp_migration = migration %>%
-        filter(method == !!method) %>% 
-        select(-method) %>% 
+        filter(method == !!method) %>%
+        select(-method) %>%
         spread(cell_type, estimate) %>%
-        as.data.frame() %>% 
-        column_to_rownames("true_cell_type") %>% 
+        as.data.frame() %>%
+        column_to_rownames("true_cell_type") %>%
         as.matrix()
-      
-      chordDiagram(tmp_migration, directional = TRUE, transparency = .5, 
+
+      chordDiagram(tmp_migration, directional = TRUE, transparency = .5,
                    grid.col = color_scales$immune_cells,
-                   annotationTrack = c("grid"), 
+                   annotationTrack = c("grid"),
                    annotationTrackHeight = uh(5, "mm")
                    )
-     
-      text(0, 0, tmp_method_names[[method]], cex = 3) 
+
+      text(0, 0, tmp_method_names[[method]], cex = 3)
 })
 
 grid.echo()
 migration_plot = grid.grab()
-``` 
+```
 
 ```{r, include=FALSE}
 # make legend using ggplot
-tmp_barplot_data = migration %>% 
-  select("cell type" = cell_type) %>% 
+tmp_barplot_data = migration %>%
+  select("cell type" = cell_type) %>%
   # add arbitrary value
   mutate(value = 1)
 
-p = tmp_barplot_data %>% 
-  ggplot(aes(x=`cell type`, y=value, fill=`cell type`)) + 
-  geom_bar(stat='identity') + 
-  scale_fill_manual(values=color_scales$immune_cells) + 
+p = tmp_barplot_data %>%
+  ggplot(aes(x=`cell type`, y=value, fill=`cell type`)) +
+  geom_bar(stat='identity') +
+  scale_fill_manual(values=color_scales$immune_cells) +
   theme(legend.position = "right")
 p
 
 migration_legend = get_legend(p)
 ```
 
-```{r fig.width = 13, fig.height=7, echo=FALSE}
+```{r fig.width = 13, fig.height=7, echo=FALSE, message=FALSE}
 # combine legend and plot
 plot_grid(migration_plot, migration_legend, nrow=1, rel_widths = c(.9, .15))
 

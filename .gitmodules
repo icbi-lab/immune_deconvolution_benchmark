@@ -1,0 +1,3 @@
+[submodule "immune_deconvolution_methods"]
+	path = immune_deconvolution_methods
+	url = git@github.com:grst/immune_deconvolution_methods.git

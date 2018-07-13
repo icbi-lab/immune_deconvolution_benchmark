@@ -30,31 +30,6 @@ theme_benchmark = function(...) {
 
 ```
 
-
-```{r, define_boxplot, include=FALSE}
-#' Plot a boxplot for `ycol` for all methods and cell types.
-method_boxplot = function(data, ycol) {
-  data %<>% mutate(cell_type = if_else(cell_type == "Macrophage/Monocyte", "Macrophage/ Monocyte", cell_type)) %>%
-    mutate(cell_type = factor(cell_type, levels = plot_levels)) %>%
-    inner_join(method_names) %>%
-    mutate(method_name = factor(method_name, levels=method_names$method_name))
-  data %>%
-    ggplot(aes_string(x="method_name", y=ycol)) +
-      geom_boxplot(position="dodge") +
-      facet_grid(~cell_type, drop=FALSE, labeller = label_wrap_gen(width=15)) +
-      theme_benchmark() +
-      theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
-            legend.position="none",
-            strip.text.x = element_text(size=9)) +
-      # scale_color_manual(values=color_scales$methods) +
-      xlab(NULL) +
-      theme_title() +
-      scale_x_discrete(drop=FALSE)
-}
-
-```
-
-
 ```{r, define_cor_table, include=FALSE}
 #' plot correlations as a table colored by the absolute value.
 plot_cor_table = function(data) {
@@ -134,10 +109,8 @@ print(p_validation)
 # Make sensitivity plot. This plot looks similar to the correlation plots, however
 # the colors are inversed and use a non-linear scale (as .5 would already be really bad)
 
-plot_levels = res_sensitivity$sensitivity %>% pull(input_cell_type) %>% unique()
-plot_levels[plot_levels == "Macrophage/Monocyte"] = "Macrophage/ Monocyte"
-
 p_sensitivity = res_sensitivity$sensitivity %>%
+  filter(method != "mcp_counter") %>% 
   mutate(min_frac=ifelse(is.infinite(min_frac), 100, min_frac)) %>%
   mutate(min_frac = min_frac/100) %>%
   mutate(min_frac_text = as.character(round(min_frac, 2))) %>%
@@ -167,11 +140,11 @@ print(p_sensitivity)
 
 # summarise by mean.
 p_specificity = res_sensitivity$specificity %>%
+  filter(method != "mcp_counter") %>% 
   group_by(method, cell_type) %>%
   summarise(estimate = mean(estimate)) %>%
   mutate(estimate_text = as.character(round(estimate, 2))) %>%
   inner_join(method_names) %>%
-  mutate(method_name = factor(method_name, levels=method_names$method_name)) %>%
   ggplot(aes(x=cell_type, y=method_name)) +
     geom_tile(aes(fill=estimate)) +
     geom_text(aes(label=estimate_text), size=3) +
@@ -182,7 +155,6 @@ p_specificity = res_sensitivity$specificity %>%
             legend.position="none",
             strip.text.x = element_text(size=11)) +
     scale_x_discrete(position = "top", drop=FALSE) +
-    scale_y_discrete(drop=FALSE) +
     xlab(NULL) +
     ylab(NULL) +
     theme_title() +
@@ -223,7 +195,7 @@ print(p_abs_deviation)
 ```
 
 ## Benchmark results, Sensitivity, Specificity and absolute deviation
-```{r, fig.height=10, fig.width=7, echo=FALSE, message=FALSE}
+```{r, fig.height=9, fig.width=7, echo=FALSE, message=FALSE}
 # combine heatmaps
 
 ## margins
@@ -263,7 +235,7 @@ plot_grid(plot_heatmap,
           plot_sens_spec,
           plots_right[[3]],
           ncol=1,
-          rel_heights = c(.42, .4, .3),
+          rel_heights = c(.40, .35, .3),
           labels = c("", "", "F"),
           align="h",
           axis="l")
@@ -293,6 +265,15 @@ migration = res_spillover$all_results %>%
   summarise(estimate = mean(estimate)) %>%
   ungroup()
 
+noise_ratio = migration %>% 
+  group_by(method) %>% 
+  mutate(type = ifelse(cell_type == true_cell_type, "signal", "noise")) %>%
+  group_by(method, type) %>% 
+  summarise(estimate = sum(estimate)) %>% 
+  spread(type, estimate) %>%
+  mutate(noise_ratio = noise/(signal+noise)) %>% 
+  ungroup()
+
 layout(matrix(seq(1, 6), 2, 3))
 par(mar=rep(0.5, 4))
 circos.par(cell.padding = rep(0, 4))
@@ -312,6 +293,7 @@ x = lapply(methods, function(method) {
                    )
 
       text(0, 0, tmp_method_names[[method]], cex = 3)
+      text(0, -0.2, as.character(round(filter(noise_ratio, method == !!method) %>% pull(noise_ratio), 2)), cex=2.8)
 })
 
 grid.echo()

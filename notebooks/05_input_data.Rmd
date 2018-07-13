@@ -1,13 +1,20 @@
 ```{r setup, include=FALSE}
-library(tidyverse)
-library(cowplot)
-library(Biobase)
-library(pheatmap)
+# tidyverse
+library(dplyr)
+library(dbplyr)
+library(tidyr)
+library(tibble)
+library(readr)
+library(ggplot2)
 library(magrittr)
-library(testthat)
 library(readxl)
-library(ggpubr)
 library(stringr)
+# bioconductor
+library(Biobase)
+# other packages
+library(cowplot)
+library(pheatmap)
+library(ggpubr)
 library(DBI)
 library(foreach)
 library(doMC)
@@ -129,9 +136,9 @@ pData(single_cell_schelker$eset) %>%
            geom_point(size=1) +
            theme(legend.position="right") +
            scale_color_manual(values=color_scales$cell_types) +
-           guides(colour=guide_legend(ncol = 1, override.aes= list(size=4))) + 
-           xlab("tSNE-1") + 
-           ylab("tSNE-2") + 
+           guides(colour=guide_legend(ncol = 1, override.aes= list(size=4))) +
+           xlab("tSNE-1") +
+           ylab("tSNE-2") +
            labs(color="cell type")
 
 ggsave("../results/figures/schelker_single_cell_tsne.pdf")

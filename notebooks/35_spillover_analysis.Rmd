@@ -168,25 +168,42 @@ x = lapply(names(datasets), function(dataset) {
         filter(true_cell_type != "Neutrophil") %>%
         group_by(method, true_cell_type, cell_type) %>%
         summarise(estimate = mean(estimate)) %>%
-        ungroup() %>%
+        ungroup() 
+      
+    migration_mat = migration %>%
         select(-method) %>%
         spread(cell_type, estimate) %>%
         as.data.frame() %>%
         column_to_rownames("true_cell_type") %>%
         as.matrix()
+    
+    noise_ratio = migration %>% 
+      # aggregate macro/mono into a single category
+      mutate(true_cell_type = ifelse(true_cell_type %in% c("Macrophage M1", "Macrophage M2", "Monocyte"), "Macrophage/Monocyte", true_cell_type)) %>%
+      mutate(true_cell_type = ifelse(true_cell_type == "T cell regulatory (Tregs)", "T cell CD4+", true_cell_type)) %>%
+      group_by(method, cell_type, true_cell_type) %>%
+      summarise(estimate = mean(estimate)) %>%
+      group_by(method) %>% 
+      mutate(type = ifelse(cell_type == true_cell_type, "signal", "noise")) %>%
+      group_by(method, type) %>% 
+      summarise(estimate = sum(estimate)) %>% 
+      spread(type, estimate) %>%
+      mutate(noise_ratio = noise/(signal+noise)) %>% 
+      ungroup()
 
-      chordDiagram(migration, directional = TRUE, transparency = .5,
-                   grid.col = color_scales$immune_cells
-                   # annotationTrack = c("track", "grid")
-                   )
+    chordDiagram(migration_mat, directional = TRUE, transparency = .5,
+                 grid.col = color_scales$immune_cells
+                 # annotationTrack = c("track", "grid")
+                 )
 
-      text(0, 0, method, cex = 1.5)
+    text(0, 0, method, cex = 2.3)
+    text(0, -0.2, as.character(round(filter(noise_ratio, method == !!method) %>% pull(noise_ratio), 2)), cex=2)
 
-      # first method, add title.
-      if(method == "mcp_counter") {
-        title(dataset)
-      }
-    })
+    # first method, add title.
+    if(method == "mcp_counter") {
+      title(dataset)
+    }
+  })
 })
 
 p = recordPlot()

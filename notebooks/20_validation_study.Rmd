@@ -68,7 +68,8 @@ all_results_ref = inner_join(all_results, all_refs,
 res_validation$all_results = all_results_ref
 ```
 
-
+First, we look at the overall correlation of all cell types. 
+However, this comparison is unfair for most of the methods, as their scores only allow comparisons between samples and not between cell types. 
 ```{r, fig.width=10, fig.height=16, echo=FALSE}
 all_results_ref %>%
   filter(!(cell_type == "T cell" & dataset != "hoeck")) %>% 
@@ -83,4 +84,41 @@ all_results_ref %>%
     stat_cor() 
 ```
 
-Observation: all methods work better on PBMC than they do on cancer cells. 
+Therefore, we normalize all scores per-celltype and re-do the correlations. 
+```{r, fig.width=10, fig.height=16, echo=FALSE}
+all_results_ref %>%
+  filter(!(cell_type == "T cell" & dataset != "hoeck")) %>% 
+  group_by(dataset, method, cell_type) %>% 
+  mutate(estimate_norm=estimate/max(estimate),
+         true_fraction_norm=true_fraction/max(true_fraction)) %>%
+  ungroup() %>% 
+  ggplot(aes(x=true_fraction_norm, y=estimate_norm)) +
+    geom_point(aes(color=cell_type, shape=dataset)) + 
+    scale_color_manual(values=color_scales$validation) + 
+    facet_grid(method~dataset, scales = "free_y") + 
+    theme_bw() + 
+    theme(legend.position = "top",
+          strip.text.x = element_text(size=9)) + 
+    background_grid(major="xy") + 
+    stat_cor(method='pearson') 
+```
+
+
+```{r, fig.width=12, fig.height=12, echo=FALSE}
+all_results_ref %>%
+  filter(!(cell_type == "T cell" & dataset != "hoeck")) %>% 
+  # group_by(method, cell_type) %>% 
+  # mutate(estimate_norm=estimate/max(estimate),
+  #        true_fraction_norm=true_fraction/max(true_fraction)) %>%
+  # ungroup() %>% 
+  # ggplot(aes(x=true_fraction_norm, y=estimate_norm)) +
+  ggplot(aes(x=true_fraction, y=estimate)) +
+    geom_point(aes(color=cell_type, shape=dataset)) + 
+    scale_color_manual(values=color_scales$validation) + 
+    facet_grid(method~cell_type, scales = "free_y") + 
+    theme_bw() + 
+    theme(legend.position = "top",
+          strip.text.x = element_text(size=9)) + 
+    background_grid(major="xy") + 
+    stat_cor(method='pearson') 
+```

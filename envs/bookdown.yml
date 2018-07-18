@@ -17,7 +17,7 @@ dependencies:
   - r-readr=1.1.1
   - r-magrittr=1.5
   - r-readxl=1.0.0
-  - r-ggplot=2.2.1
+  - r-ggplot2=2.2.1
   - r-knitr=1.16
   # other packages
   - bioconductor-biobase=2.38.0

@@ -11,3 +11,4 @@ local_data
 results
 data.in
 data.tar.gz
+.snakemake

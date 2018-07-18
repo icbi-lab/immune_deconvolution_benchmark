@@ -104,17 +104,18 @@ all_results_ref %>%
 ```
 
 
-```{r, fig.width=10, fig.height=7, echo=FALSE}
+```{r, fig.width=12, fig.height=12, echo=FALSE}
 all_results_ref %>%
   filter(!(cell_type == "T cell" & dataset != "hoeck")) %>% 
-  group_by(method, cell_type) %>% 
-  mutate(estimate_norm=estimate/max(estimate),
-         true_fraction_norm=true_fraction/max(true_fraction)) %>%
-  ungroup() %>% 
-  ggplot(aes(x=true_fraction_norm, y=estimate_norm)) +
+  # group_by(method, cell_type) %>% 
+  # mutate(estimate_norm=estimate/max(estimate),
+  #        true_fraction_norm=true_fraction/max(true_fraction)) %>%
+  # ungroup() %>% 
+  # ggplot(aes(x=true_fraction_norm, y=estimate_norm)) +
+  ggplot(aes(x=true_fraction, y=estimate)) +
     geom_point(aes(color=cell_type, shape=dataset)) + 
     scale_color_manual(values=color_scales$validation) + 
-    facet_wrap(~method, scales = "free_y") + 
+    facet_grid(method~cell_type, scales = "free_y") + 
     theme_bw() + 
     theme(legend.position = "top",
           strip.text.x = element_text(size=9)) + 

@@ -7,3 +7,5 @@ _main*
 .Rproj.user
 *.Rproj
 .Rhistory
+local_data
+results

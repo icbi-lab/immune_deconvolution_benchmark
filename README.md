@@ -26,6 +26,10 @@ If you have problems retrieving the submodule, read this [question on
 stackoverflow](https://stackoverflow.com/questions/3796927/how-to-git-clone-including-submodules).
 
 
+### CIBERSORT [TODO]
+(download cibersort... cannot include in repo due to license restrictions)
+
+
 ### Run the pipeline
 To perform all computations and to generate a HTML report with [bookdown](https://bookdown.org/yihui/bookdown/) invoke
 the corresponding `Snakemake` target:

@@ -1,0 +1,39 @@
+os:
+  - linux
+
+# language: python sets up virtualenv and pip that we don't need.
+# omitting language gives us ruby stuff. c seems likely to be a minimal setup.
+language: c
+
+install:
+  # Install dependencies for Conda
+  - printenv | sort
+  - |
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      MINICONDA_OS=Linux ;
+    else
+      MINICONDA_OS=MacOSX ;
+    fi ;
+    echo "Fetching miniconda for $MINICONDA_OS" ;
+    wget https://repo.continuum.io/miniconda/Miniconda3-latest-$MINICONDA_OS-x86_64.sh -O miniconda.sh
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - source "$HOME"/miniconda/bin/activate root
+  - printenv | sort
+  - conda config --set always_yes yes --set changeps1 no
+  - conda config --add channels r
+  - conda config --add channels bioconda
+  - conda config --add channels conda-forge
+  - conda config --add channels grst
+  - conda update -q conda
+  - conda install snakemake
+  # Useful for debugging any issues with conda
+  - conda info -a
+
+script:
+  # Run pipeline
+  - snakemake --use-conda book
+
+sudo: false
+cache: packages

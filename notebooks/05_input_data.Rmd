@@ -27,7 +27,7 @@ library(gridGraphics)
 registerDoMC(detectCores(logical=FALSE))
 # registerDoSEQ()
 
-devtools::load_all("/storage/home/sturm/projects/immune_deconvolution_methods")
+devtools::load_all("../immunedeconv")
 source("../lib/make_cell_fraction_vector.R")
 source("../lib/make_cor.R")
 set_cibersort_binary("../lib/CIBERSORT/CIBERSORT.R")
@@ -41,7 +41,6 @@ color_scales = sapply(excel_sheets(color_file), function(sheet) {
   colors
 })
 
-tcga_db = dbConnect(RSQLite::SQLite(), "/db/tcga.sqlite", flags = RSQLite::SQLITE_RO)
 ```
 
 

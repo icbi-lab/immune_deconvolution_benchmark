@@ -28,15 +28,15 @@ rule book:
     # content (Rmd files and related stuff)
     expand("notebooks/{rmd_files}.Rmd", rmd_files = RMD_FILES),
     "notebooks/bibliography.bib",
-    "_bookdown.yml",
-    "_output.yml"
+    "notebooks/_bookdown.yml",
+    "notebooks/_output.yml"
   output:
     "results/book/index.html"
   conda:
     "envs/bookdown.yml"
   shell:
     "cd notebooks && "
-    "Rscript -e \"bookdown::render_book('notebooks/index.Rmd')\""
+    "Rscript -e \"bookdown::render_book('index.Rmd')\""
 
 
 rule data:

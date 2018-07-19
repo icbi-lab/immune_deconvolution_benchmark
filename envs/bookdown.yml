@@ -18,7 +18,7 @@ dependencies:
   - r-magrittr=1.5
   - r-readxl=1.0.0
   - r-ggplot2=2.2.1
-  - r-knitr=1.16
+  - r-knitr=1.20
   # other packages
   - bioconductor-biobase=2.38.0
   - r-ggpubr=0.1.7
@@ -33,8 +33,18 @@ dependencies:
   - r-pheatmap=1.0.10
   - r-circlize=0.4.4
   - r-gridgraphics=0.3_0
+  - r-testthat=1.0.2
   # packages for immune_deconvolution_methods
   - r-r.methodss3=1.7.1
   - r-e1071=1.6
   - r-devtools=1.13.2
+  - r-roxygen2=6.0.1
+  - r-xcell =1.12
+  - r-epic =1.1
+  - r-mcpcounter
+  - r-limsolve =1.5.5.3
+  - bioconductor-preprocesscore =1.40
+  - bioconductor-gsva =1.26
+  - bioconductor-sva =3.26
+  - bioconductor-gseabase =1.40
 

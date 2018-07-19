@@ -1,7 +1,7 @@
 from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
 HTTP = HTTPRemoteProvider()
 
-RMD_FILES, = glob_wildcards("notebooks/{rmd_files}.Rmd")
+RMD_FILES, = glob_wildcards("notebooks/pipeline/{rmd_files}.Rmd")
 
 # declare all input files here
 DATA_FILES = [
@@ -26,8 +26,8 @@ rule book:
     # data
     DATA_FILES,
     # content (Rmd files and related stuff)
-    expand("notebooks/{rmd_files}.Rmd", rmd_files = RMD_FILES),
-    "notebooks/bibliography.bib",
+    expand("notebooks/pipeline/{rmd_files}.Rmd", rmd_files = RMD_FILES),
+    "notebooks/pipeline/bibliography.bib",
     "_bookdown.yml",
     "_output.yml"
   output:
@@ -35,7 +35,7 @@ rule book:
   conda:
     "envs/bookdown.yml"
   shell:
-    "cd notebooks && Rscript -e \"bookdown::render_book('index.Rmd')\""
+    "Rscript -e \"bookdown::render_book('notebooks/pipeline/index.Rmd')\""
 
 
 rule data:
@@ -96,8 +96,8 @@ def _clean():
   shell(
     """
     rm -rfv results/book/*
-    rm -rfv notebooks/_bookdown_files/*files
-    rm -fv notebooks/_main*
+    rm -rfv notebooks/pipeline/_bookdown_files/*files
+    rm -fv notebooks/pipeline/_main*
     rm -fv results/figures/*
     """)
 
@@ -106,7 +106,7 @@ def _wipe():
   clean()
   shell(
     """
-    rm -rfv notebooks/_bookdown_files
+    rm -rfv notebooks/pipeline/_bookdown_files
     rm -rfv results/tables/*
     """)
 

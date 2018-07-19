@@ -1,4 +1,12 @@
 output_dir: results/book
 always_allow_html: yes
-rmd_subdir: notebooks/pipeline
+rmd_files:
+  - notebooks/pipeline/05_input_data.Rmd
+  - notebooks/pipeline/10_methods_validity.Rmd
+  - notebooks/pipeline/15_mixing_study.Rmd
+  - notebooks/pipeline/20_validation_study.Rmd
+  - notebooks/pipeline/30_sensitivity_analysis.Rmd
+  - notebooks/pipeline/35_spillover_analysis.Rmd
+  - notebooks/pipeline/70_pub_figures.Rmd
+delete_merged_file: true
 

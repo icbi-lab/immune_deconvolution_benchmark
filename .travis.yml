@@ -33,7 +33,7 @@ install:
 
 script:
   # Run pipeline
-  - snakemake --use-conda book
+  - travis_wait 40 snakemake --use-conda book
 
 sudo: false
 cache: packages

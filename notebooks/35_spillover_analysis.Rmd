@@ -63,7 +63,7 @@ dataset_gold_standard = list(
   artificial_bulk_bg = tibble(sample=colnames(artificial_bulk), true_cell_type=sample_types)
 )
 
-all_results_file = "./results/cache/specificity_analysis_res.rda"
+all_results_file = "../results/cache/specificity_analysis_res.rda"
 if(!file.exists(all_results_file)) {
   all_results = sapply(names(datasets), function(dataset) {
                     sapply(immunedeconv::deconvolution_methods, function(method) {
@@ -148,7 +148,7 @@ signal_noise_res %>%
   group_by(dataset, method, true_cell_type) %>%
   summarise(median_signal_ratio = median(signal_ratio)) %>%
   spread(true_cell_type, median_signal_ratio) %>%
-  write_tsv("./results/tables/spillover_signal_noise.tsv", na="")
+  write_tsv("../results/tables/spillover_signal_noise.tsv", na="")
 
 ```
 
@@ -207,7 +207,7 @@ x = lapply(names(datasets), function(dataset) {
 })
 
 p = recordPlot()
-pdf("./results/figures/spillover_migration_all.pdf", width=10, height=24)
+pdf("../results/figures/spillover_migration_all.pdf", width=10, height=24)
 p
 dev.off()
 ```

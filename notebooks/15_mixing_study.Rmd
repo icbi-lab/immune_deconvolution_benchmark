@@ -179,7 +179,7 @@ res_mixing_study$correlations = correlations
 correlations_tab = correlations %>% select(cell_type, method, pearson) %>%
   spread(cell_type, pearson)
 
-write_tsv(correlations_tab, "./results/tables/mixing_study_correlations.tsv", na="")
+write_tsv(correlations_tab, "../results/tables/mixing_study_correlations.tsv", na="")
 
 ```
 

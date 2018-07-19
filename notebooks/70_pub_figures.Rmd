@@ -3,8 +3,8 @@
 ### Cache and load data
 save(res_mixing_study, res_validation,
      res_sensitivity, res_spillover, res_methods_validity,
-     file="./results/cache/results_for_figures.rda")
-load("./results/cache/results_for_figures.rda")
+     file="../results/cache/results_for_figures.rda")
+load("../results/cache/results_for_figures.rda")
 theme_set(theme_cowplot(font_size=11)) # reduce default font siz
 ```
 
@@ -234,8 +234,8 @@ plot_grid(plot_heatmap,
           align="h",
           axis="l")
 
-ggsave("./results/figures/summary.pdf")
-ggsave("./results/figures/summary.png", dpi=1200)
+ggsave("../results/figures/summary.pdf")
+ggsave("../results/figures/summary.png", dpi=1200)
 ```
 
 
@@ -315,6 +315,6 @@ migration_legend = get_legend(p)
 # combine legend and plot
 plot_grid(migration_plot, migration_legend, nrow=1, rel_widths = c(.9, .15))
 
-ggsave("./results/figures/spillover_migration_chart.pdf")
-ggsave("./results/figures/spillover_migration_chart.png", dpi=1200)
+ggsave("../results/figures/spillover_migration_chart.pdf")
+ggsave("../results/figures/spillover_migration_chart.png", dpi=1200)
 ```

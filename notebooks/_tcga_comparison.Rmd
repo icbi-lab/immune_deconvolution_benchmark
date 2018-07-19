@@ -34,8 +34,8 @@ tcga_clustered = pheatmap(tcga_cor,
          clustering_distance_rows = "correlation",
          clustering_distance_cols = "correlation")
 
-ggsave("../results/figures/tcga_correlation_clustered.pdf", plot=tcga_clustered$gtable)
-ggsave("../results/figures/tcga_correlation_clustered.png", plot=tcga_clustered$gtable, dpi=1200)
+ggsave(".../results/figures/tcga_correlation_clustered.pdf", plot=tcga_clustered$gtable)
+ggsave(".../results/figures/tcga_correlation_clustered.png", plot=tcga_clustered$gtable, dpi=1200)
 ```
 
 ## Heatmap unclustered, sorted by cell type

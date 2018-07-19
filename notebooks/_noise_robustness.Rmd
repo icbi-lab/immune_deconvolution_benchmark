@@ -51,7 +51,7 @@ timer_indications = rep(samples$cohort, length(noise_levels))
 
 We then run the deconvolution methods on both the original and the 'noisy' samples. 
 ```{r noise_generate_data, echo=FALSE}
-noise_robustness_file = "../results/cache/noise_robustness.rda"
+noise_robustness_file = ".../results/cache/noise_robustness.rda"
 
 if(!file.exists(noise_robustness_file)) {
   all_results = foreach(method = immunedeconv::deconvolution_methods,

@@ -9,6 +9,7 @@ _main*
 .Rhistory
 local_data
 results
+data
 data.in
 data.tar.gz
 .snakemake

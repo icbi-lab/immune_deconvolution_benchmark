@@ -28,10 +28,10 @@ rule book:
     # content (Rmd files and related stuff)
     expand("notebooks/{rmd_files}.Rmd", rmd_files = RMD_FILES),
     "notebooks/bibliography.bib",
-    "notebooks/_bookdown.yml",
-    "notebooks/_output.yml"
+    "_bookdown.yml",
+    "_output.yml"
   output:
-    "_book/index.html"
+    "results/book/index.html"
   conda:
     "envs/bookdown.yml"
   shell:
@@ -42,23 +42,24 @@ rule data:
    """download data from archive"""
    input:
      # TODO change to github once published
-     HTTP.remote("www.dropbox.com/sh/n3go6ymkp5txz4u/AACfv_a1jQcrJieECAlavufQa?dl=1", keep_local=True, allow_redirects=True)
+     HTTP.remote("www.cip.ifi.lmu.de/~sturmg/data.tar.gz", allow_redirects=True)
    output:
      DATA_FILES
    shell:
-     "tar xvzf data.tar.gz"
+     "mkdir -p data && "
+     "tar -xvzf {input} -C data --strip-components 1"
 
 
 rule upload_book:
   """publish the book on github pages"""
   input:
-    "_book/index.html"
+    "results/book/index.html"
     "results/figures/spillover_migration_all.pdf"
   shell:
     """
     cp results/figures/spillover_migration_all.pdf gh-pages/files
     cd gh-pages && \
-    cp -R ../_book* ./ && \
+    cp -R ../results/book/* ./ && \
     git add --all * && \
     git commit --allow-empty -m "update docs" && \
     git push github gh-pages
@@ -94,7 +95,7 @@ rule _data_archive:
 def _clean():
   shell(
     """
-    rm -rfv _book/*
+    rm -rfv results/book/*
     rm -rfv notebooks/_bookdown_files/*files
     rm -fv notebooks/_main*
     rm -fv results/figures/*

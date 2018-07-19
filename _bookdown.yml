@@ -1,4 +1,4 @@
 output_dir: results/book
 always_allow_html: yes
-rmd_subdir: notebooks
+rmd_subdir: notebooks/pipeline
 

@@ -36,5 +36,5 @@ dependencies:
   # packages for immune_deconvolution_methods
   - r-r.methodss3=1.7.1
   - r-e1071=1.6
-
+  - r-devtools=1.13.2
 

@@ -74,8 +74,8 @@ with(cell_type_hierarchy, {
 ```{r single_cell_schelker, message=FALSE, cache=TRUE, echo=FALSE}
 tmp_env = new.env()
 with(tmp_env, {
-  load("../data/single_cell_schelker/single_cell_schelker.rda")
-  # symbol_remap = read_tsv("../data/single_cell_schelker/symbol_checker.tsv") %>%
+  load("./data/schelker/single_cell_schelker.rda")
+  # symbol_remap = read_tsv("./data/single_cell_schelker/symbol_checker.tsv") %>%
   #   as.data.frame() %>%
   #   column_to_rownames("Input")
   valid_cells = pData(single_cell_schelker)$cell_type != "Unknown"
@@ -140,8 +140,8 @@ pData(single_cell_schelker$eset) %>%
            ylab("tSNE-2") +
            labs(color="cell type")
 
-ggsave("../results/figures/schelker_single_cell_tsne.pdf")
-ggsave("../results/figures/schelker_single_cell_tsne.png", dpi=1200)
+ggsave("./results/figures/schelker_single_cell_tsne.pdf")
+ggsave("./results/figures/schelker_single_cell_tsne.png", dpi=1200)
 ```
 
 <!-- ### Attempting to distinguish between macrophages and monocytes -->
@@ -163,7 +163,7 @@ ggsave("../results/figures/schelker_single_cell_tsne.png", dpi=1200)
 ```{r, message=FALSE, cache=TRUE, echo=FALSE}
 immune_cell_reference = new.env()
 with(immune_cell_reference, {
-  tidy = read_tsv("../data/immune_cell_reference_profiles/immune_cell_reference_tidy.tsv")
+  tidy = read_tsv("./data/immune_cell_reference/immune_cell_reference_tidy.tsv")
 
   sample_description = tidy %>%
     select(sample, method_cell_type=CellType, Study) %>%
@@ -193,7 +193,7 @@ DT::datatable(immune_cell_reference$sample_description %>% select(sample, Study,
 e.g. IHC, Flow cytometry, single cell
 
 ```{r validation_data, echo=FALSE}
-validation_datasets = read_excel("../tables/validation-datasets.xlsx")
+validation_datasets = read_excel("./tables/validation-datasets.xlsx")
 DT::datatable(validation_datasets)
 ```
 
@@ -203,8 +203,8 @@ DT::datatable(validation_datasets)
 ```{r hoeck, echo=FALSE, message=FALSE}
 tmp_env = new.env()
 with(tmp_env, {
-  load("../data/hoeck/HoekPBMC_mixture.RData")
-  load("../data/hoeck/HoekPBMC_gtruth.RData")
+  load("./data/hoeck/HoekPBMC_mixture.RData")
+  load("./data/hoeck/HoekPBMC_gtruth.RData")
 })
 hoeck = new.env()
 hoeck$expr_mat = tmp_env$mix.mat
@@ -224,7 +224,7 @@ Load the data and merge replicates.
 ```{r schelker_ovarian, echo=FALSE}
 schelker_ovarian = new.env()
 with(schelker_ovarian, {
-  bulk_replicates = read_xls("../data/single_cell_schelker/ascites_bulk_samples.xls")
+  bulk_replicates = read_xls("./data/schelker/ascites_bulk_samples.xls")
 
   samples = list("7873M"=c("ascites_7873_1", "ascites_7873_2"),
                  "7882M"=c("ascites_7882_1", "ascites_7882_2"),
@@ -253,7 +253,7 @@ with(schelker_ovarian, {
     mutate(true_fraction=cell_count/sum(cell_count)) %>%
     arrange(cell_type, donor)
 
-  true_cell_count_facs = read_excel("../data/single_cell_schelker/ascites_facs.xlsx") %>%
+  true_cell_count_facs = read_excel("./data/schelker/ascites_facs.xlsx") %>%
     gather(sample, true_fraction, -cell_type)
 
    ref = true_cell_count_facs %>% select(sample, cell_type, true_fraction) %>% mutate(method_dataset = "schelker_ovarian")
@@ -279,12 +279,12 @@ schelker_ovarian$true_cell_count_sc %>% DT::datatable()
 ```{r racle, message=FALSE, echo=FALSE}
 tmp_env = new.env()
 with(tmp_env, {
-  ensg_hgnc = read_tsv("../data/ensemble_hgnc.txt") %>%
+  ensg_hgnc = read_tsv("./data/ensemble_hgnc.txt") %>%
   rename(gene_id = `Gene stable ID`, hgnc_symbol=`HGNC symbol`)
-  racle_cyto = read_excel("../data/racle/racle2017_flow_cytometry.xlsx")
-  racle_files = list.files("../data/racle/GSE93722_RAW/", full.names = TRUE)
+  racle_cyto = read_excel("./data/racle/racle2017_flow_cytometry.xlsx")
+  racle_files = list.files("./data/racle/GSE93722_RAW/", full.names = TRUE)
   racle_identifiers = str_extract(racle_files, "LAU\\d+")
-  racle_expression_raw = lapply(list.files("../data/racle/GSE93722_RAW/", full.names = TRUE), read_tsv)
+  racle_expression_raw = lapply(list.files("./data/racle/GSE93722_RAW/", full.names = TRUE), read_tsv)
   gene_ids = racle_expression_raw[[1]]$gene_id
   racle_tpm = sapply(racle_expression_raw, function(df) {pull(df, "TPM")}) %>% as.tibble()
   colnames(racle_tpm) = racle_identifiers

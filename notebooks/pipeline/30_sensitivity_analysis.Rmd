@@ -27,7 +27,7 @@ n_immune_cells = rep(c(seq(0, 50, 5)
 
 
 ```{r sens_generate_data, fig.height=18, fig.width=25, cache=TRUE, echo=FALSE}
-sensitivity_analysis_file = "../results/cache/sensitivity_analysis_res.rda"
+sensitivity_analysis_file = "./results/cache/sensitivity_analysis_res.rda"
 if(!file.exists(sensitivity_analysis_file)) {
   set.seed(42)
   registerDoMC(cores=16)
@@ -150,7 +150,7 @@ sensitivity_plot %>%
   mutate(min_frac = ifelse(is.infinite(min_frac), 100, min_frac)) %>% 
   mutate(min_frac = min_frac / 100) %>% 
   spread(input_cell_type, min_frac) %>%
-  write_tsv("../results/tables/sensitivity.tsv", na="")
+  write_tsv("./results/tables/sensitivity.tsv", na="")
 ```
 
 ```{r sens_plot, fig.width=7, fig.height=6, echo=FALSE}
@@ -185,7 +185,7 @@ sens_spec_table = all_results %>%
   spread(cell_type, median_estimate)
 
 sens_spec_table %>% 
-  write_tsv("../results/tables/specificity.tsv", na="")
+  write_tsv("./results/tables/specificity.tsv", na="")
 ```
 
 ```{r sens_spec_data, fig.height=6, fig.width=6, echo=FALSE}

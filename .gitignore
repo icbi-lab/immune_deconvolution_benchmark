@@ -1,7 +1,7 @@
 *.nb.html
 ~$*
 gh-pages
-notebooks/_bookdown_files
+_bookdown_files
 CIBERSORT-Results.txt
 _main*
 .Rproj.user
@@ -13,3 +13,4 @@ data
 data.in
 data.tar.gz
 .snakemake
+.ipynb_checkpoints

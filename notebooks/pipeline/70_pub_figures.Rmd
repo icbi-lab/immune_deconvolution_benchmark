@@ -1,10 +1,10 @@
 # Creating publication ready figures
 ```{r cache_fig_results, include=FALSE}
 ### Cache and load data
-save(res_mixing_study, res_noise, res_validation,
+save(res_mixing_study, res_validation,
      res_sensitivity, res_spillover, res_methods_validity,
-     file="../results/cache/results_for_figures.rda")
-load("../results/cache/results_for_figures.rda")
+     file="./results/cache/results_for_figures.rda")
+load("./results/cache/results_for_figures.rda")
 theme_set(theme_cowplot(font_size=11)) # reduce default font siz
 ```
 
@@ -68,13 +68,7 @@ noise_sc = res_methods_validity$all_results %>%
   do(make_cor(.$bulk, .$sum)) %>%
   mutate(column="stability single cell/bulk")
 
-noise_normal = res_noise$all_results %>%
-  filter(noise_level == "10") %>%
-  group_by(method) %>%
-  do(make_cor(.$no_noise, .$estimate)) %>%
-  mutate(column="stability noise ~N(0, 10)")
-
-noise = bind_rows(noise_sc, noise_normal)
+noise = noise_sc
 
 
 # Mixing Benchmark
@@ -110,7 +104,7 @@ print(p_validation)
 # the colors are inversed and use a non-linear scale (as .5 would already be really bad)
 
 p_sensitivity = res_sensitivity$sensitivity %>%
-  filter(method != "mcp_counter") %>% 
+  filter(method != "mcp_counter") %>%
   mutate(min_frac=ifelse(is.infinite(min_frac), 100, min_frac)) %>%
   mutate(min_frac = min_frac/100) %>%
   mutate(min_frac_text = as.character(round(min_frac, 2))) %>%
@@ -140,7 +134,7 @@ print(p_sensitivity)
 
 # summarise by mean.
 p_specificity = res_sensitivity$specificity %>%
-  filter(method != "mcp_counter") %>% 
+  filter(method != "mcp_counter") %>%
   group_by(method, cell_type) %>%
   summarise(estimate = mean(estimate)) %>%
   mutate(estimate_text = as.character(round(estimate, 2))) %>%
@@ -240,8 +234,8 @@ plot_grid(plot_heatmap,
           align="h",
           axis="l")
 
-ggsave("../results/figures/summary.pdf")
-ggsave("../results/figures/summary.png", dpi=1200)
+ggsave("./results/figures/summary.pdf")
+ggsave("./results/figures/summary.png", dpi=1200)
 ```
 
 
@@ -265,13 +259,13 @@ migration = res_spillover$all_results %>%
   summarise(estimate = mean(estimate)) %>%
   ungroup()
 
-noise_ratio = migration %>% 
-  group_by(method) %>% 
+noise_ratio = migration %>%
+  group_by(method) %>%
   mutate(type = ifelse(cell_type == true_cell_type, "signal", "noise")) %>%
-  group_by(method, type) %>% 
-  summarise(estimate = sum(estimate)) %>% 
+  group_by(method, type) %>%
+  summarise(estimate = sum(estimate)) %>%
   spread(type, estimate) %>%
-  mutate(noise_ratio = noise/(signal+noise)) %>% 
+  mutate(noise_ratio = noise/(signal+noise)) %>%
   ungroup()
 
 layout(matrix(seq(1, 6), 2, 3))
@@ -321,6 +315,6 @@ migration_legend = get_legend(p)
 # combine legend and plot
 plot_grid(migration_plot, migration_legend, nrow=1, rel_widths = c(.9, .15))
 
-ggsave("../results/figures/spillover_migration_chart.pdf")
-ggsave("../results/figures/spillover_migration_chart.png", dpi=1200)
+ggsave("./results/figures/spillover_migration_chart.pdf")
+ggsave("./results/figures/spillover_migration_chart.png", dpi=1200)
 ```

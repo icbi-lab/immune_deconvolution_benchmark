@@ -33,7 +33,6 @@ dependencies:
   - r-pheatmap=1.0.10
   - r-circlize=0.4.4
   - r-gridgraphics=0.3_0
-  - r-testthat=1.0.2
   # packages for immune_deconvolution_methods
   - r-r.methodss3=1.7.1
   - r-e1071=1.6
@@ -47,4 +46,7 @@ dependencies:
   - bioconductor-gsva =1.26
   - bioconductor-sva =3.26
   - bioconductor-gseabase =1.40
+  - r-testthat=1.0.2
+  # for interactive development
+  - r-irkernel
 

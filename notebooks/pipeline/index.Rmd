@@ -8,13 +8,7 @@ date: |
   $^1$Pieris Pharmaceuticals GmbH, Lise-Meitner-Straße 30, 85354 Freising, Germany
   $^2$Experimental Bioinformatics, TUM School of Life Sciences Weihenstephan, Technical University of Munich, Maximus-von-Imhof-Forum 3, 85354 Freising, Germany
   `r Sys.Date()`
-documentclass: book
-bibliography: bibliography.bib
-biblio-style: apalike
-link-citations: yes
-colorlinks: yes
 description: Systematic Evaluation of state-of-the-art Immune deconvolution methods.
-always_allow_html: yes
 ---
 
 

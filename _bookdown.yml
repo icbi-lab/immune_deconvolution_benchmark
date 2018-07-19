@@ -1,6 +1,7 @@
 output_dir: results/book
 always_allow_html: yes
 rmd_files:
+  - notebooks/pipeline/index.Rmd
   - notebooks/pipeline/05_input_data.Rmd
   - notebooks/pipeline/10_methods_validity.Rmd
   - notebooks/pipeline/15_mixing_study.Rmd

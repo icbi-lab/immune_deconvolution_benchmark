@@ -35,5 +35,6 @@ script:
   # Run pipeline
   - travis_wait 40 snakemake --use-conda book
 
-sudo: false
+# sudo = true gives a little bit more RAM 
+sudo: true 
 cache: packages

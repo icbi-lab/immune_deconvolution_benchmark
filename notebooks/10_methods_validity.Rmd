@@ -44,7 +44,7 @@ expr_all = bind_rows(
 ```{r, fig.width=16, fig.height=8, echo=FALSE, fig.cap="Correlation of bulkRNAseq data vs. simulated bulk data." }
 expr_all %>%
   mutate(bulk=log2(bulk+1), single_cell_aggregate=log2(single_cell_aggregate+1)) %>%
-  ggplot(aes(x=bulk, y=single_cell_aggregate)) + geom_point() + stat_cor() + facet_wrap(~sample) + 
+  ggplot(aes(x=bulk, y=single_cell_aggregate)) + geom_point(alpha=.1) + stat_cor() + facet_wrap(~sample) + 
   geom_smooth(method = lm) + 
   xlab("log2(TPM + 1) of bulk RNA-seq sample") + 
   ylab("log2(sum(TPM) + 1)) of single cell RNA-seq samples ")
@@ -54,6 +54,16 @@ expr_all %>%
 
 We observe a good correlation, although one can argue that it is very noisy and far from perfect. 
 We do not draw any conclusions from this plot. 
+
+### Additional tests for validity 
+```{r}
+ascites_mat = exprs(single_cell_schelker$eset)[,pData(single_cell_schelker$eset)$source == "ascites"]
+
+qplot(ascites_mat[,1], ascites_mat[,3])
+
+qplot()
+
+```
 
 
 ### Compare the predicted fractions

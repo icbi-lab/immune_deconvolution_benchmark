@@ -1,3 +1,35 @@
+```{r setup, include=FALSE}
+# tidyverse
+library(dplyr)
+library(dbplyr)
+library(tidyr)
+library(tibble)
+library(readr)
+library(ggplot2)
+library(magrittr)
+library(readxl)
+library(stringr)
+# other packages
+library(cowplot)
+library(pheatmap)
+library(ggpubr)
+library(DBI)
+library(testit)
+library(knitr)
+
+devtools::load_all("../immunedeconv")
+
+color_file = "../tables/color_scales.xlsx"
+color_scales = sapply(excel_sheets(color_file), function(sheet) {
+  tbl = read_excel(color_file, sheet=sheet)
+  colors = tbl$color
+  names(colors) = tbl$value
+  colors
+})
+
+tcga_db = dbConnect(RSQLite::SQLite(), "/db/tcga.sqlite", flags = RSQLite::SQLITE_RO)
+```
+
 # Correlation of methods across TCGA samples. 
 
 Next, we were interested how the predictions for different cell types correlate. 
@@ -30,12 +62,21 @@ Analysis is based on `r tcga_infiltration %>% select(sample) %>% distinct() %>% 
 
 ## Heatmap clustered by correlation
 ```{r, fig.width=12, fig.height=12, message=FALSE}
+annot_df = str_match(colnames(tcga_cor), "(.*) \\[(.*)\\]") %>% as.data.frame() 
+colnames(annot_df) = c("names", "cell type", "method") 
+annot_df %<>% column_to_rownames("names")
+
+use_cell_types = names(color_scales$cell_types)
+
+immunedeconv::map_cell_types(use_cell_types, )
+
 tcga_clustered = pheatmap(tcga_cor, 
          clustering_distance_rows = "correlation",
-         clustering_distance_cols = "correlation")
+         clustering_distance_cols = "correlation",
+         annotation_row = annot_df)
 
-ggsave(".../results/figures/tcga_correlation_clustered.pdf", plot=tcga_clustered$gtable)
-ggsave(".../results/figures/tcga_correlation_clustered.png", plot=tcga_clustered$gtable, dpi=1200)
+# ggsave("../results/figures/tcga_correlation_clustered.pdf", plot=tcga_clustered$gtable)
+# ggsave("../results/figures/tcga_correlation_clustered.png", plot=tcga_clustered$gtable, dpi=1200)
 ```
 
 ## Heatmap unclustered, sorted by cell type

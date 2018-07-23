@@ -19,6 +19,10 @@ validation_datasets = data.frame(
   dataset = c("hoeck", "racle", "schelker_ovarian"),
   description = c("Hoeck (PBMC)", "Racle (melanoma)", "Schelker (ovarian)")
 )
+
+abs_methods = c("cibersort_abs", "quantiseq", "epic")
+within_methods = c("cibersort", "cibersort_abs", "quantiseq", "epic")
+between_methods = c("cibersort_abs", "quantiseq", "epic", "timer", "xcell", "mcp_counter")
 ```
 
 ```{r define_theme, include=FALSE}
@@ -36,20 +40,26 @@ plot_cor_table = function(data) {
   if(!("macrophage_only" %in% names(data))) {
     data %<>% mutate(macrophage_only = "no")
   }
+  if(!("category" %in% names(data))) {
+    data %<>% mutate(category = "none")
+  }
   data %>%
     mutate(pearson_text = if_else(pearson < 0, "< 0", as.character(round(pearson, 2))),
            pearson = if_else(pearson < 0, 0, pearson)) %>%
+    mutate(macrophage_only = if_else(is.na(macrophage_only), "no", macrophage_only)) %>% 
     mutate(pearson_text = if_else(macrophage_only == "yes", paste0(pearson_text, "*"), pearson_text)) %>%
     inner_join(method_names) %>%
     ggplot(aes(x=column, y=method_name)) +
       geom_tile(aes(fill=pearson)) +
       geom_text(aes(label=pearson_text), size=3) +
-      scale_fill_distiller(type="div", palette = "RdYlGn", direction=1, values=c(0,1)) +
+      scale_fill_distiller(type="div", palette = "RdYlGn", direction=1, values=c(0,1), limits=c(0, 1)) +
       theme_benchmark() +
       theme(axis.text.x.top=element_text(angle = 90, vjust = .5, hjust=0),
               legend.position="none",
               strip.text.x = element_text(size=11)) +
-      # facet_grid(~category, scales="free_x", space="free") +
+      facet_grid(~category, scales = "free_x", space="free_x") + 
+      theme(strip.background = element_blank(),
+            strip.text.x = element_blank()) +
       scale_x_discrete(position = "top") +
       xlab(NULL) +
       ylab(NULL) +
@@ -72,18 +82,25 @@ noise = noise_sc
 
 
 # Mixing Benchmark
-mixing = res_mixing_study$correlations %>%
-  rename(column=cell_type)
-
+mixing = bind_rows(
+  res_mixing_study$correlations %>%
+    rename(column=cell_type) %>% 
+    mutate(category="cell_type"),
+  res_mixing_study$within_sample %>%
+    filter(method %in% within_methods) %>% 
+    mutate(method = factor(method, levels = method_names$method)) %>% 
+    mutate(column="within samples", category="within"))
 
 # Validation Benchmark
 
-validation =  res_validation$all_results %>%
-  group_by(method, dataset) %>%
-  do(make_cor(.$estimate, .$true_fraction)) %>%
-  ungroup() %>%
-  inner_join(validation_datasets) %>%
-  rename(column=description)
+validation = bind_rows(
+  res_validation$between_sample %>%
+    filter(method %in% between_methods) %>%
+    mutate(column = "between samples"),
+  res_validation$within_sample %>%
+    filter(method %in% within_methods) %>%
+    mutate(column = "within samples")) %>%
+  select(method, pearson, column)
 ```
 
 
@@ -91,7 +108,7 @@ validation =  res_validation$all_results %>%
 ```{r, fig.height=3.5, include=FALSE}
 # make the correlation plots
 p_noise = plot_cor_table(noise) + ggtitle("Noise")
-p_mixing = plot_cor_table(mixing) + ggtitle("Mixing Benchmark")
+p_mixing = plot_cor_table(mixing) + ggtitle("Mixing Benchmark") 
 p_validation = plot_cor_table(validation) + ggtitle("Validation")
 
 print(p_noise)
@@ -215,8 +232,8 @@ plots_right = align_plots(p2_validation, p2_specificity, plots_left[[3]], align=
 # first row
 plot_heatmap = plot_grid(plots_left[[1]], p2_mixing, plots_right[[1]],
           align = "h", ncol = 3,
-          axis="t",
-          rel_widths = c(.6, .75, .28), labels = c("A", "B", "C"))
+          axis="tb",
+          rel_widths = c(.42, .8, .20), labels = c("A", "B", "C"))
 
 # second row
 plot_sens_spec = plot_grid(plots_left[[2]], plots_right[[2]],

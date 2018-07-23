@@ -142,7 +142,7 @@ sample_correlations %>%
     scale_fill_distiller(type="div", palette = "RdYlGn", direction=1, values=c(0,1))  +
     theme(axis.text.x=element_text(angle = 90, vjust = .5, hjust=1))
 
-res_correlation$within_sample = average
+res_validation$within_sample = average
 ```
 
 

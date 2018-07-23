@@ -68,15 +68,28 @@ all_results_ref = inner_join(all_results, all_refs,
 res_validation$all_results = all_results_ref
 ```
 
+## Within-sample comparisons
 First, we look at the overall correlation of all cell types. 
 However, this comparison is unfair for most of the methods, as their scores only allow comparisons between samples and not between cell types. 
+
+```{r}
+abs_methods = c("cibersort_abs", "quantiseq", "epic")
+within_methods = c("cibersort", "cibersort_abs", "quantiseq", "epic")
+between_methods = c("cibersort_abs", "quantiseq", "epic", "timer", "xcell", "mcp_counter")
+```
+
+## Between- and within-sample correlations
+Only works for methods providing an absolute score. 
+All other methods are included for reference. 
 ```{r, fig.width=10, fig.height=16, echo=FALSE}
 all_results_ref %>%
+  mutate(dataset2 = dataset) %>%
+  bind_rows(all_results_ref %>% mutate(dataset2 = "all")) %>% 
   filter(!(cell_type == "T cell" & dataset != "hoeck")) %>% 
   ggplot(aes(x=true_fraction, y=estimate)) +
-    geom_point(aes(color=cell_type)) + 
+    geom_point(aes(color=cell_type, shape=dataset)) + 
     scale_color_manual(values=color_scales$validation) + 
-    facet_grid(method~dataset, scales = "free_y") + 
+    facet_grid(method~dataset2, scales = "free_y") + 
     theme_bw() + 
     theme(legend.position = "top",
           strip.text.x = element_text(size=9)) + 
@@ -84,34 +97,60 @@ all_results_ref %>%
     stat_cor() 
 ```
 
-Therefore, we normalize all scores per-celltype and re-do the correlations. 
-```{r, fig.width=10, fig.height=16, echo=FALSE}
-all_results_ref %>%
+# Within-sample comparsions
+only works with methods that provide an absolute score, or a score that is relative to total immune
+cell content. 
+```{r, fig.width=8, fig.height=12, echo=FALSE}
+all_results_ref %>% 
+  filter(method %in% within_methods) %>% 
   filter(!(cell_type == "T cell" & dataset != "hoeck")) %>% 
-  group_by(dataset, method, cell_type) %>% 
-  mutate(estimate_norm=estimate/max(estimate),
-         true_fraction_norm=true_fraction/max(true_fraction)) %>%
-  ungroup() %>% 
-  ggplot(aes(x=true_fraction_norm, y=estimate_norm)) +
+  ggplot(aes(x=true_fraction, y=estimate)) +
     geom_point(aes(color=cell_type, shape=dataset)) + 
     scale_color_manual(values=color_scales$validation) + 
-    facet_grid(method~dataset, scales = "free_y") + 
+    facet_grid(sample~method, scales = "free_y") + 
     theme_bw() + 
-    theme(legend.position = "top",
-          strip.text.x = element_text(size=9)) + 
+    theme(legend.position = "right",
+          strip.text.x = element_text(size=9),
+          strip.text.y = element_text(size=7)) + 
     background_grid(major="xy") + 
-    stat_cor(method='pearson') 
+    stat_cor(size=3) 
+
+
+```
+
+Compute the average over all samples:
+```{r, fig.width=8, fig.height=3}
+sample_correlations = all_results_ref %>%
+  filter(method %in% within_methods) %>%
+  filter(!(cell_type == "T cell" & dataset != "hoeck")) %>%
+  group_by(dataset, method, sample) %>%
+  do(make_cor(.$true_fraction, .$estimate))
+
+average = sample_correlations %>% 
+  group_by(method) %>% 
+  summarise(pearson = mean(pearson)) %>% 
+  mutate(sample = "mean") %>% 
+  mutate(dataset = "mean")
+
+sample_correlations %>%
+  bind_rows(average) %>% 
+  mutate(pearson_text = if_else(pearson < 0, "< 0", as.character(round(pearson, 2))),
+         pearson = if_else(pearson < 0, 0, pearson)) %>%
+  ggplot(aes(x=sample, y=method)) +
+    geom_tile(aes(fill=pearson)) +
+    geom_text(aes(label=pearson_text), size=3) +
+    scale_fill_distiller(type="div", palette = "RdYlGn", direction=1, values=c(0,1))  +
+    theme(axis.text.x=element_text(angle = 90, vjust = .5, hjust=1))
+
+res_correlation$within_sample = average
 ```
 
 
+# Between-sample comparisons
+For this, we need to look at every cell type independently
 ```{r, fig.width=12, fig.height=12, echo=FALSE}
 all_results_ref %>%
-  filter(!(cell_type == "T cell" & dataset != "hoeck")) %>% 
-  # group_by(method, cell_type) %>% 
-  # mutate(estimate_norm=estimate/max(estimate),
-  #        true_fraction_norm=true_fraction/max(true_fraction)) %>%
-  # ungroup() %>% 
-  # ggplot(aes(x=true_fraction_norm, y=estimate_norm)) +
+  # filter(!(cell_type == "T cell" & dataset != "hoeck")) %>% 
   ggplot(aes(x=true_fraction, y=estimate)) +
     geom_point(aes(color=cell_type, shape=dataset)) + 
     scale_color_manual(values=color_scales$validation) + 
@@ -122,3 +161,44 @@ all_results_ref %>%
     background_grid(major="xy") + 
     stat_cor(method='pearson') 
 ```
+
+Compute the average over all cell types. 
+We only use cell types with at least 5 samples to obtain reasonable 
+correlation estimates. We also exclude the T-cell supercategory to 
+avoid redundancies.
+
+```{r}
+use_cell_types2 = c("B cell", "Dendritic cell", "Macrophage/Monocyte", "NK cell", "T cell CD4+", "T cell CD8+")
+```
+
+```{r, fig.width=5, fig.height=3}
+cell_type_correlations = all_results_ref %>%
+#   filter(method %in% between_methods) %>%
+  filter(cell_type %in% use_cell_types2) %>%
+  group_by(cell_type, method) %>%
+  do(make_cor(.$true_fraction, .$estimate))
+
+average = cell_type_correlations %>% 
+  group_by(method) %>% 
+  summarise(pearson = mean(pearson)) %>% 
+  mutate(cell_type = "mean") 
+
+cell_type_correlations %>%
+  bind_rows(average) %>% 
+  ungroup() %>%
+  mutate(pearson_text = if_else(pearson < 0, "< 0", as.character(round(pearson, 2))),
+         pearson = if_else(pearson < 0, 0, pearson)) %>%
+  mutate(cell_type = factor(cell_type, levels = c(sort(use_cell_types2), "mean"))) %>% 
+  ggplot(aes(x=cell_type, y=method)) +
+    geom_tile(aes(fill=pearson)) +
+    geom_text(aes(label=pearson_text), size=3) +
+    scale_fill_distiller(type="div", palette = "RdYlGn", direction=1, values=c(0,1))  +
+    theme(axis.text.x=element_text(angle = 90, vjust = .5, hjust=1))
+
+
+res_validation$between_sample = average
+```
+
+
+Note that, although the correlation for CD8+ T cells looks bad, it does not necessarily mean the predictions are bad. There is just little variance between the samples and CD8+ T cell abundance is generally low, which is correlctly predicted by the methods. 
+

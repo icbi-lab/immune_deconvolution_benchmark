@@ -104,7 +104,7 @@ def _clean():
 
 
 def _wipe():
-  clean()
+  _clean()
   shell(
     """
     rm -rfv notebooks/_bookdown_files

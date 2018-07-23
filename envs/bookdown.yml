@@ -43,6 +43,7 @@ dependencies:
   - r-mcpcounter
   - r-limsolve =1.5.5.3
   - bioconductor-preprocesscore =1.40
+  - bioconductor-biocinstaller =1.28.0
   - bioconductor-gsva =1.26
   - bioconductor-sva =3.26
   - bioconductor-gseabase =1.40

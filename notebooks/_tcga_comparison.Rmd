@@ -61,22 +61,38 @@ tcga_cor = cor(tcga_infil_mat)
 Analysis is based on `r tcga_infiltration %>% select(sample) %>% distinct() %>% nrow()` samples that have estimates by all methods. 
 
 ## Heatmap clustered by correlation
-```{r, fig.width=12, fig.height=12, message=FALSE}
+```{r, fig.width=15, fig.height=12, message=TRUE}
+use_cell_types = names(color_scales$cell_types_for_tcga)
+
+quotemeta <- Vectorize(function(string) {
+  str_replace_all(string, "(\\W)", "\\\\\\1")
+})
+
+get_supertype = Vectorize(function(cell_type) {
+  supertype = str_match(cell_type, quotemeta(use_cell_types))[,1] %>% .[!is.na(.)]
+  assert("only one match", length(supertype) <= 1)
+  supertype[1]
+})
+
+
 annot_df = str_match(colnames(tcga_cor), "(.*) \\[(.*)\\]") %>% as.data.frame() 
 colnames(annot_df) = c("names", "cell type", "method") 
-annot_df %<>% column_to_rownames("names")
+annot_df %<>% 
+  mutate(`cell type` = get_supertype(`cell type`)) %>%
+  column_to_rownames("names") 
 
-use_cell_types = names(color_scales$cell_types)
-
-immunedeconv::map_cell_types(use_cell_types, )
 
 tcga_clustered = pheatmap(tcga_cor, 
          clustering_distance_rows = "correlation",
          clustering_distance_cols = "correlation",
+         annotation_colors = list(
+           method=color_scales$methods %>% .[!(names(.) %in% c("cibersort", "backup1"))],
+           `cell type`=color_scales$cell_types_for_tcga
+         ),
          annotation_row = annot_df)
 
-# ggsave("../results/figures/tcga_correlation_clustered.pdf", plot=tcga_clustered$gtable)
-# ggsave("../results/figures/tcga_correlation_clustered.png", plot=tcga_clustered$gtable, dpi=1200)
+ggsave("../results/figures/tcga_correlation_clustered.pdf", plot=tcga_clustered$gtable)
+ggsave("../results/figures/tcga_correlation_clustered.png", plot=tcga_clustered$gtable, dpi=1200)
 ```
 
 ## Heatmap unclustered, sorted by cell type

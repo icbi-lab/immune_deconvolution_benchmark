@@ -239,34 +239,3 @@ deviation_from_slope %>%
     geom_hline(yintercept=0, col="grey")
 ```
 
-
-## Within sample
-```{r, fig.width=15, fig.height=8}
-within_sample = results_with_gold_standard %>% 
-  group_by(method, sample) %>% 
-  do(make_cor(.$estimate, .$true_fraction))
-
-average = within_sample %>% 
-  group_by(method) %>% 
-  summarise(pearson = mean(pearson)) %>% 
-  mutate(sample = "mean") 
-
-within_sample %>%
-  bind_rows(average) %>% 
-  ungroup() %>%
-  mutate(sample=as.factor(sample)) %>%
-  mutate(sample_id = as.numeric(sample)) %>%
-  mutate(fold=floor(sample_id/34)) %>% 
-  mutate(pearson_text = as.character(round(pearson, 2))) %>%
-  ggplot(aes(x=sample, y=method)) +
-    geom_tile(aes(fill=pearson)) +
-    geom_text(aes(label=pearson_text), size=3) +
-    scale_fill_distiller(type="div", palette = "RdYlGn", direction=1, values=c(0,1))  +
-    facet_wrap(~fold, nrow=3, drop = TRUE, scales = "free_x") +
-    theme(axis.text.x=element_text(angle = 90, vjust = .5, hjust=1))
-
-
-res_mixing_study$within_sample = average
-
-```
-

@@ -75,32 +75,22 @@ plot_cor_table = function(data) {
 # Noise benchmark
 noise_sc = res_methods_validity$all_results %>%
   group_by(method) %>%
-  do(make_cor(.$bulk, .$sum)) %>%
+  do(make_cor(.$bulk, .$mean)) %>%
   mutate(column="stability single cell/bulk")
 
 noise = noise_sc
 
 
 # Mixing Benchmark
-mixing = bind_rows(
-  res_mixing_study$correlations %>%
+mixing =  res_mixing_study$correlations %>%
     rename(column=cell_type) %>% 
-    mutate(category="cell_type"),
-  res_mixing_study$within_sample %>%
-    filter(method %in% within_methods) %>% 
-    mutate(method = factor(method, levels = method_names$method)) %>% 
-    mutate(column="within samples", category="within"))
+    mutate(category="cell_type")
 
 # Validation Benchmark
 
-validation = bind_rows(
-  res_validation$between_sample %>%
-    filter(method %in% between_methods) %>%
-    mutate(column = "between samples"),
-  res_validation$within_sample %>%
-    filter(method %in% within_methods) %>%
-    mutate(column = "within samples")) %>%
-  select(method, pearson, column)
+validation = res_validation$between_sample %>% 
+  rename(column=cell_type) %>% 
+  select(method, column, pearson)
 ```
 
 
@@ -182,12 +172,20 @@ print(p_specificity)
 
 ```{r, fig.height=3.5, fig.width=8, include=FALSE}
 # Absolute deviation plot
+tmp_cell_types = res_mixing_study$deviation_from_slope$cell_type %>% unique()
+tmp_methods = c("epic", "quantiseq")
+tmp_matrix = crossing(tmp_cell_types, tmp_methods)
+colnames(tmp_matrix) = c("cell_type", "method")
 p_abs_deviation = res_mixing_study$deviation_from_slope %>%
   filter(method %in% c("epic", "quantiseq")) %>%
+  right_join(tmp_matrix) %>% 
   inner_join(method_names) %>%
-   ggplot(aes(x=cell_type, y=deviation, alpha=macrophage_only)) +
+   # na -> 0 workaround, otherwise text label does not show
+   ggplot(aes(x=cell_type, y=ifelse(is.na(deviation), 0, deviation), alpha=macrophage_only)) +
       geom_bar(fill="black", stat="identity") +
       geom_errorbar(aes(ymin=ci_lower, ymax=ci_upper), width=.2, color="red") +
+      geom_hline(yintercept=0, col="grey") +
+      geom_text(aes(label=ifelse(is.na(deviation), "n/a", NA))) +
       facet_wrap(~method_name, nrow=1, labeller = label_wrap_gen()) +
       theme_benchmark() +
       theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
@@ -195,11 +193,10 @@ p_abs_deviation = res_mixing_study$deviation_from_slope %>%
             strip.text.x = element_text(size=9)) +
       # scale_fill_manual(values=color_scales$methods) +
       scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
-      geom_hline(yintercept=0, col="grey") +
       ggtitle("Absolute deviation") +
       xlab(NULL) +
       ylab("deviation from slope=1") +
-      coord_flip(ylim=c(-1.5, 1.5)) +
+      coord_flip(ylim=c(-2, 2)) +
       theme_title(hjust=0)
 
 print(p_abs_deviation)
@@ -216,14 +213,19 @@ MT2 = .2
 MB2 = .7
 
 ## fine-tune formatting
-p2_noise = p_noise + theme(plot.margin = margin(t=MT1, b=MB1, unit="cm"))
-p2_mixing = p_mixing + theme(axis.text.y=element_blank(), plot.margin = margin(t=MT1, l=0.5, b=MB1, unit="cm"))
-p2_validation = p_validation + theme(axis.text.y=element_blank(), plot.margin = margin(t=MT1, l=.5, b=MB1, unit="cm"))
-p2_sensitivity = p_sensitivity + theme(plot.margin = margin(t=MT2, b=MB2, r=.5, unit= "cm"))
+p2_noise = p_noise + theme(plot.margin = margin(t=MT1, b=MB1, unit="cm"),
+                           plot.title=element_text(hjust=1))
+p2_mixing = p_mixing + theme(axis.text.y=element_blank(), plot.margin = margin(t=MT1, l=0.2, b=MB1, unit="cm"),
+                             plot.title=element_text(hjust=1))
+p2_validation = p_validation + theme(axis.text.y=element_blank(), plot.margin = margin(t=MT1, l=.2, b=MB1, unit="cm"),
+                                     plot.title=element_text(hjust=1))
+p2_sensitivity = p_sensitivity + theme(plot.margin = margin(t=MT2, b=MB2, r=.5, unit= "cm"), 
+                                       plot.title=element_text(hjust=1))
 p2_specificity = p_specificity + theme(axis.text.y = element_blank(),
-                                       plot.margin = margin(l = 1, t=MT2, b=MB2, unit="cm"))
+                                       plot.margin = margin(l = 1, t=MT2, b=MB2, unit="cm"),
+                                       plot.title=element_text(hjust=1))
 p2_abs_deviation = p_abs_deviation + scale_x_discrete(position = "bottom") +
-  theme(plot.margin = margin(t=0, unit="cm"))
+  theme(plot.margin = margin(t=0, unit="cm"), plot.title=element_text(hjust=1))
 
 # align plots
 plots_left = align_plots(p2_noise, p2_sensitivity, p2_abs_deviation, align="v", axis="l")
@@ -233,7 +235,7 @@ plots_right = align_plots(p2_validation, p2_specificity, plots_left[[3]], align=
 plot_heatmap = plot_grid(plots_left[[1]], p2_mixing, plots_right[[1]],
           align = "h", ncol = 3,
           axis="tb",
-          rel_widths = c(.42, .8, .20), labels = c("A", "B", "C"))
+          rel_widths = c(.6, .9, .6), labels = c("A", "B", "C"))
 
 # second row
 plot_sens_spec = plot_grid(plots_left[[2]], plots_right[[2]],

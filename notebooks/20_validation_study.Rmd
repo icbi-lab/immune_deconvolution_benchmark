@@ -196,7 +196,8 @@ cell_type_correlations %>%
     theme(axis.text.x=element_text(angle = 90, vjust = .5, hjust=1))
 
 
-res_validation$between_sample = average
+res_validation$between_sample_average = average
+res_validation$between_sample = cell_type_correlations
 ```
 
 

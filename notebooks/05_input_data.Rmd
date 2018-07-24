@@ -310,15 +310,18 @@ racle$ref = tmp_env$racle_cyto %>%
 
 racle$ref %>% select(sample, cell_type, true_fraction) %>% DT::datatable()
 ```
-### Check the distribution of the datasets (everything on non-log-scale?)
-```{r}
+## Data sanity checks
+* everything on non-log scale? 
+```{r, fig.height=6, fig.width=10}
+par(mfrow=c(2,3))
 hist(c(exprs(single_cell_schelker$eset)))
 hist(c(racle$expr_mat))
-hist(c(schelker_ovarian$expr_mat))
-hist(c(hoeck$expr_mat))
+hist(c(schelker_ovarian$expr_mat)) 
+hist(c(hoeck$expr_mat)) 
 hist(c(immune_cell_reference$expr_mat))
 ```
 
+Means:
 ```{r}
 mean(c(exprs(single_cell_schelker$eset)))
 mean(c(racle$expr_mat))
@@ -327,7 +330,9 @@ mean(c(hoeck$expr_mat))
 mean(c(immune_cell_reference$expr_mat))
 ```
 
-```{r}
+Histograms of log-transformed values
+```{r, fig.width=10, fig.height=6}
+par(mfrow=c(2,3))
 hist(log2(c(exprs(single_cell_schelker$eset))+1))
 hist(log2(c(racle$expr_mat)+1))
 hist(log2(c(schelker_ovarian$expr_mat)+1))

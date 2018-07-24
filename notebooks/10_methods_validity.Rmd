@@ -1,7 +1,5 @@
 # Validitiy of single cell RNA-seq as reference
 
-@Schelker2017 have shown that measurements from single cell sequencing are highly consistent with flow cytometry. 
-
 ## Validity of simulated bulk tissues from single cell sequencing data
 We use simulated samples from single cell gene expression data. Does this approach make sense after all? 
 We have 3 samples of single cell samples matched to bulk RNA sequencing. 
@@ -23,6 +21,7 @@ bulk_mean = sapply(colnames(schelker_ovarian$expr_mat), function(donor) {
   ind = pData(single_cell_schelker$eset)$donor == donor
   apply(exprs(single_cell_schelker$eset)[,ind], 1, mean)
 })
+bulk_mean = apply(bulk_mean, 2, scale_to_million)
 ```
 
 ```{r, cache=TRUE, echo=FALSE}
@@ -43,7 +42,6 @@ expr_all %>%
   mutate(bulk=log2(bulk+1), single_cell_aggregate=log2(single_cell_aggregate+1)) %>%
   ggplot(aes(x=bulk, y=single_cell_aggregate)) + geom_point(alpha=.1) +
   stat_cor(method="pearson") + 
-  stat_cor(method="spearman", label.y = 7.8) + 
   facet_wrap(~sample) + 
   geom_smooth(method = lm) + 
   xlab("log2(TPM + 1) of bulk RNA-seq sample") + 
@@ -51,7 +49,6 @@ expr_all %>%
 
 ```
 
-The first correlation is pearson, the second spearman. 
 We observe a good correlation, although one can argue that it is very noisy and far from perfect. 
 We do not draw any conclusions from this plot. 
 

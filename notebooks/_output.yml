@@ -3,7 +3,4 @@ output:
 #  - bookdown::pdf_book
 always_allow_html: yes
 documentclass: book
-bibliography: notebooks/pipeline/bibliography.bib
-biblio-style: apalike
-link-citations: yes
-colorlinks: yes
+

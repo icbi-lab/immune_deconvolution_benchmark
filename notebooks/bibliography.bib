@@ -220,5 +220,116 @@ url = {https://www.biorxiv.org/content/early/2017/11/22/223180},
 year = {2017}
 }
 
+@Manual{bookdown,
+    title = {bookdown: Authoring Books and Technical Documents with R Markdown},
+    author = {Yihui Xie},
+    year = {2018},
+    note = {R package version 0.7},
+    url = {https://github.com/rstudio/bookdown},
+  }
+
+@article{Hoek2015,
+abstract = {Systems biology is an approach to comprehensively study complex interactions within a bi-ological system. Most published systems vaccinology studies have utilized whole blood or peripheral blood mononuclear cells (PBMC) to monitor the immune response after vaccina-tion. Because human blood is comprised of multiple hematopoietic cell types, the potential for masking responses of under-represented cell populations is increased when analyzing whole blood or PBMC. To investigate the contribution of individual cell types to the immune response after vaccination, we established a rapid and efficient method to purify human T and B cells, natural killer (NK) cells, myeloid dendritic cells (mDC), monocytes, and neutro-phils from fresh venous blood. Purified cells were fractionated and processed in a single day. RNA-Seq and quantitative shotgun proteomics were performed to determine expres-sion profiles for each cell type prior to and after inactivated seasonal influenza vaccination. Our results show that transcriptomic and proteomic profiles generated from purified immune cells differ significantly from PBMC. Differential expression analysis for each immune cell type also shows unique transcriptomic and proteomic expression profiles as well as chang-ing biological networks at early time points after vaccination. This cell type-specific informa-tion provides a more comprehensive approach to monitor vaccine responses.},
+author = {Hoek, Kristen L and Samir, Parimal and Howard, Leigh M and Niu, Xinnan and Prasad, Nripesh and Galassie, Allison and Liu, Qi and Allos, Tara M and Floyd, Kyle A and Guo, Yan and Shyr, Yu and Levy, Shawn E and Joyce, Sebastian and Edwards, Kathryn M and Link, Andrew J},
+doi = {10.1371/journal.pone.0118528},
+file = {:C$\backslash$:/Users/sturm/Documents/Mendeley Desktop/Hoek et al. - Unknown - A Cell-Based Systems Biology Assessment of Human Blood to Monitor Immune Responses after Influenza Vaccination.pdf:pdf},
+mendeley-groups = {work/pieris/deconvolution/benchmark/benchmark-datasets},
+title = {{A Cell-Based Systems Biology Assessment of Human Blood to Monitor Immune Responses after Influenza Vaccination}},
+url = {http://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0118528{\&}type=printable}
+}
+
+@article{Collin2013,
+abstract = {Dendritic cells are highly adapted to their role of presenting antigen and directing immune responses. Developmental studies indicate that DCs ori-ginate independently from monocytes and tissue macrophages. Emerging evidence also suggests that distinct subsets of DCs have intrinsic differ-ences that lead to functional specialisation in the generation of immu-nity. Comparative studies are now allowing many of these properties to be more fully understood in the context of human immunology.},
+author = {Collin, Matthew and McGovern, Naomi and Haniffa, Muzlifah},
+doi = {10.1111/imm.12117},
+file = {:C$\backslash$:/Users/sturm/Documents/Mendeley Desktop/Collin, Mcgovern, Haniffa - Unknown - Human dendritic cell subsets.pdf:pdf},
+issn = {00192805},
+journal = {Immunology},
+keywords = {dendritic cells,haematology,therapy/immunotherapy},
+mendeley-groups = {histology/dendritic-cells},
+month = {sep},
+number = {1},
+pages = {22--30},
+title = {{Human dendritic cell subsets}},
+url = {https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3809702/pdf/imm0140-0022.pdf http://doi.wiley.com/10.1111/imm.12117},
+volume = {140},
+year = {2013}
+}
+
+@article{RSEM2011,
+abstract = {Background: RNA-Seq is revolutionizing the way transcript abundances are measured. A key challenge in transcript quantification from RNA-Seq data is the handling of reads that map to multiple genes or isoforms. This issue is particularly important for quantification with de novo transcriptome assemblies in the absence of sequenced genomes, as it is difficult to determine which transcripts are isoforms of the same gene. A second significant issue is the design of RNA-Seq experiments, in terms of the number of reads, read length, and whether reads come from one or both ends of cDNA fragments. Results: We present RSEM, an user-friendly software package for quantifying gene and isoform abundances from single-end or paired-end RNA-Seq data. RSEM outputs abundance estimates, 95{\%} credibility intervals, and visualization files and can also simulate RNA-Seq data. In contrast to other existing tools, the software does not require a reference genome. Thus, in combination with a de novo transcriptome assembler, RSEM enables accurate transcript quantification for species without sequenced genomes. On simulated and real data sets, RSEM has superior or comparable performance to quantification methods that rely on a reference genome. Taking advantage of RSEM's ability to effectively use ambiguously-mapping reads, we show that accurate gene-level abundance estimates are best obtained with large numbers of short single-end reads. On the other hand, estimates of the relative frequencies of isoforms within single genes may be improved through the use of paired-end reads, depending on the number of possible splice forms for each gene. Conclusions: RSEM is an accurate and user-friendly software tool for quantifying transcript abundances from RNA-Seq data. As it does not rely on the existence of a reference genome, it is particularly useful for quantification with de novo transcriptome assemblies. In addition, RSEM has enabled valuable guidance for cost-efficient design of quantification experiments with RNA-Seq, which is currently relatively expensive. Background},
+author = {Li, Bo and Dewey, Colin N},
+doi = {10.1186/1471-2105-12-323},
+file = {:C$\backslash$:/Users/sturm/Documents/Mendeley Desktop/Li, Dewey - 2011 - RSEM accurate transcript quantification from RNA-Seq data with or without a reference genome.pdf:pdf},
+issn = {1471-2105},
+journal = {BMC Bioinformatics},
+mendeley-groups = {work/pieris,work/pieris/tcga/icgc},
+number = {1},
+pages = {323},
+title = {{RSEM: accurate transcript quantification from RNA-Seq data with or without a reference genome}},
+url = {https://bmcbioinformatics.biomedcentral.com/track/pdf/10.1186/1471-2105-12-323?site=bmcbioinformatics.biomedcentral.com http://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-12-323},
+volume = {12},
+year = {2011}
+}
+
+@article{STAR2013,
+abstract = {Motivation: Accurate alignment of high-throughput RNA-seq data is a challenging and yet unsolved problem because of the non-contiguous transcript structure, relatively short read lengths and constantly increasing throughput of the sequencing technologies. Currently avail-able RNA-seq aligners suffer from high mapping error rates, low map-ping speed, read length limitation and mapping biases. Results: To align our large (480 billon reads) ENCODE Transcriptome RNA-seq dataset, we developed the Spliced Transcripts Alignment to a Reference (STAR) software based on a previously undescribed RNA-seq alignment algorithm that uses sequential maximum map-pable seed search in uncompressed suffix arrays followed by seed clustering and stitching procedure. STAR outperforms other aligners by a factor of 450 in mapping speed, aligning to the human genome 550 million 2 {\^{A}} 76 bp paired-end reads per hour on a modest 12-core server, while at the same time improving alignment sensitivity and precision. In addition to unbiased de novo detection of canonical junc-tions, STAR can discover non-canonical splices and chimeric (fusion) transcripts, and is also capable of mapping full-length RNA se-quences. Using Roche 454 sequencing of reverse transcription poly-merase chain reaction amplicons, we experimentally validated 1960 novel intergenic splice junctions with an 80–90{\%} success rate, corro-borating the high precision of the STAR mapping strategy.},
+author = {Dobin, Alexander and Davis, Carrie A and Schlesinger, Felix and Drenkow, Jorg and Zaleski, Chris and Jha, Sonali and Batut, Philippe and Chaisson, Mark and Gingeras, Thomas R},
+doi = {10.1093/bioinformatics/bts635},
+file = {:C$\backslash$:/Users/sturm/Documents/Mendeley Desktop/Dobin et al. - 2013 - STAR ultrafast universal RNA-seq aligner.pdf:pdf},
+issn = {1460-2059},
+journal = {Bioinformatics},
+mendeley-groups = {algorithmics},
+month = {jan},
+number = {1},
+pages = {15--21},
+title = {{STAR: ultrafast universal RNA-seq aligner}},
+url = {https://watermark.silverchair.com/bts635.pdf?token=AQECAHi208BE49Ooan9kkhW{\_}Ercy7Dm3ZL{\_}9Cf3qfKAc485ysgAAAbwwggG4BgkqhkiG9w0BBwagggGpMIIBpQIBADCCAZ4GCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMx53W-CFW6uglMgUaAgEQgIIBb3mlJLh-1tAMpROoEwmW2byub0Si8AdcQQhhhzXtJySnlHOt42e0M3zEO36cFucb7iJVN{\_}dftvSfLEq56U-09ZB{\_}zKUMqX8DnnQoKIEM8bS7iPJPjMWqO4GuDtFlv4kM6-RuYJo55wQDVJdYIs5t9zb8CVgIDxVJwEuiDk2Ra0KNRstdcJcacuP0NCiRu6OeMY5vLMUprV49Grg37QvLl95CcIit1nPu5FRx16BDjfoJj2pRMUY2Xw97oVcEPBqxcGpezTVvW9-9ckhPSAQYtRff-fQD64HXc-Qd0fm{\_}cEwQjhnGoQlelI8uy6zARkb{\_}dg2jb2BaGFuTeRGS2h4VLUubqiifE6hFOTYUuzyD{\_}HV-P98Gu{\_}3bR5lBJsFPaCzJS15OchbPQhrBaJc9HQMSaEVtOZ9U9PeUiHTxz{\_}45ASSU-1DpoikVQjbsL4gWfwzoLPIG9a848MSvKW9fa8rn3t8mu5qZONHeoRSj7Dv2OaM https://academic.oup.com/bioinformatics/article-lookup/doi/10.1093/bioinformatics/bts635},
+volume = {29},
+year = {2013}
+}
+
+@article{circlize2014,
+  doi = {10.1093/bioinformatics/btu393},
+  url = {https://doi.org/10.1093/bioinformatics/btu393},
+  year  = {2014},
+  month = {jun},
+  publisher = {Oxford University Press ({OUP})},
+  volume = {30},
+  number = {19},
+  pages = {2811--2812},
+  author = {Zuguang Gu and Lei Gu and Roland Eils and Matthias Schlesner and Benedikt Brors},
+  title = {circlize implements and enhances circular visualization in R},
+  journal = {Bioinformatics}
+}
+
+@article{Johnson2006,
+  doi = {10.1093/biostatistics/kxj037},
+  url = {https://doi.org/10.1093/biostatistics/kxj037},
+  year  = {2006},
+  month = {apr},
+  publisher = {Oxford University Press ({OUP})},
+  volume = {8},
+  number = {1},
+  pages = {118--127},
+  author = {W. E. Johnson and C. Li and A. Rabinovic},
+  title = {Adjusting batch effects in microarray expression data using empirical Bayes methods},
+  journal = {Biostatistics}
+}
+
+@article{TCGA2013,
+  doi = {10.1038/ng.2764},
+  url = {https://doi.org/10.1038/ng.2764},
+  year  = {2013},
+  month = {oct},
+  publisher = {Springer Nature},
+  volume = {45},
+  number = {10},
+  pages = {1113--1120},
+  author = {John N Weinstein and   and Eric A Collisson and Gordon B Mills and Kenna R Mills Shaw and Brad A Ozenberger and Kyle Ellrott and Ilya Shmulevich and Chris Sander and Joshua M Stuart},
+  title = {The Cancer Genome Atlas Pan-Cancer analysis project},
+  journal = {Nature Genetics}
+}
+
 
 

@@ -1,17 +1,17 @@
 # Validitiy of single cell RNA-seq as reference
 
-## Validity of simulated bulk tissues from single cell sequencing data
-We use simulated samples from single cell gene expression data. Does this approach make sense after all? 
-We have 3 samples of single cell samples matched to bulk RNA sequencing. 
+Since we rely on simulated bulk RNA-seq samples generated from scRNA-seq data, we
+first investigate if this approach is valid and will give reasonable
+estimates of the methods's performances.
 
 To test, we try:
 
-* correlation of the simulated gene expression with the measured bulk gene expression. 
-* correlation of the predicted fractions with all methods on bulk vs. simulated tissue.
-* correlation of the simulated gene expression with bulk gene expression from the same tissue. 
+* correlation of simulated bulk samplese with a corresponding genuine bulk sample.
+* correlation of the predicted fractions with all methods on bulk vs. simulated samples.
+* correlation of the simulated bulk samples with a reference immune cell sample of the same cell type.
 
 
-### Compare simululated samples to bulk samples
+## Compare simululated to genuine bulk samples
 ```{r, include=FALSE}
 res_methods_validity = new.env()
 ```
@@ -30,34 +30,30 @@ genes = intersect(rownames(bulk_mean), schelker_ovarian$bulk$gene_symbol)
 expr_all = bind_rows(
   schelker_ovarian$bulk  %>% mutate(source="bulk"),
   bulk_mean %>% as_tibble(rownames="gene_symbol") %>% mutate(source="single_cell_aggregate")
-) %>% 
+) %>%
   filter(gene_symbol %in% genes) %>%
   gather(sample, tpm, -gene_symbol, -source) %>%
   spread(source, tpm)
 ```
 
-
-```{r, fig.width=16, fig.height=8, echo=FALSE, fig.cap="Correlation of bulkRNAseq data vs. simulated bulk data." }
+```{r, fig.width=12, fig.height=6, echo=FALSE, fig.cap="Correlation of simulated bulk samples with corresponding genuine bulk RNA-seq samples. " }
 expr_all %>%
   mutate(bulk=log2(bulk+1), single_cell_aggregate=log2(single_cell_aggregate+1)) %>%
-  ggplot(aes(x=bulk, y=single_cell_aggregate)) + geom_point(alpha=.1) +
-  stat_cor(method="pearson") + 
-  facet_wrap(~sample) + 
-  geom_smooth(method = lm) + 
-  xlab("log2(TPM + 1) of bulk RNA-seq sample") + 
-  ylab("log2(mean(TPM) + 1)) of single cell RNA-seq samples ")
-
+  ggplot(aes(x=bulk, y=single_cell_aggregate)) +
+    geom_point(alpha=.1) +
+    stat_cor(method="pearson") +
+    facet_wrap(~sample) +
+    geom_smooth(method = lm) +
+    xlab("log2(TPM + 1) of bulk RNA-seq sample") +
+    ylab("log2(mean(TPM) + 1)) of single cell RNA-seq samples ")
 ```
 
-We observe a good correlation, although one can argue that it is very noisy and far from perfect. 
-We do not draw any conclusions from this plot. 
 
 
-
-### Compare the predicted fractions
-We run all methods on both datasets and compare the results. 
+## Compare predicted fractions
+We run all methods on both datasets and compare the results.
 ```{r, cache=TRUE, message=FALSE, echo=FALSE, warning=FALSE, results='hide'}
-timer_indications = rep("OV", ncol(schelker_ovarian$expr_mat)) 
+timer_indications = rep("OV", ncol(schelker_ovarian$expr_mat))
 all_results_bulk = lapply(immunedeconv::deconvolution_methods, function(method) {
   deconvolute(schelker_ovarian$expr_mat, method, indications=timer_indications) %>%
     mutate(method=method) %>%
@@ -77,32 +73,32 @@ all_results = bind_rows(all_results_bulk, all_results_simulated) %>%
 res_methods_validity$all_results = all_results
 ```
 
-```{r, fig.width=12, fig.height=10, echo=FALSE}
+```{r, fig.width=12, fig.height=10, echo=FALSE, fig.cap="Correlation of the methods' predictions on both simulated and genuine bulk RNA-seq samples"}
 all_results %>%
   ggplot(aes(x = bulk, y=mean)) +
-    geom_point(aes(colour=cell_type)) + 
-    facet_wrap(~method, scales="free") + 
-    stat_cor() 
+    geom_point(aes(colour=cell_type)) +
+    facet_wrap(~method, scales="free") +
+    stat_cor()
 ```
 
-The results suggest a reasonable correlation between the estimates on bulkRNAseq and simulated bulkRNAseq. The results depend on the 
-method, however. The very good agreement of EPIC and MCPCounter suggest, that the methodology itself is valid; just some methods appear to be more dependent on noise than others. xCell does not pick up a signal here as is "does not work on homogeneous samples", as stated on their github page. 
+The results show a strong correlation between both datasets and suggest that the approach is valid in general.
+The poor overlap of xCell is proabably due to the fact that there is little variance between the samples which xCell
+requires to compute a meaningful score (see their [README on
+GitHub](https://github.com/dviraran/xCell/blob/ce4d43121c4a161b1e72a50dc875e43d9cf89b0d/README.Md).
 
 
+## Correlation with immune reference samples.
+To demonstrate that the simulated bulk samples are also biologically meaningflu, we generate
+simulated bulk samples of different immune cell types and correlate them with
+reference profiles of pure immune cells.
 
-## Correlated simulated samples with bulk of the same tissue. 
-We generate simulated bulk tissues of various cell types and correlate them with
-bulk RNA seq samples from sorted cells. 
-```{r, fig.width=8, fig.height=8, echo=FALSE}
-# immune_cell_reference
-# immune_cell_expr_mat
-
+```{r, fig.width=8, fig.height=8, echo=FALSE, fig.cap="Correlation of simulated bulk samples of a certain immune cell type with immune cell reference samples"}
 cell_fractions = diag(length(cell_types$immune_cells))
 cell_fractions = rbind(cell_fractions, cell_fractions, cell_fractions)
 colnames(cell_fractions) = cell_types$immune_cells
 rownames(cell_fractions) = unlist(lapply(1:3, function(i) {paste0(cell_types$immune_cells, "_", i)}))
 
-simulated_bulk = make_bulk_eset(eset=single_cell_schelker$eset, cell_fractions = cell_fractions, n_cells=500, combine=mean) %>% exprs() 
+simulated_bulk = make_bulk_eset(eset=single_cell_schelker$eset, cell_fractions = cell_fractions, n_cells=500, combine=mean) %>% exprs()
 simulated_bulk = log2(simulated_bulk+1)
 colnames(simulated_bulk) = rownames(cell_fractions)
 
@@ -111,14 +107,11 @@ colnames(immune_bulk) = paste(immune_cell_reference$sample_description$cell_type
 
 common_symbols = intersect(rownames(simulated_bulk), rownames(immune_bulk))
 
-
 # all_samples = cbind(simulated_bulk[common_symbols,], immune_bulk[common_symbols, ])
 # pheatmap(all_samples, cluster_rows = FALSE, cluster_cols = TRUE, clustering_distance_cols="correlation")
 
 cor(simulated_bulk[common_symbols,], immune_bulk[common_symbols,]) %>% pheatmap()
-
 ```
 
-
-In general, the highest correlation is observed between the expression of the sorted cells and the simulated bulk sample. 
-However, the simulated Dendritic cells do not correlate well with any of the reference profiles. 
+In general, the highest correlation is observed between the expression of the sorted cells and the simulated bulk sample.
+However, the simulated Dendritic cells do not correlate well with any of the reference profiles.

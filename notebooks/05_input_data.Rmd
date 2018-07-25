@@ -182,22 +182,22 @@ DT::datatable(immune_cell_reference$sample_description %>% select(sample, Study,
 ```
 
 ## 8 PBMC samples from [@Hoek2015]
-```{r hoeck, echo=FALSE, message=FALSE}
+```{r hoek, echo=FALSE, message=FALSE}
 tmp_env = new.env()
 with(tmp_env, {
-  load("../data/hoeck/HoekPBMC_mixture.RData")
-  load("../data/hoeck/HoekPBMC_gtruth.RData")
+  load("../data/hoek/HoekPBMC_mixture.RData")
+  load("../data/hoek/HoekPBMC_gtruth.RData")
 })
-hoeck = new.env()
-hoeck$expr_mat = tmp_env$mix.mat
-hoeck$ref = tmp_env$RefData %>%
+hoek = new.env()
+hoek$expr_mat = tmp_env$mix.mat
+hoek$ref = tmp_env$RefData %>%
   as_tibble(rownames="sample") %>%
   gather(method_cell_type, true_fraction, -sample) %>%
-  inner_join(immunedeconv::cell_type_mapping %>% filter(method_dataset == "hoeck"))
+  inner_join(immunedeconv::cell_type_mapping %>% filter(method_dataset == "hoek"))
 ```
 
-```{r hoeck_table, echo=FALSE}
-hoeck$ref %>% DT::datatable()
+```{r hoek_table, echo=FALSE}
+hoek$ref %>% DT::datatable()
 ```
 
 
@@ -305,7 +305,7 @@ par(mfrow=c(2,3))
 hist(c(exprs(single_cell_schelker$eset)))
 hist(c(racle$expr_mat))
 hist(c(schelker_ovarian$expr_mat))
-hist(c(hoeck$expr_mat))
+hist(c(hoek$expr_mat))
 hist(c(immune_cell_reference$expr_mat))
 ```
 
@@ -314,7 +314,7 @@ par(mfrow=c(2,3))
 hist(log2(c(exprs(single_cell_schelker$eset))+1))
 hist(log2(c(racle$expr_mat)+1))
 hist(log2(c(schelker_ovarian$expr_mat)+1))
-hist(log2(c(hoeck$expr_mat)+1))
+hist(log2(c(hoek$expr_mat)+1))
 hist(log2(c(immune_cell_reference$expr_mat)+1))
 ```
 
@@ -323,7 +323,7 @@ The mean values of all datasets:
 mean(c(exprs(single_cell_schelker$eset)))
 mean(c(racle$expr_mat))
 mean(c(schelker_ovarian$expr_mat))
-mean(c(hoeck$expr_mat))
+mean(c(hoek$expr_mat))
 mean(c(immune_cell_reference$expr_mat))
 ```
 

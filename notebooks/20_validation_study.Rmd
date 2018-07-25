@@ -10,7 +10,7 @@ in the tables for which we could obtain both gene expression and validation data
 ```{r, cache=TRUE}
 datasets = list(
   racle=racle,
-  hoeck=hoeck,
+  hoek=hoek,
   schelker_ovarian=schelker_ovarian
 )
 ```
@@ -36,7 +36,7 @@ process_result = function(result, method, dataset_name) {
 }
 
 timer_cancer_type = list(racle="SKCM", # actually PBMC
-                         hoeck="SKCM", 
+                         hoek="SKCM", 
                          schelker_ovarian="OV")
 
 
@@ -85,7 +85,7 @@ All other methods are included for reference.
 all_results_ref %>%
   mutate(dataset2 = dataset) %>%
   bind_rows(all_results_ref %>% mutate(dataset2 = "all")) %>% 
-  filter(!(cell_type == "T cell" & dataset != "hoeck")) %>% 
+  filter(!(cell_type == "T cell" & dataset != "hoek")) %>% 
   ggplot(aes(x=true_fraction, y=estimate)) +
     geom_point(aes(color=cell_type, shape=dataset)) + 
     scale_color_manual(values=color_scales$validation) + 
@@ -103,7 +103,7 @@ cell content.
 ```{r, fig.width=8, fig.height=12, echo=FALSE}
 all_results_ref %>% 
   filter(method %in% within_methods) %>% 
-  filter(!(cell_type == "T cell" & dataset != "hoeck")) %>% 
+  filter(!(cell_type == "T cell" & dataset != "hoek")) %>% 
   ggplot(aes(x=true_fraction, y=estimate)) +
     geom_point(aes(color=cell_type, shape=dataset)) + 
     scale_color_manual(values=color_scales$validation) + 
@@ -122,7 +122,7 @@ Compute the average over all samples:
 ```{r, fig.width=8, fig.height=3}
 sample_correlations = all_results_ref %>%
   filter(method %in% within_methods) %>%
-  filter(!(cell_type == "T cell" & dataset != "hoeck")) %>%
+  filter(!(cell_type == "T cell" & dataset != "hoek")) %>%
   group_by(dataset, method, sample) %>%
   do(make_cor(.$true_fraction, .$estimate))
 
@@ -150,7 +150,7 @@ res_validation$within_sample = average
 For this, we need to look at every cell type independently
 ```{r, fig.width=12, fig.height=12, echo=FALSE}
 all_results_ref %>%
-  # filter(!(cell_type == "T cell" & dataset != "hoeck")) %>% 
+  # filter(!(cell_type == "T cell" & dataset != "hoek")) %>% 
   ggplot(aes(x=true_fraction, y=estimate)) +
     geom_point(aes(color=cell_type, shape=dataset)) + 
     scale_color_manual(values=color_scales$validation) + 

@@ -16,8 +16,8 @@ method_names = data.frame(
 )
 
 validation_datasets = data.frame(
-  dataset = c("hoeck", "racle", "schelker_ovarian"),
-  description = c("Hoeck (PBMC)", "Racle (melanoma)", "Schelker (ovarian)")
+  dataset = c("hoek", "racle", "schelker_ovarian"),
+  description = c("Hoek (PBMC)", "Racle (melanoma)", "Schelker (ovarian)")
 )
 
 abs_methods = c("cibersort_abs", "quantiseq", "epic")
@@ -46,7 +46,7 @@ plot_cor_table = function(data) {
   data %>%
     mutate(pearson_text = if_else(pearson < 0, "< 0", as.character(round(pearson, 2))),
            pearson = if_else(pearson < 0, 0, pearson)) %>%
-    mutate(macrophage_only = if_else(is.na(macrophage_only), "no", macrophage_only)) %>% 
+    mutate(macrophage_only = if_else(is.na(macrophage_only), "no", macrophage_only)) %>%
     mutate(pearson_text = if_else(macrophage_only == "yes", paste0(pearson_text, "*"), pearson_text)) %>%
     inner_join(method_names) %>%
     ggplot(aes(x=column, y=method_name)) +
@@ -57,7 +57,7 @@ plot_cor_table = function(data) {
       theme(axis.text.x.top=element_text(angle = 90, vjust = .5, hjust=0),
               legend.position="none",
               strip.text.x = element_text(size=11)) +
-      facet_grid(~category, scales = "free_x", space="free_x") + 
+      facet_grid(~category, scales = "free_x", space="free_x") +
       theme(strip.background = element_blank(),
             strip.text.x = element_blank()) +
       scale_x_discrete(position = "top") +
@@ -83,13 +83,13 @@ noise = noise_sc
 
 # Mixing Benchmark
 mixing =  res_mixing_study$correlations %>%
-    rename(column=cell_type) %>% 
+    rename(column=cell_type) %>%
     mutate(category="cell_type")
 
 # Validation Benchmark
 
-validation = res_validation$between_sample %>% 
-  rename(column=cell_type) %>% 
+validation = res_validation$between_sample %>%
+  rename(column=cell_type) %>%
   select(method, column, pearson)
 ```
 
@@ -98,7 +98,7 @@ validation = res_validation$between_sample %>%
 ```{r, fig.height=3.5, include=FALSE}
 # make the correlation plots
 p_noise = plot_cor_table(noise) + ggtitle("Noise")
-p_mixing = plot_cor_table(mixing) + ggtitle("Mixing Benchmark") 
+p_mixing = plot_cor_table(mixing) + ggtitle("Mixing Benchmark")
 p_validation = plot_cor_table(validation) + ggtitle("Validation")
 
 print(p_noise)
@@ -178,7 +178,7 @@ tmp_matrix = crossing(tmp_cell_types, tmp_methods)
 colnames(tmp_matrix) = c("cell_type", "method")
 p_abs_deviation = res_mixing_study$deviation_from_slope %>%
   filter(method %in% c("epic", "quantiseq")) %>%
-  right_join(tmp_matrix) %>% 
+  right_join(tmp_matrix) %>%
   inner_join(method_names) %>%
    # na -> 0 workaround, otherwise text label does not show
    ggplot(aes(x=cell_type, y=ifelse(is.na(deviation), 0, deviation), alpha=macrophage_only)) +
@@ -219,7 +219,7 @@ p2_mixing = p_mixing + theme(axis.text.y=element_blank(), plot.margin = margin(t
                              plot.title=element_text(hjust=1))
 p2_validation = p_validation + theme(axis.text.y=element_blank(), plot.margin = margin(t=MT1, l=.2, b=MB1, unit="cm"),
                                      plot.title=element_text(hjust=1))
-p2_sensitivity = p_sensitivity + theme(plot.margin = margin(t=MT2, b=MB2, r=.5, unit= "cm"), 
+p2_sensitivity = p_sensitivity + theme(plot.margin = margin(t=MT2, b=MB2, r=.5, unit= "cm"),
                                        plot.title=element_text(hjust=1))
 p2_specificity = p_specificity + theme(axis.text.y = element_blank(),
                                        plot.margin = margin(l = 1, t=MT2, b=MB2, unit="cm"),

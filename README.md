@@ -26,8 +26,16 @@ If you have problems retrieving the submodule, read this [question on
 stackoverflow](https://stackoverflow.com/questions/3796927/how-to-git-clone-including-submodules).
 
 
-### CIBERSORT [TODO]
-(download cibersort... cannot include in repo due to license restrictions)
+### CIBERSORT
+Due to licensing restrictions, CIBERSORT could not be included in this repo.
+You have to got to the [CIBERSORT website](https://cibersort.stanford.edu),
+obtain a license and download the source code.
+
+Place the files `CIBERSORT.R` and `LM22.txt` in the
+```
+libs/CIBERSORT/
+```
+folder of this repository.
 
 
 ### Run the pipeline

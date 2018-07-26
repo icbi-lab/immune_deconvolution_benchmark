@@ -259,7 +259,7 @@ ggsave("../results/figures/summary.png", dpi=1200)
 
 
 ## Migration charts for Spillover analysis
-```{r, fig.width = 16, fig.height=10, include=FALSE, fig.cap="Migration chart figure for paper. "}
+```{r, fig.width = 16, fig.height=10, include=FALSE}
 methods = immunedeconv::deconvolution_methods
 
 # cibersort and cibersort abs are identical in this analysis, no need to include both.
@@ -330,7 +330,7 @@ p
 migration_legend = get_legend(p)
 ```
 
-```{r fig.width = 13, fig.height=7, echo=FALSE, message=FALSE}
+```{r fig.width = 13, fig.height=7, echo=FALSE, message=FALSE, fig.cap="Migration chart figure for paper. "}
 # combine legend and plot
 plot_grid(migration_plot, migration_legend, nrow=1, rel_widths = c(.9, .15))
 

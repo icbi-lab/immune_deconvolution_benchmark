@@ -84,7 +84,7 @@ all_results %>%
 The results show a strong correlation between both datasets and suggest that the approach is valid in general.
 The poor overlap of xCell is proabably due to the fact that there is little variance between the samples which xCell
 requires to compute a meaningful score (see their [README on
-GitHub](https://github.com/dviraran/xCell/blob/ce4d43121c4a161b1e72a50dc875e43d9cf89b0d/README.Md).
+GitHub](https://github.com/dviraran/xCell/blob/ce4d43121c4a161b1e72a50dc875e43d9cf89b0d/README.Md)).
 
 
 ## Correlation with immune reference samples.

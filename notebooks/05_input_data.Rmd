@@ -52,10 +52,10 @@ In this chapter, we load and preprocess the datasets we use in this study
 Dataset | Reference
 --------|----------
 A dataset of more than 11,000 single cancer and immune cells, classified by cell type         | @Schelker2017
-50 Immune cell reference samples from 5 studies | Curated by [@quantiseq2017]
-3 ovarian cancer ascites samples (RNAseq + FACS) | [@Schelker2017]
-8 PBMC samples (RNAseq + FACS) | [@Hoek2015]
-4 metastatic melanoma samplese (RNAseq + FACS) | [@EPIC2017]
+50 Immune cell reference samples from 5 studies | Curated by @quantiseq2017
+3 ovarian cancer ascites samples (RNAseq + FACS) | @Schelker2017
+8 PBMC samples (RNAseq + FACS) | @Hoek2015
+4 metastatic melanoma samplese (RNAseq + FACS) | @EPIC2017
 
 
 ## cell type hierarchy
@@ -116,7 +116,7 @@ cell_types$n_background_cells = single_cell_schelker$eset %>% pData() %>%
   {'names<-'(.$n, .$cell_type)}
 ```
 
-In this study, we make use of the single cell dataset curated by [@Schelker2017]. They aggregated single cell sequencing data from different sources resulting in a set of more than 11,000 single cells. They classified the cells using at set of 45 marker genes into `r length(cell_types$available)` categories:
+In this study, we make use of the single cell dataset curated by @Schelker2017. They aggregated single cell sequencing data from different sources resulting in a set of more than 11,000 single cells. They classified the cells using at set of 45 marker genes into `r length(cell_types$available)` categories:
 
 * `r length(cell_types$cancer)` cancer types (`r str_c(cell_types$cancer, collapse=", ")`),
 * `r length(cell_types$immune_cells)` immune cells (`r str_c(cell_types$immune_cells, collapse=", ")`),
@@ -136,7 +136,7 @@ pData(single_cell_schelker$eset) %>%
                                                 ncol(exprs(single_cell_schelker$eset))))
 ```
 
-```{r, echo=FALSE, message=FALSE, fig.width=13, fig.height=10, fig.cap="tSNE-clustering of the ~12,000 single cells from [@Schelker2017]. "}
+```{r, echo=FALSE, message=FALSE, fig.width=13, fig.height=10, fig.cap="tSNE-clustering of the ~12,000 single cells from @Schelker2017. "}
 pData(single_cell_schelker$eset) %>%
   ggplot(aes(x=tsneX1, y=tsneX2, colour=cell_type)) +
            geom_point(size=1) +
@@ -152,7 +152,7 @@ ggsave("../results/figures/schelker_single_cell_tsne.png", dpi=1200)
 ```
 
 ## Immune cell reference samples
-RNAseq samples of pure immune cells of 10 types from 5 studies curated by [@quantiseq2017].
+RNAseq samples of pure immune cells of 10 types from 5 studies curated by @quantiseq2017.
 
 ```{r, message=FALSE, cache=TRUE, echo=FALSE, results="asis"}
 immune_cell_reference = new.env()
@@ -181,7 +181,7 @@ dt_caption("List of immune cell reference samples")
 DT::datatable(immune_cell_reference$sample_description %>% select(sample, Study, cell_type))
 ```
 
-## 8 PBMC samples from [@Hoek2015]
+## 8 PBMC samples from @Hoek2015
 ```{r hoek, echo=FALSE, message=FALSE}
 tmp_env = new.env()
 with(tmp_env, {
@@ -196,16 +196,17 @@ hoek$ref = tmp_env$RefData %>%
   inner_join(immunedeconv::cell_type_mapping %>% filter(method_dataset == "hoek"))
 ```
 
-```{r hoek_table, echo=FALSE}
+```{r hoek_table, echo=FALSE, results="asis"}
+dt_caption("Flow cytometry estimates of Hoek et al. ")
 hoek$ref %>% DT::datatable()
 ```
 
 
-### 3 ovarian cancer ascites samples from [@Schelker2017]
+## 3 ovarian cancer ascites samples from @Schelker2017
 Each sample has two technical replicates. We merge the two replicates by taking
 the mean for each gene.
 
-```{r schelker_ovarian, echo=FALSE}
+```{r schelker_ovarian, echo=FALSE, result="asis"}
 schelker_ovarian = new.env()
 with(schelker_ovarian, {
   bulk_replicates = read_xls("../data/schelker/ascites_bulk_samples.xls")
@@ -246,19 +247,20 @@ with(schelker_ovarian, {
 ```
 
 ```{r, echo=FALSE}
-schelker_ovarian$true_cell_count_sc %>% DT::datatable()
+dt_caption("Flow cytometry estimates of Schelker et al. ")
+schelker_ovarian$ref %>% DT::datatable()
 ```
 
 The samples have also been profiled by single cell RNA sequencing. The following table shows the
 cell count for each sample.
-```{r}
+```{r, echo=FALSE}
 schelker_ovarian$true_cell_count_sc %>%
   group_by(donor) %>%
   summarise(sum(cell_count)) %>%
   kable(caption="Single cell count per ovarian cancer ascites sample. ")
 ```
 
-### 4 metastatic melanoma samples from [@EPIC2017]
+## 4 metastatic melanoma samples from @EPIC2017
 ```{r racle, message=FALSE, echo=FALSE}
 tmp_env = new.env()
 with(tmp_env, {
@@ -289,10 +291,12 @@ racle$ref = tmp_env$racle_cyto %>%
   mutate(true_fraction=true_fraction/100) %>%
   inner_join(immunedeconv::cell_type_mapping %>% filter(method_dataset == "racle"))
 
-
-racle$ref %>% select(sample, cell_type, true_fraction) %>% DT::datatable()
 ```
 
+```{r racle_tab, message=FALSE, echo=FALSE, results="asis"}
+dt_caption("Flow cytometry estimates of Racle et al. ")
+racle$ref %>% select(sample, cell_type, true_fraction) %>% DT::datatable()
+```
 
 
 ## Data sanity checks
@@ -319,7 +323,7 @@ hist(log2(c(immune_cell_reference$expr_mat)+1))
 ```
 
 The mean values of all datasets:
-```{r, resulte='hold', cache=TRUE}
+```{r, results='hold', cache=TRUE}
 mean(c(exprs(single_cell_schelker$eset)))
 mean(c(racle$expr_mat))
 mean(c(schelker_ovarian$expr_mat))

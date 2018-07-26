@@ -1,12 +1,13 @@
-# Mixing study
+# Simulation benchmark
 
-In this chapter, we will use single cell data from [@Schelker2017] to create simulated bulk RNAseq samples
-of which we know the true cell proportions. We futher use these samples to benchmark the performance of different recently published immune deconvolution tools.
+In this chapter, we will use single cell data from @Schelker2017 to create simulated bulk RNAseq samples
+of which we know the true cell proportions (=artificial gold standard). Using these data, we
+can assess the performance of immune deconvolution tools.
 
 ## Average fraction of tumour cells
 To obtain representatitive simulated samples, we are interested in the average fraction of tumour cells vs immune cells in a mixture.
 
-```{r cancer_cell_type_fractions, results='hold', echo=FALSE}
+```{r tumor_ct_fractions, results='hold', echo=FALSE, fig.cap="proportion of cell types by tumor sample"}
 cell_type_table = pData(single_cell_schelker$eset) %>%
   filter(source %in% c("melanoma", "ascites")) %>%
   mutate(sample=paste(source, donor, sep="_")) %>%
@@ -30,7 +31,7 @@ cancer_cells = cell_type_table %>%
 cancer_cell_param = MASS::fitdistr(cancer_cells$freq, "normal")
 ```
 
-The mean cancer fraction is `r round(cancer_cell_param$estimate[1], 2)` ± `r round(cancer_cell_param$estimate[2], 2)`.
+The cancer fraction is $\sim\mathcal{N}(`r round(cancer_cell_param$estimate[1], 2)`, `r round(cancer_cell_param$estimate[2], 2)`)$.
 
 
 ## Create simulated bulk tissues
@@ -38,7 +39,7 @@ The fractions of a sample are randomly assigned in the following procedure:
 
 1. Draw a random tumour cell content from the distribution fitted above
 2. The first half of the samples will use melanoma cells, the second half ovarian cancer cells.
-3. Assign the remaining fraction (=not cancer cells)  randomly to the remaining cell types (`r cell_types$available`)
+3. Assign the remaining fraction (=not cancer cells) randomly to the remaining cell types (`r cell_types$available`)
 
 ```{r mixing_make_proportions, echo=FALSE}
 set.seed(42)
@@ -72,7 +73,7 @@ cell_fractions = lapply(is_melanoma, function(melanoma) {
 assert("all fractions sum up to 1", all(apply(cell_fractions, 1, sum) - rep(1, 100) < 1e-4))
 ```
 
-Here, we generate a simulated bulkRNA Expressionset:
+Here, we generate a simulated bulk RNA-seq ExpressionSet:
 ```{r, cache=TRUE}
 set.seed(42)
 bulk_eset = make_bulk_eset(eset=single_cell_schelker$eset,
@@ -82,7 +83,6 @@ bulk_eset = make_bulk_eset(eset=single_cell_schelker$eset,
 
 
 ## Run the deconvolution
-We first run all methods that are integrated in the `immune_deconvolution_methods` are package automatically in a loop.
 ```{r mixing_deconvolution, cache=TRUE, message=FALSE, echo=FALSE, warning=FALSE, results='hide'}
 timer_indications = ifelse(is_melanoma, "SKCM", "OV")
 all_results = foreach(method=immunedeconv::deconvolution_methods,
@@ -90,7 +90,6 @@ all_results = foreach(method=immunedeconv::deconvolution_methods,
   deconvolute(bulk_eset, method, column="gene_symbol", indications = timer_indications)
 }
 ```
-
 
 
 ## Results
@@ -149,11 +148,12 @@ gold_standard = pData(bulk_eset) %>%
 ```
 
 ```{r, cache=TRUE}
-results_with_gold_standard = inner_join(all_results_tidy, gold_standard, by=c("sample", "cell_type"))
+results_with_gold_standard = inner_join(all_results_tidy, gold_standard,
+                                        by=c("sample", "cell_type"))
 ```
 
 ### Correlation plots
-```{r mixing_correlation_plot, fig.width=18, fig.height=10, echo=FALSE}
+```{r mixing_correlation_plot, fig.width=18, fig.height=10, echo=FALSE, fig.cap="The figure shows the correlation of predicted vs. known fractions on 100 simulated bulk RNA seq samples."}
 results_with_gold_standard %>%
   ggplot(aes(x=true_fraction, y=estimate)) +
   facet_grid(method ~ cell_type, scales="free") +
@@ -184,7 +184,7 @@ write_tsv(correlations_tab, "../results/tables/mixing_study_correlations.tsv", n
 ```
 
 
-```{r, fig.width=8, fig.height=6, echo=FALSE}
+```{r, fig.width=8, fig.height=6, echo=FALSE, fig.cap="Correlations of predicted vs. known fractions on 100 simulated bulk RNA-seq samples, organized by cell type. "}
 correlations %>%
   ggplot(aes(x=method, y=pearson, alpha=macrophage_only)) +
     geom_bar(aes(fill=method), stat="identity") +
@@ -202,6 +202,16 @@ correlations %>%
 If the absolute devoncolution was perfect, the slope would equal 1 ($x \mapsto y$ ).
 The figure shows the deviation from the 1, i.e. values > 0 indicate the method over-estimates the fraction
 of these cells; values < 0 indicate the method under-estiamtes the fraction of these cells.
+
+Note that only EPIC and quanTIseq provide scores that can be interpreted as a cell fraction.
+xCell and CIBERSORT abs. scale the output score to be 'absolute':
+
+>  xCell does an attempt to make the scores resemble percentages, but it is a hard problem, and is very platform and experiment specific. ([xCell on github](https://github.com/dviraran/xCell/blob/060764fa254904f80ed776a19bdd9ecbfeedc2be/README.Md)
+
+> Absolute mode scales relative cellular fractions into a score of arbitrary units that reflects the absolute proportion
+> of each cell type in a mixture. Although not currently expressed as a fraction, the absolute score can be directly
+> compared across cell types (i.e., relative differences between cell types are maintained) ([cibersort
+> FAQ](https://cibersort.stanford.edu/))
 
 Confidence intervals are two-sided 95% confidence intervales derived using `confint` and `lm`.
 ```{r mixing_abs, echo=FALSE, cache=TRUE}
@@ -225,7 +235,7 @@ deviation_from_slope = results_with_gold_standard %>%
 res_mixing_study$deviation_from_slope = deviation_from_slope
 ```
 
-```{r, fig.width=8, fig.height=6, echo=FALSE}
+```{r, fig.width=8, fig.height=6, echo=FALSE, fig.cap="Comparison of absolute methods. The bars indicate the deviation from the perfect slope y=x"}
 deviation_from_slope %>%
  ggplot(aes(x=method, y=deviation, alpha=macrophage_only)) +
     geom_bar(aes(fill=method), stat="identity") +

@@ -6,7 +6,7 @@ estimates of the methods's performances.
 
 To test, we try:
 
-* correlation of simulated bulk samplese with a corresponding genuine bulk sample.
+* correlation of simulated bulk samples with a corresponding genuine bulk sample.
 * correlation of the predicted fractions with all methods on bulk vs. simulated samples.
 * correlation of the simulated bulk samples with a reference immune cell sample of the same cell type.
 
@@ -92,7 +92,7 @@ To demonstrate that the simulated bulk samples are also biologically meaningflu,
 simulated bulk samples of different immune cell types and correlate them with
 reference profiles of pure immune cells.
 
-```{r, fig.width=8, fig.height=8, echo=FALSE, fig.cap="Correlation of simulated bulk samples of a certain immune cell type with immune cell reference samples"}
+```{r, fig.width=8, fig.height=8, echo=FALSE, fig.cap="Correlation of simulated bulk samples of a certain immune cell type (y-axis) with immune cell reference samples (x-axis)"}
 cell_fractions = diag(length(cell_types$immune_cells))
 cell_fractions = rbind(cell_fractions, cell_fractions, cell_fractions)
 colnames(cell_fractions) = cell_types$immune_cells

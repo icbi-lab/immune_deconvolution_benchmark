@@ -81,7 +81,7 @@ noise_sc = res_methods_validity$all_results %>%
 noise = noise_sc
 
 
-# Mixing Benchmark
+# Simulation Benchmark
 mixing =  res_mixing_study$correlations %>%
     rename(column=cell_type) %>%
     mutate(category="cell_type")
@@ -98,7 +98,7 @@ validation = res_validation$between_sample %>%
 ```{r, fig.height=3.5, include=FALSE}
 # make the correlation plots
 p_noise = plot_cor_table(noise) + ggtitle("Noise")
-p_mixing = plot_cor_table(mixing) + ggtitle("Mixing Benchmark")
+p_mixing = plot_cor_table(mixing) + ggtitle("Simulation Benchmark")
 p_validation = plot_cor_table(validation) + ggtitle("Validation")
 
 print(p_noise)

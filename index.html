@@ -7,7 +7,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)</title>
   <meta name="description" content="Systematic Evaluation of state-of-the-art Immune deconvolution methods.">
-  <meta name="generator" content="bookdown 0.7.13 and GitBook 2.6.7">
+  <meta name="generator" content="bookdown 0.7 and GitBook 2.6.7">
 
   <meta property="og:title" content="Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)" />
   <meta property="og:type" content="book" />
@@ -48,7 +48,7 @@
 
 
 
-<script src="libs/htmlwidgets-1.2/htmlwidgets.js"></script>
+<script src="libs/htmlwidgets-1.0/htmlwidgets.js"></script>
 <script src="libs/viz-0.3/viz.js"></script>
 <link href="libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
 <script src="libs/grViz-binding-1.0.0/grViz.js"></script>
@@ -64,7 +64,7 @@
 <style type="text/css">
 a.sourceLine { display: inline-block; line-height: 1.25; }
 a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
-a.sourceLine:empty { height: 1.2em; position: absolute; }
+a.sourceLine:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode { white-space: pre; position: relative; }
 div.sourceCode { margin: 1em 0; }
@@ -77,13 +77,11 @@ code.sourceCode { white-space: pre-wrap; }
 a.sourceLine { text-indent: -1em; padding-left: 1em; }
 }
 pre.numberSource a.sourceLine
-  { position: relative; }
-pre.numberSource a.sourceLine:empty
-  { position: absolute; }
+  { position: relative; left: -4em; }
 pre.numberSource a.sourceLine::before
   { content: attr(data-line-number);
-    position: absolute; left: -5em; text-align: right; vertical-align: baseline;
-    border: none; pointer-events: all;
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
@@ -139,65 +137,51 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <nav role="navigation">
 
 <ul class="summary">
-<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction</a><ul>
-<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#conceptual-differences-between-methods"><i class="fa fa-check"></i><b>1.1</b> Conceptual differences between methods</a><ul>
-<li class="chapter" data-level="1.1.1" data-path="index.html"><a href="index.html#marker-gene-based-methods-allow-comparison-between-samples-but-not-between-cell-types"><i class="fa fa-check"></i><b>1.1.1</b> Marker gene based methods (allow comparison between samples, but not between cell types)</a></li>
-<li class="chapter" data-level="1.1.2" data-path="index.html"><a href="index.html#deconvolution-based-methods-relative-fractions-allow-comparisons-between-cell-types-but-not-samples"><i class="fa fa-check"></i><b>1.1.2</b> Deconvolution-based methods (relative fractions, allow comparisons between cell types, but not samples)</a></li>
-<li class="chapter" data-level="1.1.3" data-path="index.html"><a href="index.html#deconvolution-based-methods-absolute-fractions-allow-comparisons-between-cell-types-and-samples"><i class="fa fa-check"></i><b>1.1.3</b> Deconvolution-based methods (absolute fractions, allow comparisons between cell types and samples)</a></li>
-</ul></li>
-</ul></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction</a></li>
 <li class="chapter" data-level="2" data-path="input-data.html"><a href="input-data.html"><i class="fa fa-check"></i><b>2</b> Input data</a><ul>
 <li class="chapter" data-level="2.1" data-path="input-data.html"><a href="input-data.html#cell-type-hierarchy"><i class="fa fa-check"></i><b>2.1</b> cell type hierarchy</a></li>
 <li class="chapter" data-level="2.2" data-path="input-data.html"><a href="input-data.html#single-cell-data-for-simulated-mixtures"><i class="fa fa-check"></i><b>2.2</b> Single cell data for simulated mixtures</a></li>
-<li class="chapter" data-level="2.3" data-path="input-data.html"><a href="input-data.html#immune-cell-bulk-reference-samples-quantiseq-training-data"><i class="fa fa-check"></i><b>2.3</b> Immune cell bulk reference samples (quanTIseq training data)</a></li>
-<li class="chapter" data-level="2.4" data-path="input-data.html"><a href="input-data.html#validation-data-rnaseq-matched-gold-standard"><i class="fa fa-check"></i><b>2.4</b> Validation data (RNAseq + matched gold standard)</a><ul>
-<li class="chapter" data-level="2.4.1" data-path="input-data.html"><a href="input-data.html#hoeck-data"><i class="fa fa-check"></i><b>2.4.1</b> Hoeck data</a></li>
-<li class="chapter" data-level="2.4.2" data-path="input-data.html"><a href="input-data.html#schelker-data"><i class="fa fa-check"></i><b>2.4.2</b> Schelker data</a></li>
-<li class="chapter" data-level="2.4.3" data-path="input-data.html"><a href="input-data.html#racle-data"><i class="fa fa-check"></i><b>2.4.3</b> Racle data</a></li>
-</ul></li>
+<li class="chapter" data-level="2.3" data-path="input-data.html"><a href="input-data.html#immune-cell-reference-samples"><i class="fa fa-check"></i><b>2.3</b> Immune cell reference samples</a></li>
+<li class="chapter" data-level="2.4" data-path="input-data.html"><a href="input-data.html#pbmc-samples-from-hoek2015"><i class="fa fa-check"></i><b>2.4</b> 8 PBMC samples from <span class="citation">Hoek et al. (<span>2015</span>)</span></a></li>
+<li class="chapter" data-level="2.5" data-path="input-data.html"><a href="input-data.html#ovarian-cancer-ascites-samples-from-schelker2017"><i class="fa fa-check"></i><b>2.5</b> 3 ovarian cancer ascites samples from <span class="citation">Schelker et al. (<span>2017</span>)</span></a></li>
+<li class="chapter" data-level="2.6" data-path="input-data.html"><a href="input-data.html#metastatic-melanoma-samples-from-epic2017"><i class="fa fa-check"></i><b>2.6</b> 4 metastatic melanoma samples from <span class="citation">Racle et al. (<span>2017</span>)</span></a></li>
+<li class="chapter" data-level="2.7" data-path="input-data.html"><a href="input-data.html#data-sanity-checks"><i class="fa fa-check"></i><b>2.7</b> Data sanity checks</a></li>
 </ul></li>
 <li class="chapter" data-level="3" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html"><i class="fa fa-check"></i><b>3</b> Validitiy of single cell RNA-seq as reference</a><ul>
-<li class="chapter" data-level="3.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#validity-of-simulated-bulk-tissues-from-single-cell-sequencing-data"><i class="fa fa-check"></i><b>3.1</b> Validity of simulated bulk tissues from single cell sequencing data</a><ul>
-<li class="chapter" data-level="3.1.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#compare-simululated-samples-to-bulk-samples"><i class="fa fa-check"></i><b>3.1.1</b> Compare simululated samples to bulk samples</a></li>
-<li class="chapter" data-level="3.1.2" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#compare-the-predicted-fractions"><i class="fa fa-check"></i><b>3.1.2</b> Compare the predicted fractions</a></li>
+<li class="chapter" data-level="3.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#compare-simululated-to-genuine-bulk-samples"><i class="fa fa-check"></i><b>3.1</b> Compare simululated to genuine bulk samples</a></li>
+<li class="chapter" data-level="3.2" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#compare-predicted-fractions"><i class="fa fa-check"></i><b>3.2</b> Compare predicted fractions</a></li>
+<li class="chapter" data-level="3.3" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#correlation-with-immune-reference-samples."><i class="fa fa-check"></i><b>3.3</b> Correlation with immune reference samples.</a></li>
 </ul></li>
-<li class="chapter" data-level="3.2" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#correlated-simulated-samples-with-bulk-of-the-same-tissue."><i class="fa fa-check"></i><b>3.2</b> Correlated simulated samples with bulk of the same tissue.</a></li>
-</ul></li>
-<li class="chapter" data-level="4" data-path="mixing-study.html"><a href="mixing-study.html"><i class="fa fa-check"></i><b>4</b> Mixing study</a><ul>
-<li class="chapter" data-level="4.1" data-path="mixing-study.html"><a href="mixing-study.html#average-fraction-of-tumour-cells"><i class="fa fa-check"></i><b>4.1</b> Average fraction of tumour cells</a></li>
-<li class="chapter" data-level="4.2" data-path="mixing-study.html"><a href="mixing-study.html#create-simulated-bulk-tissues"><i class="fa fa-check"></i><b>4.2</b> Create simulated bulk tissues</a></li>
-<li class="chapter" data-level="4.3" data-path="mixing-study.html"><a href="mixing-study.html#run-the-deconvolution"><i class="fa fa-check"></i><b>4.3</b> Run the deconvolution</a></li>
-<li class="chapter" data-level="4.4" data-path="mixing-study.html"><a href="mixing-study.html#results"><i class="fa fa-check"></i><b>4.4</b> Results</a><ul>
-<li class="chapter" data-level="4.4.1" data-path="mixing-study.html"><a href="mixing-study.html#correlation-plots"><i class="fa fa-check"></i><b>4.4.1</b> Correlation plots</a></li>
-<li class="chapter" data-level="4.4.2" data-path="mixing-study.html"><a href="mixing-study.html#calculate-correlations-for-each-method-and-cell-type"><i class="fa fa-check"></i><b>4.4.2</b> Calculate correlations for each method and cell type</a></li>
-<li class="chapter" data-level="4.4.3" data-path="mixing-study.html"><a href="mixing-study.html#deviation-from-slope-xy-for-all-absolute-methods"><i class="fa fa-check"></i><b>4.4.3</b> Deviation from slope (x=y) for all absolute methods</a></li>
+<li class="chapter" data-level="4" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html"><i class="fa fa-check"></i><b>4</b> Simulation benchmark</a><ul>
+<li class="chapter" data-level="4.1" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#average-fraction-of-tumour-cells"><i class="fa fa-check"></i><b>4.1</b> Average fraction of tumour cells</a></li>
+<li class="chapter" data-level="4.2" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#create-simulated-bulk-tissues"><i class="fa fa-check"></i><b>4.2</b> Create simulated bulk tissues</a></li>
+<li class="chapter" data-level="4.3" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#run-the-deconvolution"><i class="fa fa-check"></i><b>4.3</b> Run the deconvolution</a></li>
+<li class="chapter" data-level="4.4" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#results"><i class="fa fa-check"></i><b>4.4</b> Results</a><ul>
+<li class="chapter" data-level="4.4.1" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#correlation-plots"><i class="fa fa-check"></i><b>4.4.1</b> Correlation plots</a></li>
+<li class="chapter" data-level="4.4.2" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#calculate-correlations-for-each-method-and-cell-type"><i class="fa fa-check"></i><b>4.4.2</b> Calculate correlations for each method and cell type</a></li>
+<li class="chapter" data-level="4.4.3" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#deviation-from-slope-xy-for-all-absolute-methods"><i class="fa fa-check"></i><b>4.4.3</b> Deviation from slope (x=y) for all absolute methods</a></li>
 </ul></li>
 </ul></li>
-<li class="chapter" data-level="5" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html"><i class="fa fa-check"></i><b>5</b> Validation with real data</a></li>
-<li class="chapter" data-level="6" data-path="correlation-of-methods-across-tcga-samples-.html"><a href="correlation-of-methods-across-tcga-samples-.html"><i class="fa fa-check"></i><b>6</b> Correlation of methods across TCGA samples.</a><ul>
-<li class="chapter" data-level="6.1" data-path="correlation-of-methods-across-tcga-samples-.html"><a href="correlation-of-methods-across-tcga-samples-.html#heatmap-clustered-by-correlation"><i class="fa fa-check"></i><b>6.1</b> Heatmap clustered by correlation</a></li>
-<li class="chapter" data-level="6.2" data-path="correlation-of-methods-across-tcga-samples-.html"><a href="correlation-of-methods-across-tcga-samples-.html#heatmap-unclustered-sorted-by-cell-type"><i class="fa fa-check"></i><b>6.2</b> Heatmap unclustered, sorted by cell type</a></li>
+<li class="chapter" data-level="5" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html"><i class="fa fa-check"></i><b>5</b> Validation with real data</a><ul>
+<li class="chapter" data-level="5.1" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#between--and-within-sample-comparisons"><i class="fa fa-check"></i><b>5.1</b> Between- and within-sample comparisons</a></li>
+<li class="chapter" data-level="5.2" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#within-sample-comparison"><i class="fa fa-check"></i><b>5.2</b> Within-sample comparison</a></li>
+<li class="chapter" data-level="5.3" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#between-sample-comparisons"><i class="fa fa-check"></i><b>5.3</b> Between-sample comparisons</a></li>
 </ul></li>
-<li class="chapter" data-level="7" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html"><i class="fa fa-check"></i><b>7</b> Sensitivity and Specificity</a><ul>
-<li class="chapter" data-level="7.1" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html#predictions-with-increasing-immune-cell-content"><i class="fa fa-check"></i><b>7.1</b> Predictions with increasing immune cell content</a></li>
-<li class="chapter" data-level="7.2" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html#sensitivity"><i class="fa fa-check"></i><b>7.2</b> Sensitivity</a></li>
-<li class="chapter" data-level="7.3" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html#specificity"><i class="fa fa-check"></i><b>7.3</b> Specificity</a></li>
+<li class="chapter" data-level="6" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html"><i class="fa fa-check"></i><b>6</b> Sensitivity and Specificity</a><ul>
+<li class="chapter" data-level="6.1" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html#predictions-with-increasing-immune-cell-content"><i class="fa fa-check"></i><b>6.1</b> Predictions with increasing immune cell content</a></li>
+<li class="chapter" data-level="6.2" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html#sensitivity"><i class="fa fa-check"></i><b>6.2</b> Sensitivity</a></li>
+<li class="chapter" data-level="6.3" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html#specificity"><i class="fa fa-check"></i><b>6.3</b> Specificity</a></li>
 </ul></li>
-<li class="chapter" data-level="8" data-path="spillover-analysis.html"><a href="spillover-analysis.html"><i class="fa fa-check"></i><b>8</b> Spillover Analysis</a><ul>
-<li class="chapter" data-level="8.1" data-path="spillover-analysis.html"><a href="spillover-analysis.html#complete-spillover-matrix"><i class="fa fa-check"></i><b>8.1</b> Complete Spillover Matrix</a></li>
-<li class="chapter" data-level="8.2" data-path="spillover-analysis.html"><a href="spillover-analysis.html#summary-figure-noise-ratio"><i class="fa fa-check"></i><b>8.2</b> Summary figure: Noise ratio</a></li>
-<li class="chapter" data-level="8.3" data-path="spillover-analysis.html"><a href="spillover-analysis.html#summary-figure-migration-charts"><i class="fa fa-check"></i><b>8.3</b> Summary figure: migration charts</a></li>
+<li class="chapter" data-level="7" data-path="spillover-analysis.html"><a href="spillover-analysis.html"><i class="fa fa-check"></i><b>7</b> Spillover Analysis</a><ul>
+<li class="chapter" data-level="7.1" data-path="spillover-analysis.html"><a href="spillover-analysis.html#complete-spillover-matrix"><i class="fa fa-check"></i><b>7.1</b> Complete Spillover Matrix</a></li>
+<li class="chapter" data-level="7.2" data-path="spillover-analysis.html"><a href="spillover-analysis.html#summary-figure-signal-to-noise-ratio"><i class="fa fa-check"></i><b>7.2</b> Summary figure: Signal to noise ratio</a></li>
+<li class="chapter" data-level="7.3" data-path="spillover-analysis.html"><a href="spillover-analysis.html#summary-figure-migration-charts"><i class="fa fa-check"></i><b>7.3</b> Summary figure: migration charts</a></li>
 </ul></li>
-<li class="chapter" data-level="9" data-path="robustness-against-noise.html"><a href="robustness-against-noise.html"><i class="fa fa-check"></i><b>9</b> Robustness against noise</a><ul>
-<li class="chapter" data-level="9.1" data-path="robustness-against-noise.html"><a href="robustness-against-noise.html#result-figures"><i class="fa fa-check"></i><b>9.1</b> Result figures</a><ul>
-<li class="chapter" data-level="9.1.1" data-path="robustness-against-noise.html"><a href="robustness-against-noise.html#correlations"><i class="fa fa-check"></i><b>9.1.1</b> Correlations</a></li>
+<li class="chapter" data-level="8" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html"><i class="fa fa-check"></i><b>8</b> Creating publication ready figures</a><ul>
+<li class="chapter" data-level="8.1" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#benchmark-results-sensitivity-specificity-and-absolute-deviation"><i class="fa fa-check"></i><b>8.1</b> Benchmark results, Sensitivity, Specificity and absolute deviation</a></li>
+<li class="chapter" data-level="8.2" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#migration-charts-for-spillover-analysis"><i class="fa fa-check"></i><b>8.2</b> Migration charts for Spillover analysis</a></li>
 </ul></li>
-</ul></li>
-<li class="chapter" data-level="10" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html"><i class="fa fa-check"></i><b>10</b> Creating publication ready figures</a><ul>
-<li class="chapter" data-level="10.1" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#benchmark-results-sensitivity-specificity-and-absolute-deviation"><i class="fa fa-check"></i><b>10.1</b> Benchmark results, Sensitivity, Specificity and absolute deviation</a></li>
-<li class="chapter" data-level="10.2" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#migration-charts-for-spillover-analysis"><i class="fa fa-check"></i><b>10.2</b> Migration charts for Spillover analysis</a></li>
-</ul></li>
-<li class="chapter" data-level="11" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i><b>11</b> References</a></li>
+<li class="chapter" data-level="9" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i><b>9</b> References</a></li>
 </ul>
 
       </nav>
@@ -217,90 +201,24 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="header">
 <h1 class="title">Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)</h1>
-<p class="author"><em>manuscript in preparation</em></p>
-<p class="author"><em>Gregor Sturm<span class="math inline">\(^{1,2}\)</span></em></p>
-<p class="author"><em>Tatsiana Aneichyk<span class="math inline">\(^1\)</span></em></p>
-<p class="date"><em><span class="math inline">\(^1\)</span>Pieris Pharmaceuticals GmbH, Lise-Meitner-Straße 30, 85354 Freising, Germany
+<h4 class="author"><em>manuscript in preparation</em></h4>
+<h4 class="author"><em>Gregor Sturm<span class="math inline">\(^{1,2}\)</span></em></h4>
+<h4 class="author"><em>Tatsiana Aneichyk<span class="math inline">\(^1\)</span></em></h4>
+<h4 class="date"><em><span class="math inline">\(^1\)</span>Pieris Pharmaceuticals GmbH, Lise-Meitner-Straße 30, 85354 Freising, Germany
 <span class="math inline">\(^2\)</span>Experimental Bioinformatics, TUM School of Life Sciences Weihenstephan, Technical University of Munich, Maximus-von-Imhof-Forum 3, 85354 Freising, Germany
-2018-07-05</em></p>
+2018-07-26</em></h4>
 </div>
 <div id="introduction" class="section level1">
 <h1><span class="header-section-number">1</span> Introduction</h1>
-<p>There is urgent need for an unbiased comparison of existing immune deconvolution methods.
-We focus on RNA-seq only in this review, as current data, including large public efforts like TCGA, are likely generated using this technology.</p>
-<p>To our best knowlege, no such benchmark study has been performed yet, maybe due to the lack of an appropriate gold standard. Now, with the advent of large, publicly availble single-cell datasets this such a comparison becomes feasible.</p>
-<p>Systematic, methodological comparisons of such methods are available <span class="citation">(Newman and Alizadeh <a href="#ref-Newman2016">2016</a>; Finotello and Trajanoski <a href="#ref-Finotello2018">2018</a>; Avila Cobos et al. <a href="#ref-AvilaCobos2018">2018</a>)</span>. Here, we focus on algorithms, specifically developed for tumour immune cell deconvolution shipping with the appropriate signature matrix. While other, generic deconvolution altorithms are available (also reviewd in <span class="citation">Finotello and Trajanoski (<a href="#ref-Finotello2018">2018</a>)</span>), we do not take them into account here, as the resulting performance depends at least as much on the signature as on the method.</p>
-<p>The methods:
-MCPCounter <span class="citation">(Becht et al. <a href="#ref-Becht2016">2016</a>)</span></p>
-<p>xCell <span class="citation">(Aran, Hu, and Butte <a href="#ref-XCELL2017">2017</a>)</span></p>
-<p>CIBERSORT <span class="citation">(Aaron M. Newman, Chih Long Liu, Michael R. Green, Andrew J. Gentles, Weiguo Feng, Yue Xu, Chuong D. Hoang, Maximilian Diehn, A., and Alizadeh <a href="#ref-CIBERSORT2016">2016</a>)</span></p>
-<p>TIMER <span class="citation">(Li et al. <a href="#ref-TIMER2016">2016</a>)</span></p>
-<p>EPIC <span class="citation">(Racle et al. <a href="#ref-EPIC2017">2017</a>)</span></p>
-<p>quanTIseq <span class="citation">(Finotello et al. <a href="#ref-quantiseq2017">2017</a>)</span></p>
-<p>TODO refer schelker paper</p>
-<div id="conceptual-differences-between-methods" class="section level2">
-<h2><span class="header-section-number">1.1</span> Conceptual differences between methods</h2>
-<p>There are three conceptually different approaches to deconvolution.</p>
-<p>First, one can try to achieve scores suitable for inter-sample comparison. In that case, one can ask “Do I have more T cells in sample A than in sample B”, but one cannot ask “Do I have more B cells than T cells in sample A.”.
-This approach is used by GSEA-based methods like MCP counter.</p>
-<p>Second, one can try to build scores suitable for intra-sample comparison. In that case, one can ask “Do I have more B cells than T cells in sample A”, however one cannot draw conclusions about the abundance of T cells in sample A versus B, given there could also be other, unknown cell types in the sample (e.g. cancer cells). This approach is used by the default version of CIBERSORT)</p>
-<p>Last, ideally, one can build a score, that reflects the absolute quantity of a certain cell type in the sample. This approach allows both intra- and inter-sample comparisons.</p>
-<div id="marker-gene-based-methods-allow-comparison-between-samples-but-not-between-cell-types" class="section level3">
-<h3><span class="header-section-number">1.1.1</span> Marker gene based methods (allow comparison between samples, but not between cell types)</h3>
-<ul>
-<li>xCell (the authors apply some sort of normalization that makes xCell scores resemble percentages, although they advise doing this analysis with caution (<a href="https://github.com/dviraran/xCell#notes-for-correct-usage">ref</a>). In this Benchmark, we will nonetheless try xCell both as “relative” and “absolute” method.</li>
-<li>MCPCounter (purely gene-expression based -&gt; between cell type comparison is simply wrong)</li>
-<li>TIMER (“not comparable between cancer types or different immune cells”)</li>
-</ul>
-</div>
-<div id="deconvolution-based-methods-relative-fractions-allow-comparisons-between-cell-types-but-not-samples" class="section level3">
-<h3><span class="header-section-number">1.1.2</span> Deconvolution-based methods (relative fractions, allow comparisons between cell types, but not samples)</h3>
-<p>“relative to the total immune content”</p>
-<ul>
-<li>CIBERSORT (default mode)</li>
-</ul>
-</div>
-<div id="deconvolution-based-methods-absolute-fractions-allow-comparisons-between-cell-types-and-samples" class="section level3">
-<h3><span class="header-section-number">1.1.3</span> Deconvolution-based methods (absolute fractions, allow comparisons between cell types and samples)</h3>
-<ul>
-<li>CIBERSORT absolute mode (“Absolute mode scales relative cellular fractions into a score of arbitrary units that reflects the absolute proportion of each cell type in a mixture. Although not currently expressed as a fraction, the absolute score can be directly compared across cell types (i.e., relative differences between cell types are maintained)” [cibersort FAQ])</li>
-<li>quanTIseq (uses cell fractions)</li>
-<li>EPIC (uses cell fractions)</li>
-</ul>
-<p>As CIBERSORT absolute scores are expressed in arbitrary units and not fractions, estimating the abundance of “Other cells” can be misleading. We will still try…</p>
+<p>This document is supplementary information for</p>
+<blockquote>
+<p>Sturm, G. and Aneichyk T. <em>Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data</em>, <em>Manuscript in preparation</em>.</p>
+</blockquote>
+<p>This document elaborates step-by-step how we derive our results, shows supplementary figures to support our study
+and serves as an open-source pipeline to reproduce our results.</p>
+<p>The source code and instructions how to run the benchmark are available from GitHub:
+<a href="https://github.com/grst/immune_deconvolution_benchmark">grst/immune_deconvolution_benchmark</a></p>
 
-</div>
-</div>
-</div>
-<h3> References</h3>
-<div id="refs" class="references">
-<div id="ref-Newman2016">
-<p>Newman, Aaron M., and Ash A. Alizadeh. 2016. “High-throughput genomic profiling of tumor-infiltrating leukocytes.” <em>Current Opinion in Immunology</em> 41 (August). Elsevier Ltd: 77–84. <a href="https://doi.org/10.1016/j.coi.2016.06.006" class="uri">https://doi.org/10.1016/j.coi.2016.06.006</a>.</p>
-</div>
-<div id="ref-Finotello2018">
-<p>Finotello, Francesca, and Zlatko Trajanoski. 2018. “Quantifying tumor-infiltrating immune cells from transcriptomics data.” <em>Cancer Immunology, Immunotherapy</em> 0. <a href="https://doi.org/10.1007/s00262-018-2150-z" class="uri">https://doi.org/10.1007/s00262-018-2150-z</a>.</p>
-</div>
-<div id="ref-AvilaCobos2018">
-<p>Avila Cobos, Francisco, Jo Vandesompele, Pieter Mestdagh, and Katleen De Preter. 2018. “Computational deconvolution of transcriptomics data from mixed cell populations.” <em>Bioinformatics</em>, January. <a href="https://doi.org/10.1093/bioinformatics/bty019" class="uri">https://doi.org/10.1093/bioinformatics/bty019</a>.</p>
-</div>
-<div id="ref-Becht2016">
-<p>Becht, Etienne, Nicolas A. Giraldo, Laetitia Lacroix, Bénédicte Buttard, Nabila Elarouci, Florent Petitprez, Janick Selves, et al. 2016. “Estimating the population abundance of tissue-infiltrating immune and stromal cell populations using gene expression.” <em>Genome Biology</em> 17 (1). Genome Biology: 218. <a href="https://doi.org/10.1186/s13059-016-1070-5" class="uri">https://doi.org/10.1186/s13059-016-1070-5</a>.</p>
-</div>
-<div id="ref-XCELL2017">
-<p>Aran, Dvir, Zicheng Hu, and Atul J Butte. 2017. “xCell: digitally portraying the tissue cellular heterogeneity landscape.” <em>Genome Biology</em> 18 (1): 220. <a href="https://doi.org/10.1186/s13059-017-1349-1" class="uri">https://doi.org/10.1186/s13059-017-1349-1</a>.</p>
-</div>
-<div id="ref-CIBERSORT2016">
-<p>Aaron M. Newman, Chih Long Liu, Michael R. Green, Andrew J. Gentles, Weiguo Feng, Yue Xu, Chuong D. Hoang, Maximilian Diehn, Ash A., and Alizadeh. 2016. “Robust enumeration of cell subsets from tissue expression profiles.” <em>Nat Methods.</em> 21 (3): 193–201. <a href="https://doi.org/10.1016/j.molmed.2014.11.008.Mitochondria" class="uri">https://doi.org/10.1016/j.molmed.2014.11.008.Mitochondria</a>.</p>
-</div>
-<div id="ref-TIMER2016">
-<p>Li, Bo, Eric Severson, Jean-Christophe Pignon, Haoquan Zhao, Taiwen Li, Jesse Novak, Peng Jiang, et al. 2016. “Comprehensive analyses of tumor immunity: implications for cancer immunotherapy.” <em>Genome Biology</em> 17 (1): 174. <a href="https://doi.org/10.1186/s13059-016-1028-7" class="uri">https://doi.org/10.1186/s13059-016-1028-7</a>.</p>
-</div>
-<div id="ref-EPIC2017">
-<p>Racle, Julien, Kaat de Jonge, Petra Baumgaertner, Daniel E Speiser, and David Gfeller. 2017. “Simultaneous enumeration of cancer and immune cell types from bulk tumor gene expression data.” <em>eLife</em> 6 (November). eLife Sciences Publications Limited: e26476. <a href="https://doi.org/10.7554/eLife.26476" class="uri">https://doi.org/10.7554/eLife.26476</a>.</p>
-</div>
-<div id="ref-quantiseq2017">
-<p>Finotello, Francesca, Clemens Mayer, Christina Plattner, Gerhard Laschober, Dietmar Rieder, Hubert Hackl, Anne Krogsdam, et al. 2017. “quanTIseq: quantifying immune contexture of human tumors.” <em>bioRxiv</em>, November. Cold Spring Harbor Laboratory, 223180. <a href="https://doi.org/10.1101/223180" class="uri">https://doi.org/10.1101/223180</a>.</p>
-</div>
 </div>
             </section>
 

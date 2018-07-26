@@ -7,7 +7,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)</title>
   <meta name="description" content="Systematic Evaluation of state-of-the-art Immune deconvolution methods.">
-  <meta name="generator" content="bookdown 0.7.13 and GitBook 2.6.7">
+  <meta name="generator" content="bookdown 0.7 and GitBook 2.6.7">
 
   <meta property="og:title" content="Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)" />
   <meta property="og:type" content="book" />
@@ -33,8 +33,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-<link rel="prev" href="mixing-study.html">
-<link rel="next" href="correlation-of-methods-across-tcga-samples-.html">
+<link rel="prev" href="simulation-benchmark.html">
+<link rel="next" href="sensitivity-and-specificity.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -48,7 +48,7 @@
 
 
 
-<script src="libs/htmlwidgets-1.2/htmlwidgets.js"></script>
+<script src="libs/htmlwidgets-1.0/htmlwidgets.js"></script>
 <script src="libs/viz-0.3/viz.js"></script>
 <link href="libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
 <script src="libs/grViz-binding-1.0.0/grViz.js"></script>
@@ -64,7 +64,7 @@
 <style type="text/css">
 a.sourceLine { display: inline-block; line-height: 1.25; }
 a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
-a.sourceLine:empty { height: 1.2em; position: absolute; }
+a.sourceLine:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode { white-space: pre; position: relative; }
 div.sourceCode { margin: 1em 0; }
@@ -77,13 +77,11 @@ code.sourceCode { white-space: pre-wrap; }
 a.sourceLine { text-indent: -1em; padding-left: 1em; }
 }
 pre.numberSource a.sourceLine
-  { position: relative; }
-pre.numberSource a.sourceLine:empty
-  { position: absolute; }
+  { position: relative; left: -4em; }
 pre.numberSource a.sourceLine::before
   { content: attr(data-line-number);
-    position: absolute; left: -5em; text-align: right; vertical-align: baseline;
-    border: none; pointer-events: all;
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
@@ -139,65 +137,51 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <nav role="navigation">
 
 <ul class="summary">
-<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction</a><ul>
-<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#conceptual-differences-between-methods"><i class="fa fa-check"></i><b>1.1</b> Conceptual differences between methods</a><ul>
-<li class="chapter" data-level="1.1.1" data-path="index.html"><a href="index.html#marker-gene-based-methods-allow-comparison-between-samples-but-not-between-cell-types"><i class="fa fa-check"></i><b>1.1.1</b> Marker gene based methods (allow comparison between samples, but not between cell types)</a></li>
-<li class="chapter" data-level="1.1.2" data-path="index.html"><a href="index.html#deconvolution-based-methods-relative-fractions-allow-comparisons-between-cell-types-but-not-samples"><i class="fa fa-check"></i><b>1.1.2</b> Deconvolution-based methods (relative fractions, allow comparisons between cell types, but not samples)</a></li>
-<li class="chapter" data-level="1.1.3" data-path="index.html"><a href="index.html#deconvolution-based-methods-absolute-fractions-allow-comparisons-between-cell-types-and-samples"><i class="fa fa-check"></i><b>1.1.3</b> Deconvolution-based methods (absolute fractions, allow comparisons between cell types and samples)</a></li>
-</ul></li>
-</ul></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction</a></li>
 <li class="chapter" data-level="2" data-path="input-data.html"><a href="input-data.html"><i class="fa fa-check"></i><b>2</b> Input data</a><ul>
 <li class="chapter" data-level="2.1" data-path="input-data.html"><a href="input-data.html#cell-type-hierarchy"><i class="fa fa-check"></i><b>2.1</b> cell type hierarchy</a></li>
 <li class="chapter" data-level="2.2" data-path="input-data.html"><a href="input-data.html#single-cell-data-for-simulated-mixtures"><i class="fa fa-check"></i><b>2.2</b> Single cell data for simulated mixtures</a></li>
-<li class="chapter" data-level="2.3" data-path="input-data.html"><a href="input-data.html#immune-cell-bulk-reference-samples-quantiseq-training-data"><i class="fa fa-check"></i><b>2.3</b> Immune cell bulk reference samples (quanTIseq training data)</a></li>
-<li class="chapter" data-level="2.4" data-path="input-data.html"><a href="input-data.html#validation-data-rnaseq-matched-gold-standard"><i class="fa fa-check"></i><b>2.4</b> Validation data (RNAseq + matched gold standard)</a><ul>
-<li class="chapter" data-level="2.4.1" data-path="input-data.html"><a href="input-data.html#hoeck-data"><i class="fa fa-check"></i><b>2.4.1</b> Hoeck data</a></li>
-<li class="chapter" data-level="2.4.2" data-path="input-data.html"><a href="input-data.html#schelker-data"><i class="fa fa-check"></i><b>2.4.2</b> Schelker data</a></li>
-<li class="chapter" data-level="2.4.3" data-path="input-data.html"><a href="input-data.html#racle-data"><i class="fa fa-check"></i><b>2.4.3</b> Racle data</a></li>
-</ul></li>
+<li class="chapter" data-level="2.3" data-path="input-data.html"><a href="input-data.html#immune-cell-reference-samples"><i class="fa fa-check"></i><b>2.3</b> Immune cell reference samples</a></li>
+<li class="chapter" data-level="2.4" data-path="input-data.html"><a href="input-data.html#pbmc-samples-from-hoek2015"><i class="fa fa-check"></i><b>2.4</b> 8 PBMC samples from <span class="citation">Hoek et al. (<span>2015</span>)</span></a></li>
+<li class="chapter" data-level="2.5" data-path="input-data.html"><a href="input-data.html#ovarian-cancer-ascites-samples-from-schelker2017"><i class="fa fa-check"></i><b>2.5</b> 3 ovarian cancer ascites samples from <span class="citation">Schelker et al. (<span>2017</span>)</span></a></li>
+<li class="chapter" data-level="2.6" data-path="input-data.html"><a href="input-data.html#metastatic-melanoma-samples-from-epic2017"><i class="fa fa-check"></i><b>2.6</b> 4 metastatic melanoma samples from <span class="citation">Racle et al. (<span>2017</span>)</span></a></li>
+<li class="chapter" data-level="2.7" data-path="input-data.html"><a href="input-data.html#data-sanity-checks"><i class="fa fa-check"></i><b>2.7</b> Data sanity checks</a></li>
 </ul></li>
 <li class="chapter" data-level="3" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html"><i class="fa fa-check"></i><b>3</b> Validitiy of single cell RNA-seq as reference</a><ul>
-<li class="chapter" data-level="3.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#validity-of-simulated-bulk-tissues-from-single-cell-sequencing-data"><i class="fa fa-check"></i><b>3.1</b> Validity of simulated bulk tissues from single cell sequencing data</a><ul>
-<li class="chapter" data-level="3.1.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#compare-simululated-samples-to-bulk-samples"><i class="fa fa-check"></i><b>3.1.1</b> Compare simululated samples to bulk samples</a></li>
-<li class="chapter" data-level="3.1.2" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#compare-the-predicted-fractions"><i class="fa fa-check"></i><b>3.1.2</b> Compare the predicted fractions</a></li>
+<li class="chapter" data-level="3.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#compare-simululated-to-genuine-bulk-samples"><i class="fa fa-check"></i><b>3.1</b> Compare simululated to genuine bulk samples</a></li>
+<li class="chapter" data-level="3.2" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#compare-predicted-fractions"><i class="fa fa-check"></i><b>3.2</b> Compare predicted fractions</a></li>
+<li class="chapter" data-level="3.3" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#correlation-with-immune-reference-samples."><i class="fa fa-check"></i><b>3.3</b> Correlation with immune reference samples.</a></li>
 </ul></li>
-<li class="chapter" data-level="3.2" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#correlated-simulated-samples-with-bulk-of-the-same-tissue."><i class="fa fa-check"></i><b>3.2</b> Correlated simulated samples with bulk of the same tissue.</a></li>
-</ul></li>
-<li class="chapter" data-level="4" data-path="mixing-study.html"><a href="mixing-study.html"><i class="fa fa-check"></i><b>4</b> Mixing study</a><ul>
-<li class="chapter" data-level="4.1" data-path="mixing-study.html"><a href="mixing-study.html#average-fraction-of-tumour-cells"><i class="fa fa-check"></i><b>4.1</b> Average fraction of tumour cells</a></li>
-<li class="chapter" data-level="4.2" data-path="mixing-study.html"><a href="mixing-study.html#create-simulated-bulk-tissues"><i class="fa fa-check"></i><b>4.2</b> Create simulated bulk tissues</a></li>
-<li class="chapter" data-level="4.3" data-path="mixing-study.html"><a href="mixing-study.html#run-the-deconvolution"><i class="fa fa-check"></i><b>4.3</b> Run the deconvolution</a></li>
-<li class="chapter" data-level="4.4" data-path="mixing-study.html"><a href="mixing-study.html#results"><i class="fa fa-check"></i><b>4.4</b> Results</a><ul>
-<li class="chapter" data-level="4.4.1" data-path="mixing-study.html"><a href="mixing-study.html#correlation-plots"><i class="fa fa-check"></i><b>4.4.1</b> Correlation plots</a></li>
-<li class="chapter" data-level="4.4.2" data-path="mixing-study.html"><a href="mixing-study.html#calculate-correlations-for-each-method-and-cell-type"><i class="fa fa-check"></i><b>4.4.2</b> Calculate correlations for each method and cell type</a></li>
-<li class="chapter" data-level="4.4.3" data-path="mixing-study.html"><a href="mixing-study.html#deviation-from-slope-xy-for-all-absolute-methods"><i class="fa fa-check"></i><b>4.4.3</b> Deviation from slope (x=y) for all absolute methods</a></li>
+<li class="chapter" data-level="4" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html"><i class="fa fa-check"></i><b>4</b> Simulation benchmark</a><ul>
+<li class="chapter" data-level="4.1" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#average-fraction-of-tumour-cells"><i class="fa fa-check"></i><b>4.1</b> Average fraction of tumour cells</a></li>
+<li class="chapter" data-level="4.2" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#create-simulated-bulk-tissues"><i class="fa fa-check"></i><b>4.2</b> Create simulated bulk tissues</a></li>
+<li class="chapter" data-level="4.3" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#run-the-deconvolution"><i class="fa fa-check"></i><b>4.3</b> Run the deconvolution</a></li>
+<li class="chapter" data-level="4.4" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#results"><i class="fa fa-check"></i><b>4.4</b> Results</a><ul>
+<li class="chapter" data-level="4.4.1" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#correlation-plots"><i class="fa fa-check"></i><b>4.4.1</b> Correlation plots</a></li>
+<li class="chapter" data-level="4.4.2" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#calculate-correlations-for-each-method-and-cell-type"><i class="fa fa-check"></i><b>4.4.2</b> Calculate correlations for each method and cell type</a></li>
+<li class="chapter" data-level="4.4.3" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#deviation-from-slope-xy-for-all-absolute-methods"><i class="fa fa-check"></i><b>4.4.3</b> Deviation from slope (x=y) for all absolute methods</a></li>
 </ul></li>
 </ul></li>
-<li class="chapter" data-level="5" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html"><i class="fa fa-check"></i><b>5</b> Validation with real data</a></li>
-<li class="chapter" data-level="6" data-path="correlation-of-methods-across-tcga-samples-.html"><a href="correlation-of-methods-across-tcga-samples-.html"><i class="fa fa-check"></i><b>6</b> Correlation of methods across TCGA samples.</a><ul>
-<li class="chapter" data-level="6.1" data-path="correlation-of-methods-across-tcga-samples-.html"><a href="correlation-of-methods-across-tcga-samples-.html#heatmap-clustered-by-correlation"><i class="fa fa-check"></i><b>6.1</b> Heatmap clustered by correlation</a></li>
-<li class="chapter" data-level="6.2" data-path="correlation-of-methods-across-tcga-samples-.html"><a href="correlation-of-methods-across-tcga-samples-.html#heatmap-unclustered-sorted-by-cell-type"><i class="fa fa-check"></i><b>6.2</b> Heatmap unclustered, sorted by cell type</a></li>
+<li class="chapter" data-level="5" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html"><i class="fa fa-check"></i><b>5</b> Validation with real data</a><ul>
+<li class="chapter" data-level="5.1" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#between--and-within-sample-comparisons"><i class="fa fa-check"></i><b>5.1</b> Between- and within-sample comparisons</a></li>
+<li class="chapter" data-level="5.2" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#within-sample-comparison"><i class="fa fa-check"></i><b>5.2</b> Within-sample comparison</a></li>
+<li class="chapter" data-level="5.3" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#between-sample-comparisons"><i class="fa fa-check"></i><b>5.3</b> Between-sample comparisons</a></li>
 </ul></li>
-<li class="chapter" data-level="7" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html"><i class="fa fa-check"></i><b>7</b> Sensitivity and Specificity</a><ul>
-<li class="chapter" data-level="7.1" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html#predictions-with-increasing-immune-cell-content"><i class="fa fa-check"></i><b>7.1</b> Predictions with increasing immune cell content</a></li>
-<li class="chapter" data-level="7.2" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html#sensitivity"><i class="fa fa-check"></i><b>7.2</b> Sensitivity</a></li>
-<li class="chapter" data-level="7.3" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html#specificity"><i class="fa fa-check"></i><b>7.3</b> Specificity</a></li>
+<li class="chapter" data-level="6" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html"><i class="fa fa-check"></i><b>6</b> Sensitivity and Specificity</a><ul>
+<li class="chapter" data-level="6.1" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html#predictions-with-increasing-immune-cell-content"><i class="fa fa-check"></i><b>6.1</b> Predictions with increasing immune cell content</a></li>
+<li class="chapter" data-level="6.2" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html#sensitivity"><i class="fa fa-check"></i><b>6.2</b> Sensitivity</a></li>
+<li class="chapter" data-level="6.3" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html#specificity"><i class="fa fa-check"></i><b>6.3</b> Specificity</a></li>
 </ul></li>
-<li class="chapter" data-level="8" data-path="spillover-analysis.html"><a href="spillover-analysis.html"><i class="fa fa-check"></i><b>8</b> Spillover Analysis</a><ul>
-<li class="chapter" data-level="8.1" data-path="spillover-analysis.html"><a href="spillover-analysis.html#complete-spillover-matrix"><i class="fa fa-check"></i><b>8.1</b> Complete Spillover Matrix</a></li>
-<li class="chapter" data-level="8.2" data-path="spillover-analysis.html"><a href="spillover-analysis.html#summary-figure-noise-ratio"><i class="fa fa-check"></i><b>8.2</b> Summary figure: Noise ratio</a></li>
-<li class="chapter" data-level="8.3" data-path="spillover-analysis.html"><a href="spillover-analysis.html#summary-figure-migration-charts"><i class="fa fa-check"></i><b>8.3</b> Summary figure: migration charts</a></li>
+<li class="chapter" data-level="7" data-path="spillover-analysis.html"><a href="spillover-analysis.html"><i class="fa fa-check"></i><b>7</b> Spillover Analysis</a><ul>
+<li class="chapter" data-level="7.1" data-path="spillover-analysis.html"><a href="spillover-analysis.html#complete-spillover-matrix"><i class="fa fa-check"></i><b>7.1</b> Complete Spillover Matrix</a></li>
+<li class="chapter" data-level="7.2" data-path="spillover-analysis.html"><a href="spillover-analysis.html#summary-figure-signal-to-noise-ratio"><i class="fa fa-check"></i><b>7.2</b> Summary figure: Signal to noise ratio</a></li>
+<li class="chapter" data-level="7.3" data-path="spillover-analysis.html"><a href="spillover-analysis.html#summary-figure-migration-charts"><i class="fa fa-check"></i><b>7.3</b> Summary figure: migration charts</a></li>
 </ul></li>
-<li class="chapter" data-level="9" data-path="robustness-against-noise.html"><a href="robustness-against-noise.html"><i class="fa fa-check"></i><b>9</b> Robustness against noise</a><ul>
-<li class="chapter" data-level="9.1" data-path="robustness-against-noise.html"><a href="robustness-against-noise.html#result-figures"><i class="fa fa-check"></i><b>9.1</b> Result figures</a><ul>
-<li class="chapter" data-level="9.1.1" data-path="robustness-against-noise.html"><a href="robustness-against-noise.html#correlations"><i class="fa fa-check"></i><b>9.1.1</b> Correlations</a></li>
+<li class="chapter" data-level="8" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html"><i class="fa fa-check"></i><b>8</b> Creating publication ready figures</a><ul>
+<li class="chapter" data-level="8.1" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#benchmark-results-sensitivity-specificity-and-absolute-deviation"><i class="fa fa-check"></i><b>8.1</b> Benchmark results, Sensitivity, Specificity and absolute deviation</a></li>
+<li class="chapter" data-level="8.2" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#migration-charts-for-spillover-analysis"><i class="fa fa-check"></i><b>8.2</b> Migration charts for Spillover analysis</a></li>
 </ul></li>
-</ul></li>
-<li class="chapter" data-level="10" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html"><i class="fa fa-check"></i><b>10</b> Creating publication ready figures</a><ul>
-<li class="chapter" data-level="10.1" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#benchmark-results-sensitivity-specificity-and-absolute-deviation"><i class="fa fa-check"></i><b>10.1</b> Benchmark results, Sensitivity, Specificity and absolute deviation</a></li>
-<li class="chapter" data-level="10.2" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#migration-charts-for-spillover-analysis"><i class="fa fa-check"></i><b>10.2</b> Migration charts for Spillover analysis</a></li>
-</ul></li>
-<li class="chapter" data-level="11" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i><b>11</b> References</a></li>
+<li class="chapter" data-level="9" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i><b>9</b> References</a></li>
 </ul>
 
       </nav>
@@ -217,35 +201,97 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="validation-with-real-data" class="section level1">
 <h1><span class="header-section-number">5</span> Validation with real data</h1>
-<pre class="sourceCode r"><code class="sourceCode r">res_validation =<span class="st"> </span><span class="kw">new.env</span>()</code></pre>
-<p>We the curated datasets with gold standard as an additional validation on top of the mixing study.</p>
-<p>We use the following three validation datasets (see table @ref(tab:validation_data)), which are the only ones
-in the tables for which we could obtain both gene expression and validation data</p>
-<pre class="sourceCode r"><code class="sourceCode r">datasets =<span class="st"> </span><span class="kw">list</span>(
-  <span class="dt">racle=</span>racle,
-  <span class="dt">hoeck=</span>hoeck,
-  <span class="dt">schelker_ovarian=</span>schelker_ovarian
-)</code></pre>
+<p>We use datasets which estimate the immune cell proportions using flow cytometry as an additional validation
+for our simulation benchmark.</p>
+<p>We use the following three validation datasets (see section <a href="input-data.html#input-data">2</a>):</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1">datasets =<span class="st"> </span><span class="kw">list</span>(</a>
+<a class="sourceLine" id="cb12-2" data-line-number="2">  <span class="dt">racle=</span>racle,</a>
+<a class="sourceLine" id="cb12-3" data-line-number="3">  <span class="dt">hoek=</span>hoek,</a>
+<a class="sourceLine" id="cb12-4" data-line-number="4">  <span class="dt">schelker_ovarian=</span>schelker_ovarian</a>
+<a class="sourceLine" id="cb12-5" data-line-number="5">)</a></code></pre></div>
 <p>We use the following cell types, which are available in (some of) the datasets</p>
-<pre class="sourceCode r"><code class="sourceCode r">use_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;T cell&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>,
-                   <span class="st">&quot;Macrophage/Monocyte&quot;</span>, <span class="st">&quot;B cell&quot;</span>, 
-                   <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;Neutrophil&quot;</span>)</code></pre>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1">use_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;T cell&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>,</a>
+<a class="sourceLine" id="cb13-2" data-line-number="2">                   <span class="st">&quot;Macrophage/Monocyte&quot;</span>, <span class="st">&quot;B cell&quot;</span>,</a>
+<a class="sourceLine" id="cb13-3" data-line-number="3">                   <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;Neutrophil&quot;</span>)</a></code></pre></div>
 <p>Here, we combine the predictions with the ‘gold standard’ reference data.</p>
-<pre class="sourceCode r"><code class="sourceCode r">all_results_ref =<span class="st"> </span><span class="kw">inner_join</span>(all_results, all_refs, 
-                             <span class="dt">by=</span><span class="kw">c</span>(<span class="st">&quot;sample&quot;</span>=<span class="st">&quot;sample&quot;</span>, <span class="st">&quot;dataset&quot;</span>=<span class="st">&quot;dataset&quot;</span>, <span class="st">&quot;cell_type&quot;</span>=<span class="st">&quot;cell_type&quot;</span>))
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1">all_results_ref =<span class="st"> </span><span class="kw">inner_join</span>(all_results, all_refs,</a>
+<a class="sourceLine" id="cb14-2" data-line-number="2">                             <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&quot;sample&quot;</span> =<span class="st"> &quot;sample&quot;</span>,</a>
+<a class="sourceLine" id="cb14-3" data-line-number="3">                                    <span class="st">&quot;dataset&quot;</span> =<span class="st"> &quot;dataset&quot;</span>,</a>
+<a class="sourceLine" id="cb14-4" data-line-number="4">                                    <span class="st">&quot;cell_type&quot;</span> =<span class="st"> &quot;cell_type&quot;</span>))</a>
+<a class="sourceLine" id="cb14-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb14-6" data-line-number="6">res_validation<span class="op">$</span>all_results =<span class="st"> </span>all_results_ref</a></code></pre></div>
+<p>The scores of the methods have different properties and not all of them are directly comparable.
+We distinguish between three types of comparisons:</p>
+<ul>
+<li>absolute scores: allow to compare within <em>and</em> between samples.</li>
+<li>scores relative to the total immune cell content: allow to compare within a sample</li>
+<li>scores in arbitrary units, that only allow to compare between samples.</li>
+</ul>
+<p>Here, we assign the methods to their respective group:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1">abs_methods =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;cibersort_abs&quot;</span>, <span class="st">&quot;quantiseq&quot;</span>, <span class="st">&quot;epic&quot;</span>)</a>
+<a class="sourceLine" id="cb15-2" data-line-number="2">within_methods =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;cibersort&quot;</span>, <span class="st">&quot;cibersort_abs&quot;</span>, <span class="st">&quot;quantiseq&quot;</span>, <span class="st">&quot;epic&quot;</span>)</a>
+<a class="sourceLine" id="cb15-3" data-line-number="3">between_methods =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;cibersort_abs&quot;</span>, <span class="st">&quot;quantiseq&quot;</span>, <span class="st">&quot;epic&quot;</span>, <span class="st">&quot;timer&quot;</span>, <span class="st">&quot;xcell&quot;</span>, <span class="st">&quot;mcp_counter&quot;</span>)</a></code></pre></div>
+<div id="between--and-within-sample-comparisons" class="section level2">
+<h2><span class="header-section-number">5.1</span> Between- and within-sample comparisons</h2>
+<p>Only works for methods providing an absolute score (cibersort_abs, quantiseq, epic).
+All other methods are included for reference.</p>
+<div class="figure"><span id="fig:unnamed-chunk-33"></span>
+<img src="_main_files/figure-html/unnamed-chunk-33-1.png" alt="Comparison of absolute predictions for three validation dataset. " width="960" />
+<p class="caption">
+Figure 5.1: Comparison of absolute predictions for three validation dataset.
+</p>
+</div>
+</div>
+<div id="within-sample-comparison" class="section level2">
+<h2><span class="header-section-number">5.2</span> Within-sample comparison</h2>
+<p>only works with methods that provide an absolute score, or a score that is relative to total immune
+cell content (cibersort, cibersort_abs, quantiseq, epic).</p>
+<div class="figure"><span id="fig:unnamed-chunk-34"></span>
+<img src="_main_files/figure-html/unnamed-chunk-34-1.png" alt="Comparison of predictions within each individual sample" width="768" />
+<p class="caption">
+Figure 5.2: Comparison of predictions within each individual sample
+</p>
+</div>
+Compute the average over all samples:
+<div class="figure"><span id="fig:unnamed-chunk-35"></span>
+<img src="_main_files/figure-html/unnamed-chunk-35-1.png" alt="Correlations of within-sample comparisons. The last column shows the mean over all samples. " width="768" />
+<p class="caption">
+Figure 5.3: Correlations of within-sample comparisons. The last column shows the mean over all samples.
+</p>
+</div>
+</div>
+<div id="between-sample-comparisons" class="section level2">
+<h2><span class="header-section-number">5.3</span> Between-sample comparisons</h2>
+<p>For this, we need to look at every cell type independently.
+Works for all methods except CIBERSORT.</p>
+<div class="figure"><span id="fig:unnamed-chunk-36"></span>
+<img src="_main_files/figure-html/unnamed-chunk-36-1.png" alt="Correlations of known vs. predicted fractions for each cell type independenctly. The 'Tcell' column corresponds to the amount of profiled total T cells or the sum of CD4+ and CD8+ T cells respectively. " width="1152" />
+<p class="caption">
+Figure 5.4: Correlations of known vs. predicted fractions for each cell type independenctly. The ‘Tcell’ column corresponds to the amount of profiled total T cells or the sum of CD4+ and CD8+ T cells respectively.
+</p>
+</div>
+<p>Compute the average over all cell types.
+We only use cell types with at least 5 samples to obtain reasonable
+correlation estimates. We also exclude the T-cell supercategory to
+avoid redundancies.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1">use_cell_types2 =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>, <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</a></code></pre></div>
+<div class="figure"><span id="fig:unnamed-chunk-38"></span>
+<img src="_main_files/figure-html/unnamed-chunk-38-1.png" alt="Performance on validation datasets by cell type. The last column shows the mean over all cell types. " width="480" />
+<p class="caption">
+Figure 5.5: Performance on validation datasets by cell type. The last column shows the mean over all cell types.
+</p>
+</div>
+<p>Note that, although the correlation for CD8+ T cells looks bad, it does not necessarily mean the predictions are bad. There is just little variance between the samples and CD8+ T cell abundance is generally low, which is correlctly predicted by the methods.</p>
 
-res_validation<span class="op">$</span>all_results =<span class="st"> </span>all_results_ref</code></pre>
-<p><img src="_main_files/figure-html/unnamed-chunk-28-1.png" width="960" /></p>
-<p>Observation: all methods work better on PBMC than they do on cancer cells.</p>
-
+</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-<a href="mixing-study.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="correlation-of-methods-across-tcga-samples-.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="simulation-benchmark.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="sensitivity-and-specificity.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>

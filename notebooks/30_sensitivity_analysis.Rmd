@@ -3,13 +3,18 @@
 res_sensitivity = new.env()
 ```
 
-How many cells do we need for a method to detect immune cell infiltration?
+How many cells of a certain type do we need for a method to detect immune cell infiltration? (=Sensitivity)
+How many cells of a certain type are detected, although we know they are not there? (=Specificity)
 
 We again use the single cell dataset to simulate samples that consist of background cells
-(i.e. non-immune cells: fibroblasts, endothelial cells cancer cells) and add an increasing amount 
-of immune cells of a certain type. 
+(i.e. non-immune cells: fibroblasts, endothelial cells cancer cells) and add an increasing amount
+of immune cells of a certain type.
 
-For each amount of immune cells, we generate 5 random samples to compute a confidence interval. 
+We define sensitivity as the minimal fraction at which the method the abundance of the cell type to
+be significantly different from zero. We define specificity as the predicted fraction of a certain cell type
+at zero inflitration level.
+
+For each amount of immune cells, we generate 5 random samples to compute a confidence interval.
 
 We use the following cell types:
 ```{r}
@@ -32,7 +37,7 @@ if(!file.exists(sensitivity_analysis_file)) {
   set.seed(42)
   registerDoMC(cores=16)
   res = foreach(input_cell_type = show_cell_types,
-                .final = function(x) setNames(x, show_cell_types)) %:% 
+                .final = function(x) setNames(x, show_cell_types)) %:%
     foreach(method = immunedeconv::deconvolution_methods,
             .final = function(x) setNames(x, immunedeconv::deconvolution_methods)) %dopar% {
       expr_mat = lapply(n_immune_cells, function(k) {
@@ -40,15 +45,15 @@ if(!file.exists(sensitivity_analysis_file)) {
         cell_frac = cell_n/sum(cell_n)
         make_random_bulk(eset=single_cell_schelker$eset, cell_fractions = cell_frac, n_cells = sum(cell_n))
       }) %>% bind_cols() %>% as.matrix()
-      
-      
+
+
       rownames(expr_mat) = rownames(single_cell_schelker$eset %>% exprs())
-      
-      # use SKCM, although samples will also contain ovarian cancer acsites cells. 
+
+      # use SKCM, although samples will also contain ovarian cancer acsites cells.
       timer_indications = rep("SKCM", ncol(expr_mat))
       deconvolute(expr_mat, method, indications=timer_indications)
     }
-  
+
   sensitivity_analysis_res = res
   save(sensitivity_analysis_res, file=sensitivity_analysis_file)
 }
@@ -60,112 +65,110 @@ if(!file.exists(sensitivity_analysis_file)) {
 # post process the deconvolution results
 load(sensitivity_analysis_file)
 
-all_results = foreach(input_cell_type = show_cell_types, 
-        .combine=bind_rows) %:% 
+all_results = foreach(input_cell_type = show_cell_types,
+        .combine=bind_rows) %:%
   foreach(method = immunedeconv::deconvolution_methods,
           .combine=bind_rows) %do% {
     tmp_res = sensitivity_analysis_res[[input_cell_type]][[method]] %>%
                 map_result_to_celltypes(show_cell_types, method) %>%
-                na.omit() 
-    
+                na.omit()
+
     n_cell_df = tibble(sample=colnames(tmp_res),
                        n_immune_cells = n_immune_cells,
-                       n_background_cells = sum(cell_types$n_background_cells)) 
-                  
-    
+                       n_background_cells = sum(cell_types$n_background_cells))
+
+
     tmp_res %>%
       as_tibble(rownames = "cell_type") %>%
       gather(sample, estimate, -cell_type) %>%
       mutate(method=method, input_cell_type=input_cell_type) %>%
       inner_join(n_cell_df, by="sample")
-} %>% 
+} %>%
   mutate(frac_immune_cells = as.factor(round(n_immune_cells/sum(cell_types$n_background_cells) * 100, 2)))
 
-all_results2 = all_results %>% 
+all_results2 = all_results %>%
   select(-sample) %>%
-  group_by_at(vars(-estimate)) %>% 
+  group_by_at(vars(-estimate)) %>%
   summarise_all(funs(mean, sd, n=length)) %>%
   mutate(ci=qt(0.975,df=n-1)*sd/sqrt(n)) %>%
   ungroup()
 ```
 
 ## Predictions with increasing immune cell content
-```{r, fig.height=18, fig.width=25, echo=FALSE}
-all_results2 %>% 
+```{r, fig.height=18, fig.width=25, echo=FALSE, fig.cap="We add an increasing amount of each cell type independently to the 1,800 background cells. The figure shows the predictions for each cell type and method at increasing infiltration levels. "}
+all_results2 %>%
   ggplot(aes(x=frac_immune_cells, y=mean, colour=cell_type)) +
-  #   geom_line() + 
+  #   geom_line() +
     geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) +
-    theme_bw() + 
+    theme_bw() +
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position="top") + 
-    facet_grid(method~input_cell_type, scales = "free_y") + 
+        legend.position="top") +
+    facet_grid(method~input_cell_type, scales = "free_y") +
     scale_color_manual(values = color_scales$immune_cells)
 ```
 
 ## Sensitivity
 
-At which percentage the method captures the cell types significantly?
-
 ```{r, warning=FALSE, message=FALSE, cache=TRUE, echo=FALSE}
 # add fallback values, if none of the fractions exceed the specified value
 results_inf_fallback = all_results2 %>%
   select(cell_type, method, input_cell_type) %>%
-  distinct() %>% 
+  distinct() %>%
   mutate(mean = if_else(cell_type == input_cell_type, Inf, 0), ci=0, frac_immune_cells = as.factor(Inf))
 
 # omit unnecessary columns and append fallback Inf valuees
-all_results3 = all_results2 %>% 
-  select(cell_type, method, input_cell_type, mean, ci, frac_immune_cells) %>% 
+all_results3 = all_results2 %>%
+  select(cell_type, method, input_cell_type, mean, ci, frac_immune_cells) %>%
   bind_rows(results_inf_fallback)
 
 # add the 'reference cell type', i.e. the celltype that *should* be there as an additional column
-ref_cell_type = all_results3 %>% 
-  filter(cell_type == input_cell_type) %>% 
+ref_cell_type = all_results3 %>%
+  filter(cell_type == input_cell_type) %>%
   select(input_cell_type, method, frac_immune_cells, ref_mean=mean, ref_ci=ci)
 
 all_combinations = crossing(method=immunedeconv::deconvolution_methods, input_cell_type=show_cell_types)
 
 # filter and summarise, s.t. we end up having the minimal fraction at which the celltype is distinguishable from the others
-sensitivity_plot = all_results3 %>% 
-  filter(cell_type != input_cell_type) %>% 
-  select(cell_type, method, input_cell_type, mean, ci, frac_immune_cells) %>% 
-  inner_join(ref_cell_type) %>% 
-  # at least 0.001 predicted to avoid numerical problems with very small values (-> xCell). 
+sensitivity_plot = all_results3 %>%
+  filter(cell_type != input_cell_type) %>%
+  select(cell_type, method, input_cell_type, mean, ci, frac_immune_cells) %>%
+  inner_join(ref_cell_type) %>%
+  # at least 0.001 predicted to avoid numerical problems with very small values (-> xCell).
   # mutate(significantly_enriched = ref_mean-ci > mean+ci & ref_mean > 1e-3) %>%
   mutate(significantly_enriched = ref_mean-ci > 0 & ref_mean > 1e-4) %>%
   filter(significantly_enriched) %>%
-  group_by(method, input_cell_type, cell_type) %>% 
-  summarise(min_frac = min(as.numeric(as.character(frac_immune_cells)))) %>% 
-  group_by(method, input_cell_type) %>% 
+  group_by(method, input_cell_type, cell_type) %>%
+  summarise(min_frac = min(as.numeric(as.character(frac_immune_cells)))) %>%
+  group_by(method, input_cell_type) %>%
   # must exceed *all* other cell types
-  summarise(min_frac = max(as.numeric(as.character(min_frac)))) %>% 
+  summarise(min_frac = max(as.numeric(as.character(min_frac)))) %>%
   right_join(all_combinations)
-  
+
 res_sensitivity$all_results = all_results3
 res_sensitivity$sensitivity = sensitivity_plot
 ```
 
 ```{r sens_table, echo=FALSE, message=FALSE}
-sensitivity_plot %>% 
-  mutate(min_frac = ifelse(is.infinite(min_frac), 100, min_frac)) %>% 
-  mutate(min_frac = min_frac / 100) %>% 
+sensitivity_plot %>%
+  mutate(min_frac = ifelse(is.infinite(min_frac), 100, min_frac)) %>%
+  mutate(min_frac = min_frac / 100) %>%
   spread(input_cell_type, min_frac) %>%
   write_tsv("../results/tables/sensitivity.tsv", na="")
 ```
 
-```{r sens_plot, fig.width=7, fig.height=6, echo=FALSE}
+```{r sens-plot, fig.width=7, fig.height=6, echo=FALSE, fig.cap="Sensitivity of the methods per cell type. The bars indicate the minimal percentage of infiltration at which the method first reliably detects the cell type. Opaque bars indicate that the methods does not provide an estimate for the cell type."}
 sensitivity_plot %>%
-  mutate(min_frac=ifelse(is.infinite(min_frac), 100, min_frac)) %>% 
+  mutate(min_frac=ifelse(is.infinite(min_frac), 100, min_frac)) %>%
   mutate(not_measured=ifelse(is.na(min_frac), "yes", "no")) %>%
-  mutate(min_frac=ifelse(is.na(min_frac), 100, min_frac)) %>% 
-  ggplot(aes(x=method, y=min_frac, fill=method, alpha=not_measured)) + 
-  geom_bar(stat='identity') + 
-  facet_wrap(~input_cell_type, nrow=2, labeller = label_wrap_gen()) +  
+  mutate(min_frac=ifelse(is.na(min_frac), 100, min_frac)) %>%
+  ggplot(aes(x=method, y=min_frac, fill=method, alpha=not_measured)) +
+  geom_bar(stat='identity') +
+  facet_wrap(~input_cell_type, nrow=2, labeller = label_wrap_gen()) +
   theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
         legend.position="top",
         strip.text.x = element_text(size=9)) +
-  scale_fill_manual(values=color_scales$methods) + 
-  scale_alpha_manual(values=c("yes"=.3, "no"=1.)) + 
+  scale_fill_manual(values=color_scales$methods) +
+  scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
   ggtitle("Sensitivity")
 
 ```
@@ -173,63 +176,38 @@ sensitivity_plot %>%
 
 ## Specificity
 
-predicted amount of cells when there are none.
-This analysis is based on all of the data above where only background cells are present, i.e. fraction of immune cells = 0. 
+Predicted amount of cells when there are none.
+This analysis is based on all of the data above where only background cells are present, i.e. fraction of immune cells = 0.
 
 ```{r sens_spec_table, echo=FALSE, message=FALSE}
-sens_spec_table = all_results %>% 
+sens_spec_table = all_results %>%
   filter(frac_immune_cells == 0, cell_type == input_cell_type) %>%
-  select(cell_type, method, estimate) %>% 
+  select(cell_type, method, estimate) %>%
   group_by(cell_type, method) %>%
-  summarise(median_estimate=median(estimate)) %>% 
+  summarise(median_estimate=median(estimate)) %>%
   spread(cell_type, median_estimate)
 
-sens_spec_table %>% 
+sens_spec_table %>%
   write_tsv("../results/tables/specificity.tsv", na="")
 ```
 
 ```{r sens_spec_data, fig.height=6, fig.width=6, echo=FALSE}
-specificity_data = all_results %>% 
+specificity_data = all_results %>%
   select(-sample) %>%
   filter(frac_immune_cells == 0) %>%
   filter(method != "mcp_counter")
 
 res_sensitivity$specificity = specificity_data
 ```
-  
-```{r, sens_spec_plot, fig.height=6, fig.width=6, echo=FALSE}
-specificity_data %>% 
-  ggplot(aes(x=method, y=estimate, color=method)) + 
-    geom_boxplot(position="dodge") + 
-    facet_wrap(~cell_type) + 
+
+```{r, sens-spec-plot, fig.height=6, fig.width=6, echo=FALSE, fig.cap="Predicted amount of a certain cell type while it is actually absent."}
+specificity_data %>%
+  ggplot(aes(x=method, y=estimate, color=method)) +
+    geom_boxplot(position="dodge") +
+    facet_wrap(~cell_type) +
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
           legend.position="top",
           strip.text.x = element_text(size=9)) +
-    scale_color_manual(values=color_scales$methods) 
+    scale_color_manual(values=color_scales$methods)
 ```
 
-<!-- ### Separate test for MCP counter -->
-
-<!-- //this does not make sense, as the null models are platform specific. --> 
-
-<!-- Since MCPcounter score does not have a clear "0", as it uses raw gene expression values,  -->
-<!-- it cannot be directly compared to the other methods in the figure above.  -->
-
-<!-- However, it does come with a function `test_for_infiltration` which can be used to formally test -->
-<!-- if an immune cell type is detected or not.  -->
-
-
-<!-- ```{r} -->
-<!-- map_celltype_to_mcp = cell_type_mapping %>% filter(method_dataset == "mcp_counter") -->
-<!-- mcp_results = all_results %>% -->
-<!--   filter(method == "mcp_counter", n_immune_cells == 0) %>% -->
-<!--   mutate(sample_id = paste(input_cell_type, sample, sep="_")) %>%  -->
-<!--   select(cell_type, sample_id, estimate) %>%  -->
-<!--   spread(sample_id, estimate) %>%  -->
-<!--   inner_join(map_celltype_to_mcp) %>%  -->
-<!--   select(-cell_type, -method_dataset) %>%  -->
-<!--   as.data.frame() %>%  -->
-<!--   column_to_rownames("method_cell_type") -->
-
-<!-- MCPcounter::test_for_infiltration(mcp_results) -->
-<!-- ``` -->

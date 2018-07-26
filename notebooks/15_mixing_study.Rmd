@@ -7,7 +7,7 @@ can assess the performance of immune deconvolution tools.
 ## Average fraction of tumour cells
 To obtain representatitive simulated samples, we are interested in the average fraction of tumour cells vs immune cells in a mixture.
 
-```{r tumor_ct_fractions, results='hold', echo=FALSE, fig.cap="proportion of cell types by tumor sample"}
+```{r tumor-ct-fractions, results='hide', echo=FALSE, fig.cap="proportion of cell types by tumor sample"}
 cell_type_table = pData(single_cell_schelker$eset) %>%
   filter(source %in% c("melanoma", "ascites")) %>%
   mutate(sample=paste(source, donor, sep="_")) %>%

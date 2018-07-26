@@ -1,12 +1,12 @@
 # Validation with real data
-```{r}
+```{r, include=FALSE}
 res_validation = new.env()
-
 ```
-We the curated datasets with gold standard as an additional validation on top of the mixing study. 
 
-We use the following three validation datasets (see table \@ref(tab:validation_data)), which are the only ones
-in the tables for which we could obtain both gene expression and validation data
+We use datasets which estimate the immune cell proportions using flow cytometry as an additional validation
+for our simulation benchmark.
+
+We use the following three validation datasets (see section \@ref(input-data)):
 ```{r, cache=TRUE}
 datasets = list(
   racle=racle,
@@ -18,7 +18,7 @@ datasets = list(
 We use the following cell types, which are available in (some of) the datasets
 ```{r}
 use_cell_types = c("T cell", "T cell CD8+", "T cell CD4+",
-                   "Macrophage/Monocyte", "B cell", 
+                   "Macrophage/Monocyte", "B cell",
                    "Dendritic cell", "NK cell", "Neutrophil")
 ```
 
@@ -27,16 +27,16 @@ use_cell_types = c("T cell", "T cell CD8+", "T cell CD4+",
 
 ## process a deconvolution result
 process_result = function(result, method, dataset_name) {
-  result %>% 
-    map_result_to_celltypes(use_cell_types, method) %>% 
-    as_tibble(rownames="cell_type") %>% 
-    na.omit() %>% 
-    gather(sample, estimate, -cell_type) %>% 
+  result %>%
+    map_result_to_celltypes(use_cell_types, method) %>%
+    as_tibble(rownames="cell_type") %>%
+    na.omit() %>%
+    gather(sample, estimate, -cell_type) %>%
     mutate(method=method, dataset=dataset_name)
 }
 
 timer_cancer_type = list(racle="SKCM", # actually PBMC
-                         hoek="SKCM", 
+                         hoek="SKCM",
                          schelker_ovarian="OV")
 
 
@@ -49,91 +49,97 @@ all_results = foreach(dataset=datasets, dataset_name=names(datasets), .combine=b
 }
 
 all_refs = foreach(dataset=datasets, dataset_name=names(datasets), .combine=bind_rows) %do% {
-  dataset$ref %>% 
+  dataset$ref %>%
     select(sample, cell_type, true_fraction) %>%
-    spread(sample, true_fraction) %>% 
-    map_result_to_celltypes(use_cell_types) %>% 
-    as_tibble(rownames="cell_type") %>% 
-    gather(sample, true_fraction, -cell_type) %>% 
-    mutate(dataset=dataset_name) %>% 
+    spread(sample, true_fraction) %>%
+    map_result_to_celltypes(use_cell_types) %>%
+    as_tibble(rownames="cell_type") %>%
+    gather(sample, true_fraction, -cell_type) %>%
+    mutate(dataset=dataset_name) %>%
     na.omit()
 }
 ```
 
-Here, we combine the predictions with the 'gold standard' reference data. 
+Here, we combine the predictions with the 'gold standard' reference data.
 ```{r, cache=TRUE}
-all_results_ref = inner_join(all_results, all_refs, 
-                             by=c("sample"="sample", "dataset"="dataset", "cell_type"="cell_type"))
+all_results_ref = inner_join(all_results, all_refs,
+                             by = c("sample" = "sample",
+                                    "dataset" = "dataset",
+                                    "cell_type" = "cell_type"))
 
 res_validation$all_results = all_results_ref
 ```
 
-## Within-sample comparisons
-First, we look at the overall correlation of all cell types. 
-However, this comparison is unfair for most of the methods, as their scores only allow comparisons between samples and not between cell types. 
+The scores of the methods have different properties and not all of them are directly comparable.
+We distinguish between three types of comparisons:
 
+* absolute scores: allow to compare within *and* between samples.
+* scores relative to the total immune cell content: allow to compare within a sample
+* scores in arbitrary units, that only allow to compare between samples.
+
+Here, we assign the methods to their respective group:
 ```{r}
 abs_methods = c("cibersort_abs", "quantiseq", "epic")
 within_methods = c("cibersort", "cibersort_abs", "quantiseq", "epic")
 between_methods = c("cibersort_abs", "quantiseq", "epic", "timer", "xcell", "mcp_counter")
 ```
 
-## Between- and within-sample correlations
-Only works for methods providing an absolute score. 
-All other methods are included for reference. 
-```{r, fig.width=10, fig.height=16, echo=FALSE}
+## Between- and within-sample comparisons
+Only works for methods providing an absolute score (`r paste(abs_methods, collapse=", ")`).
+All other methods are included for reference.
+
+```{r, fig.width=10, fig.height=16, echo=FALSE, fig.cap="Comparison of absolute predictions for three validation dataset. "}
 all_results_ref %>%
   mutate(dataset2 = dataset) %>%
-  bind_rows(all_results_ref %>% mutate(dataset2 = "all")) %>% 
-  filter(!(cell_type == "T cell" & dataset != "hoek")) %>% 
+  bind_rows(all_results_ref %>% mutate(dataset2 = "all")) %>%
+  filter(!(cell_type == "T cell" & dataset != "hoek")) %>%
   ggplot(aes(x=true_fraction, y=estimate)) +
-    geom_point(aes(color=cell_type, shape=dataset)) + 
-    scale_color_manual(values=color_scales$validation) + 
-    facet_grid(method~dataset2, scales = "free_y") + 
-    theme_bw() + 
+    geom_point(aes(color=cell_type, shape=dataset)) +
+    scale_color_manual(values=color_scales$validation) +
+    facet_grid(method~dataset2, scales = "free_y") +
+    theme_bw() +
     theme(legend.position = "top",
-          strip.text.x = element_text(size=9)) + 
-    background_grid(major="xy") + 
-    stat_cor() 
+          strip.text.x = element_text(size=9)) +
+    background_grid(major="xy") +
+    stat_cor()
 ```
 
-# Within-sample comparsions
+## Within-sample comparison
 only works with methods that provide an absolute score, or a score that is relative to total immune
-cell content. 
-```{r, fig.width=8, fig.height=12, echo=FALSE}
-all_results_ref %>% 
-  filter(method %in% within_methods) %>% 
-  filter(!(cell_type == "T cell" & dataset != "hoek")) %>% 
+cell content (`r paste(within_methods, collapse=", ")`).
+
+```{r, fig.width=8, fig.height=12, echo=FALSE, fig.cap="Comparison of predictions within each individual sample"}
+all_results_ref %>%
+  filter(method %in% within_methods) %>%
+  filter(!(cell_type == "T cell" & dataset != "hoek")) %>%
   ggplot(aes(x=true_fraction, y=estimate)) +
-    geom_point(aes(color=cell_type, shape=dataset)) + 
-    scale_color_manual(values=color_scales$validation) + 
-    facet_grid(sample~method, scales = "free_y") + 
-    theme_bw() + 
+    geom_point(aes(color=cell_type, shape=dataset)) +
+    scale_color_manual(values=color_scales$validation) +
+    facet_grid(sample~method, scales = "free_y") +
+    theme_bw() +
     theme(legend.position = "right",
           strip.text.x = element_text(size=9),
-          strip.text.y = element_text(size=7)) + 
-    background_grid(major="xy") + 
-    stat_cor(size=3) 
-
-
+          strip.text.y = element_text(size=7)) +
+    background_grid(major="xy") +
+    stat_cor(size=3)
 ```
 
 Compute the average over all samples:
-```{r, fig.width=8, fig.height=3}
+```{r, fig.width=8, fig.height=3, echo=FALSE, fig.cap="Correlations of within-sample comparisons. The last column shows the mean over all samples. "}
 sample_correlations = all_results_ref %>%
   filter(method %in% within_methods) %>%
   filter(!(cell_type == "T cell" & dataset != "hoek")) %>%
   group_by(dataset, method, sample) %>%
   do(make_cor(.$true_fraction, .$estimate))
 
-average = sample_correlations %>% 
-  group_by(method) %>% 
-  summarise(pearson = mean(pearson)) %>% 
-  mutate(sample = "mean") %>% 
+average = sample_correlations %>%
+  group_by(method) %>%
+  summarise(pearson = mean(pearson)) %>%
+  mutate(sample = "mean") %>%
   mutate(dataset = "mean")
 
 sample_correlations %>%
-  bind_rows(average) %>% 
+  bind_rows(average) %>%
   mutate(pearson_text = if_else(pearson < 0, "< 0", as.character(round(pearson, 2))),
          pearson = if_else(pearson < 0, 0, pearson)) %>%
   ggplot(aes(x=sample, y=method)) +
@@ -146,60 +152,60 @@ res_validation$within_sample = average
 ```
 
 
-# Between-sample comparisons
-For this, we need to look at every cell type independently
-```{r, fig.width=12, fig.height=12, echo=FALSE}
+## Between-sample comparisons
+For this, we need to look at every cell type independently.
+Works for all methods except CIBERSORT.
+
+```{r, fig.width=12, fig.height=12, echo=FALSE, fig.cap="Correlations of known vs. predicted fractions for each cell type independenctly. The 'Tcell' column corresponds to the amount of profiled total T cells or the sum of CD4+ and CD8+ T cells respectively. "}
 all_results_ref %>%
-  # filter(!(cell_type == "T cell" & dataset != "hoek")) %>% 
+  # filter(!(cell_type == "T cell" & dataset != "hoek")) %>%
   ggplot(aes(x=true_fraction, y=estimate)) +
-    geom_point(aes(color=cell_type, shape=dataset)) + 
-    scale_color_manual(values=color_scales$validation) + 
-    facet_grid(method~cell_type, scales = "free_y") + 
-    theme_bw() + 
+    geom_point(aes(color=cell_type, shape=dataset)) +
+    scale_color_manual(values=color_scales$validation) +
+    facet_grid(method~cell_type, scales = "free_y") +
+    theme_bw() +
     theme(legend.position = "top",
-          strip.text.x = element_text(size=9)) + 
-    background_grid(major="xy") + 
-    stat_cor(method='pearson') 
+          strip.text.x = element_text(size=9)) +
+    background_grid(major="xy") +
+    stat_cor(method='pearson')
 ```
 
-Compute the average over all cell types. 
-We only use cell types with at least 5 samples to obtain reasonable 
-correlation estimates. We also exclude the T-cell supercategory to 
+Compute the average over all cell types.
+We only use cell types with at least 5 samples to obtain reasonable
+correlation estimates. We also exclude the T-cell supercategory to
 avoid redundancies.
 
 ```{r}
 use_cell_types2 = c("B cell", "Dendritic cell", "Macrophage/Monocyte", "NK cell", "T cell CD4+", "T cell CD8+")
 ```
 
-```{r, fig.width=5, fig.height=3}
+```{r, fig.width=5, fig.height=4, echo=FALSE, fig.cap="Performance on validation datasets by cell type. The last column shows the mean over all cell types. "}
 cell_type_correlations = all_results_ref %>%
 #   filter(method %in% between_methods) %>%
   filter(cell_type %in% use_cell_types2) %>%
   group_by(cell_type, method) %>%
   do(make_cor(.$true_fraction, .$estimate))
 
-average = cell_type_correlations %>% 
-  group_by(method) %>% 
-  summarise(pearson = mean(pearson)) %>% 
-  mutate(cell_type = "mean") 
+average = cell_type_correlations %>%
+  group_by(method) %>%
+  summarise(pearson = mean(pearson)) %>%
+  mutate(cell_type = "mean")
 
 cell_type_correlations %>%
-  bind_rows(average) %>% 
+  bind_rows(average) %>%
   ungroup() %>%
   mutate(pearson_text = if_else(pearson < 0, "< 0", as.character(round(pearson, 2))),
          pearson = if_else(pearson < 0, 0, pearson)) %>%
-  mutate(cell_type = factor(cell_type, levels = c(sort(use_cell_types2), "mean"))) %>% 
+  mutate(cell_type = factor(cell_type, levels = c(sort(use_cell_types2), "mean"))) %>%
   ggplot(aes(x=cell_type, y=method)) +
     geom_tile(aes(fill=pearson)) +
     geom_text(aes(label=pearson_text), size=3) +
     scale_fill_distiller(type="div", palette = "RdYlGn", direction=1, values=c(0,1))  +
     theme(axis.text.x=element_text(angle = 90, vjust = .5, hjust=1))
 
-
 res_validation$between_sample_average = average
 res_validation$between_sample = cell_type_correlations
 ```
 
-
-Note that, although the correlation for CD8+ T cells looks bad, it does not necessarily mean the predictions are bad. There is just little variance between the samples and CD8+ T cell abundance is generally low, which is correlctly predicted by the methods. 
+Note that, although the correlation for CD8+ T cells looks bad, it does not necessarily mean the predictions are bad. There is just little variance between the samples and CD8+ T cell abundance is generally low, which is correlctly predicted by the methods.
 

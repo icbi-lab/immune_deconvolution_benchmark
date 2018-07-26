@@ -203,7 +203,7 @@ print(p_abs_deviation)
 ```
 
 ## Benchmark results, Sensitivity, Specificity and absolute deviation
-```{r, fig.height=9, fig.width=7, echo=FALSE, message=FALSE}
+```{r, fig.height=9, fig.width=7, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Benchmark results main figure. "}
 # combine heatmaps
 
 ## margins
@@ -259,7 +259,7 @@ ggsave("../results/figures/summary.png", dpi=1200)
 
 
 ## Migration charts for Spillover analysis
-```{r, fig.width = 16, fig.height=10, include=FALSE}
+```{r, fig.width = 16, fig.height=10, include=FALSE, fig.cap="Migration chart figure for paper. "}
 methods = immunedeconv::deconvolution_methods
 
 # cibersort and cibersort abs are identical in this analysis, no need to include both.

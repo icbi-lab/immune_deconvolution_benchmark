@@ -4,10 +4,10 @@ res_spillover = new.env()
 ```
 
 In this chapter, we investigate which other cell types a method predicts,
-if there is actually only a certain one. In FACS, this phenomenon is
+if there is actually only a certain cell type present. In FACS, this phenomenon is
 known as "spillover".
 
-To this end, we create three datasets
+To this end, we use three datasets
 
  * *immune reference*: bulk RNA seq profiles from sorted immune cells (=quanTIseq training data)
  * *artificial bulk*: simulated bulk RNA seq profiles from single cells (e.g. only T cells)
@@ -97,9 +97,7 @@ res_spillover$all_results = all_results2
 ```
 
 ## Complete Spillover Matrix
-This figure shows the spillover for all methods, cell types and datasets
-
-```{r, fig.width=24, fig.height=24, echo=FALSE}
+```{r, fig.width=24, fig.height=24, echo=FALSE, fig.cap="This figure shows the spillover for all methods, cell types and datasets"}
 all_results2 %>%
   filter(true_cell_type %in% show_cell_types, cell_type %in% show_cell_types) %>%
   ggplot(aes(x=cell_type, y=estimate, fill=dataset)) +
@@ -112,8 +110,10 @@ all_results2 %>%
 ```
 
 
-## Summary figure: Noise ratio
-The noise ratio is defined as $\frac{\text{noise}}{\text{signal+noise}}$. Lower values
+## Summary figure: Signal to noise ratio
+Noise is defined as the sum of all predictions of other cell types than the one that is actually present.
+Signal is defined as the predicted fraction of the cell type that is actually present.
+The signal ratio is defined as $\frac{\text{signal}}{\text{signal+noise}}$. Higher values
 indicate less noise (i.e. predictions of cell types that are not there).
 
 ```{r, fig.width=10, fig.height=8, echo=FALSE}
@@ -130,8 +130,7 @@ signal_noise_res = all_results2 %>%
 res_spillover$signal_noise = signal_noise_res
 ```
 
-
-```{r, fig.width=10, fig.height=8, echo=FALSE}
+```{r, fig.width=10, fig.height=8, echo=FALSE, fig.cap="Signal ratios for each cell type and dataset. "}
 signal_noise_res %>%
   ggplot(aes(x=method, y=signal_ratio, fill=method)) +
   geom_boxplot(position = position_dodge()) +
@@ -156,7 +155,7 @@ signal_noise_res %>%
 
 Download this figure as high quality [pdf](files/spillover_migration_all.pdf)
 
-```{r, fig.width = 10, fig.height=24, echo=FALSE}
+```{r, fig.width = 10, fig.height=24, echo=FALSE, results='hide', fig.cap="migration charts for all three dataset. The value in the middle of the chart indicates the 'noise ratio', i.e. the sum of all false positive predictions." }
 methods = immunedeconv::deconvolution_methods
 layout(matrix(seq(1, length(datasets) * length(methods)), length(methods), length(datasets)))
 par(mar=rep(0.5, 4))
@@ -168,27 +167,27 @@ x = lapply(names(datasets), function(dataset) {
         filter(true_cell_type != "Neutrophil") %>%
         group_by(method, true_cell_type, cell_type) %>%
         summarise(estimate = mean(estimate)) %>%
-        ungroup() 
-      
+        ungroup()
+
     migration_mat = migration %>%
         select(-method) %>%
         spread(cell_type, estimate) %>%
         as.data.frame() %>%
         column_to_rownames("true_cell_type") %>%
         as.matrix()
-    
-    noise_ratio = migration %>% 
+
+    noise_ratio = migration %>%
       # aggregate macro/mono into a single category
       mutate(true_cell_type = ifelse(true_cell_type %in% c("Macrophage M1", "Macrophage M2", "Monocyte"), "Macrophage/Monocyte", true_cell_type)) %>%
       mutate(true_cell_type = ifelse(true_cell_type == "T cell regulatory (Tregs)", "T cell CD4+", true_cell_type)) %>%
       group_by(method, cell_type, true_cell_type) %>%
       summarise(estimate = mean(estimate)) %>%
-      group_by(method) %>% 
+      group_by(method) %>%
       mutate(type = ifelse(cell_type == true_cell_type, "signal", "noise")) %>%
-      group_by(method, type) %>% 
-      summarise(estimate = sum(estimate)) %>% 
+      group_by(method, type) %>%
+      summarise(estimate = sum(estimate)) %>%
       spread(type, estimate) %>%
-      mutate(noise_ratio = noise/(signal+noise)) %>% 
+      mutate(noise_ratio = noise/(signal+noise)) %>%
       ungroup()
 
     chordDiagram(migration_mat, directional = TRUE, transparency = .5,

@@ -54,7 +54,7 @@ rule data:
 rule upload_book:
   """publish the book on github pages"""
   input:
-    "results/book/index.html"
+    "results/book/index.html",
     "results/figures/spillover_migration_all.pdf"
   shell:
     """

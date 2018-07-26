@@ -153,7 +153,7 @@ results_with_gold_standard = inner_join(all_results_tidy, gold_standard,
 ```
 
 ### Correlation plots
-```{r mixing_correlation_plot, fig.width=18, fig.height=10, echo=FALSE, fig.cap="The figure shows the correlation of predicted vs. known fractions on 100 simulated bulk RNA seq samples."}
+```{r mixing-correlation-plot, fig.width=18, fig.height=10, echo=FALSE, fig.cap="The figure shows the correlation of predicted vs. known fractions on 100 simulated bulk RNA seq samples."}
 results_with_gold_standard %>%
   ggplot(aes(x=true_fraction, y=estimate)) +
   facet_grid(method ~ cell_type, scales="free") +

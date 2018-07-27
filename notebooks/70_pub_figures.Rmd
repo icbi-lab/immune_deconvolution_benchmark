@@ -11,7 +11,7 @@ theme_set(theme_cowplot(font_size=11)) # reduce default font siz
 ```{r define_names, include=FALSE}
 # Define names
 method_names = data.frame(
-  method = immunedeconv::deconvolution_methods
+  method = immunedeconv::deconvolution_methods,
   method_name = names(immunedeconv::deconvolution_methods)
 )
 

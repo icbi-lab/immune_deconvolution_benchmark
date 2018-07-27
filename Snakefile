@@ -31,7 +31,15 @@ rule book:
     "notebooks/_bookdown.yml",
     "notebooks/_output.yml"
   output:
-    "results/book/index.html"
+    "results/book/index.html",
+    "results/cache/results_for_figures.rda",
+    "results/figures/schelker_single_cell_tsne.pdf",
+    "results/figures/spillover_migration_chart.pdf",
+    "results/figures/summary.pdf",
+    "results/tables/mixing_study_correlations.tsv",
+    "results/tables/sensitvity.tsv",
+    "results/tables/specificity.tsv",
+    "results/tables/spillover_signal_noise.tsv"
   conda:
     "envs/bookdown.yml"
   shell:
@@ -47,6 +55,25 @@ rule data:
    output:
      DATA_FILES
    shell:
+     "mkdir -p data && "
+     "tar -xvzf {input} -C data --strip-components 1"
+
+
+rule get_cache:
+  """
+  download precomputed results for sensitivity and specificity analysis.
+
+  Sensitivity and Specificity are very resource-intensive. You can skip this part
+  by using our precomputed values.
+  """
+  input:
+    # TODO change to github once published
+    HTTP.remote("www.cip.ifi.lmu.de/~sturmg/cache.tar.gz", allow_redirects=True)
+  output:
+     "results/cache/results_for_figures.rda",
+     "results/cache/sensitivity_analysis_res.rda",
+     "results/cache/specificity_analysis_res.rda"
+  shell:
      "mkdir -p data && "
      "tar -xvzf {input} -C data --strip-components 1"
 
@@ -68,13 +95,13 @@ rule upload_book:
 
 
 rule clean:
-  """remove all output files. """
+  """remove figures and the HTML report. """
   run:
     _clean()
 
 
 rule wipe:
-  """remove all output files, including bookdown-cache"""
+  """remove all results, including all caches. """
   run:
     _wipe()
 
@@ -103,6 +130,20 @@ rule _data_archive:
       "tar cvzf {output} data.in"
 
 
+rule _cache_archive:
+    """
+    FOR DEVELOPMENT ONLY.
+
+    Generate a cache.tar.gz archive from results/cache to publish on github.
+    """
+    input:
+      "results/cache"
+    output:
+      "results/cache.tar.gz"
+    shell:
+      "tar cvzf {output} {input}"
+
+
 def _clean():
   shell(
     """
@@ -118,6 +159,6 @@ def _wipe():
   shell(
     """
     rm -rfv notebooks/_bookdown_files
-    rm -rfv results/tables/*
+    rm -rfv results
     """)
 

@@ -5,6 +5,15 @@ Sturm, G. and Aneichyk T. *Manuscript in preparation.*
 The source code in this project can be used to reproduce our results and to use our pipeline for testing additional methods.
 
 ## Getting started
+Short version:
+```
+conda install snakemake
+git clone --recurse-submodules git@github.com:grst/immune_deconvolution_benchmark.git
+cd immune_deconvolution_benchmark
+snakemake --use-conda
+```
+
+For details, see below.
 
 ### Prerequisites
 This pipeline uses [Anaconda](https://conda.io/miniconda.html) and
@@ -38,8 +47,29 @@ libs/CIBERSORT/
 folder of this repository.
 
 
+### Computational resources and caching
+Running the full pipeline can take a lot of time and computational resources.
+In particular the sensitivity and specificity analysis do a lot of simulations.
+
+By default, this process uses all pysical cores and requires about 12GB of
+memory per core.
+
+Alternatively, we provide precomputed results for sensitivity and specificity
+that you can obtain using
+```
+snakemake get_cache
+```
+
+The pipeline internally generates caches to speed up repetitive builds.
+To eradicate all caches, use
+```
+snakemake wipe
+```
+
+
 ### Run the pipeline
-To perform all computations and to generate a HTML report with [bookdown](https://bookdown.org/yihui/bookdown/) invoke
+To perform all computations and to generate a HTML report with
+[bookdown](https://bookdown.org/yihui/bookdown/) invoke
 the corresponding `Snakemake` target:
 
 ```
@@ -48,7 +78,21 @@ snakemake --use-conda book
 
 Make sure to use the `--use-conda` flag to tell Snakemake to download all dependencies from Anaconda.org.
 
+The pipeline will generate a `results` folder.
+The HTML report with all figures and results will be available in
+`results/book`.
 
+### Useful Snakemake targets.
+Have a look at the `Snakefile`, it is self-explanatory.
+
+A list of the most useful targets
+```
+snakemake --use-conda book       # generate a HTML-book in `results/book`
+snakemake --use conda            # default target; = book
+snakemake clean                  # cleans the HTML book
+snakemake wipe                   # cleans everything, including all caches.
+snakemake get_cache              # downloads precomputed results for sensitivity and specificity
+```
 
 
 ## Test your own method

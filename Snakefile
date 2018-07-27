@@ -79,6 +79,16 @@ rule wipe:
     _wipe()
 
 
+rule test_immunedeconv:
+  """run unit tests of the immunedeconv package"""
+  conda:
+    "envs/bookdown.yml"
+  shell:
+    "cd immunedeconv && "
+    "make test"
+
+
+
 rule _data_archive:
     """
     FOR DEVELOPMENT ONLY.

@@ -37,7 +37,7 @@ rule book:
     "results/figures/spillover_migration_chart.pdf",
     "results/figures/summary.pdf",
     "results/tables/mixing_study_correlations.tsv",
-    "results/tables/sensitvity.tsv",
+    "results/tables/sensitivity.tsv",
     "results/tables/specificity.tsv",
     "results/tables/spillover_signal_noise.tsv"
   conda:

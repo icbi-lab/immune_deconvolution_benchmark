@@ -75,7 +75,7 @@ rule get_cache:
      "results/cache/specificity_analysis_res.rda"
   shell:
      "mkdir -p data && "
-     "tar -xvzf {input} -C data --strip-components 1"
+     "tar -xvzf {input} -C results/cache --strip-components 2"
 
 
 rule upload_book:

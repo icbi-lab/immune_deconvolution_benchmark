@@ -159,7 +159,7 @@ results_with_gold_standard %>%
   facet_grid(method ~ cell_type, scales="free") +
   geom_point() +
   stat_smooth(aes(color=method), method="lm") +
-  scale_color_manual(values=color_scales$methods) +
+  scale_color_manual(values=color_scales$methods, na.value="grey") +
   scale_x_continuous(breaks=c(.2, .3)) +
   stat_cor()
 ```
@@ -193,7 +193,7 @@ correlations %>%
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
           legend.position="top",
           strip.text.x = element_text(size=9)) +
-    scale_fill_manual(values=color_scales$methods) +
+    scale_fill_manual(values=color_scales$methods, na.value="grey") +
     scale_alpha_manual(values=c("yes"=.3, "no"=1.))
 ```
 
@@ -244,7 +244,7 @@ deviation_from_slope %>%
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
           legend.position="top",
           strip.text.x = element_text(size=9)) +
-    scale_fill_manual(values=color_scales$methods) +
+    scale_fill_manual(values=color_scales$methods, na.value="grey") +
     scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
     geom_hline(yintercept=0, col="grey")
 ```

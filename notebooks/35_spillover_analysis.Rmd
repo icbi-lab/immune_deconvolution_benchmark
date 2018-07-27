@@ -137,7 +137,7 @@ signal_noise_res %>%
   facet_grid(dataset~true_cell_type) +
   theme_bw() +
   theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  scale_fill_manual(values=color_scales$methods) +
+  scale_fill_manual(values=color_scales$methods, na.value="grey") +
   theme(legend.position = "top")
 ```
 

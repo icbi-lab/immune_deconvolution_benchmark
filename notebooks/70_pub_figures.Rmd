@@ -19,10 +19,6 @@ validation_datasets = data.frame(
   dataset = c("hoek", "racle", "schelker_ovarian"),
   description = c("Hoek (PBMC)", "Racle (melanoma)", "Schelker (ovarian)")
 )
-
-abs_methods = c("cibersort_abs", "quantiseq", "epic")
-within_methods = c("cibersort", "cibersort_abs", "quantiseq", "epic")
-between_methods = c("cibersort_abs", "quantiseq", "epic", "timer", "xcell", "mcp_counter")
 ```
 
 ```{r define_theme, include=FALSE}

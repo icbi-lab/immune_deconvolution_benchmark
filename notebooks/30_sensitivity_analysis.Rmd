@@ -167,7 +167,7 @@ sensitivity_plot %>%
   theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
         legend.position="top",
         strip.text.x = element_text(size=9)) +
-  scale_fill_manual(values=color_scales$methods) +
+  scale_fill_manual(values=color_scales$methods, na.value="grey") +
   scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
   ggtitle("Sensitivity")
 
@@ -208,6 +208,6 @@ specificity_data %>%
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
           legend.position="top",
           strip.text.x = element_text(size=9)) +
-    scale_color_manual(values=color_scales$methods)
+    scale_color_manual(values=color_scales$methods, na.value="grey")
 ```
 

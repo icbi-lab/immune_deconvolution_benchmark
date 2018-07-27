@@ -24,15 +24,13 @@ library(knitr)
 library(circlize)
 library(gridGraphics)
 
-registerDoMC(detectCores(logical=FALSE))
-# registerDoSEQ()
-
 devtools::load_all("../immunedeconv")
 source("../lib/make_cell_fraction_vector.R")
 source("../lib/make_cor.R")
 source("../lib/dt_caption.R")
-set_cibersort_binary("../lib/CIBERSORT/CIBERSORT.R")
-set_cibersort_mat("../lib/CIBERSORT/LM22.txt")
+
+# edit this file for configuration options. 
+source("config.R")
 
 color_file = "../tables/color_scales.xlsx"
 color_scales = sapply(excel_sheets(color_file), function(sheet) {

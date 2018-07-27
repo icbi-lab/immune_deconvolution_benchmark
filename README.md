@@ -2,7 +2,14 @@
 
 Sturm, G. and Aneichyk T. *Manuscript in preparation.*
 
-The source code in this project can be used to reproduce our results and to use our pipeline for testing additional methods.
+The source code in this project can be used to reproduce the results
+described in the paper. Additionally, the pipeline can be easily
+extended to test novel methods against the state-of-the art.
+
+Running the pipeline will generate an interactive HTML report using
+[bookdown](https://bookdown.org/yihui/bookdown/), which is equivalent
+to the one available on
+[grst.github.io/immune_deconvolution_benchmark](https://grst.github.io/immune_deconvolution_benchmark)
 
 ## Getting started
 Short version:
@@ -46,13 +53,15 @@ libs/CIBERSORT/
 ```
 folder of this repository.
 
+Alternatively, you can adjust the paths in `notebooks/config.R`
+
 
 ### Computational resources and caching
 Running the full pipeline can take a lot of time and computational resources.
 In particular the sensitivity and specificity analysis do a lot of simulations.
 
 By default, this process uses all pysical cores and requires about 12GB of
-memory per core.
+memory per core. You can adjust the number of cores in `notebooks/config.R`.
 
 Alternatively, we provide precomputed results for sensitivity and specificity
 that you can obtain using
@@ -131,9 +140,9 @@ deconvolution_methods = c("mcp_counter", "epic", "quantiseq", "xcell",
 
 Next, we add a new deconvolution function for our method.
 
-* Input: gene expression matrix (cols = samples, rows = genes, rownames = HGNC symbols)
+* Input: gene expression matrix (cols = samples, rows = genes, rownames = HGNC symbols, colnames = sample names)
 * Output: A matrix with immune cell estimates (cols = samples, rows = cell types,
-rownames = cell type name)
+rownames = cell type name, colnames = sample names from input)
 
 Note that you can use `system()` to call an arbitrary command line tool.
 

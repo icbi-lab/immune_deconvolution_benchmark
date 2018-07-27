@@ -116,7 +116,7 @@ In brief, this is what we need to do:
 
 1. Add the new method to the `immunedeconv` package
 2. Map the output cell types of the method to the controlled vocabulary
-3. Tell the pipeline about the new method
+3. Adjust pipeline configuration (optional)
 4. Run the pipeline
 
 ### Add the new method to the `immunedeconv` package
@@ -131,11 +131,20 @@ git checkout -b new_method
 
 2. **Edit the file `R/immune_deconvolution_methods.R`**
 
-First, we add our method to the 'list of supported methods':
+First, we add our method to the 'list of supported methods'.
+The first value corresponds to the "display name", that will be shown in
+the report, the second value to the internal name of the method that
+will later be passed to the `deconvolute()` function.
+
 ```r
-deconvolution_methods = c("mcp_counter", "epic", "quantiseq", "xcell",
-                          "cibersort", "cibersort_abs", "timer",
-                          "random") # <- method added here.
+deconvolution_methods = c("MCPcounter"="mcp_counter",
+                          "EPIC"="epic",
+                          "quanTIseq"="quantiseq",
+                          "xCell"="xcell",
+                          "CIBERSORT"="cibersort",
+                          "CIBERSORT (abs.)"="cibersort_abs",
+                          "TIMER"="timer",
+                          "random pred."="random") # <- method added here
 ```
 
 Next, we add a new deconvolution function for our method.
@@ -216,6 +225,26 @@ Map the cell types to the controlled vocabulary.
 ![screenshot mapping](img/screenshot_mapping.png)
 
 
+### Adjust pipeline configuration (optional)
+Have a look at the configuration file:
+```
+notebooks/config.R
+```
+
+There, we can set if our new method should be treated as *absolute* method,
+i.e. if the method predicts a score that can be interpreted as a cell fraction.
+
+We set our `random` method to appear in the absolute score comparison in the
+`mixing benchmark` section, but do not include it in the publication-ready
+figures:
+
+```r
+# these methods will be treated as 'absolute' methods in the mixing benchmark
+config$abs_methods_mixing = c("cibersort_abs", "epic", "quantiseq", "xcell", "random")
+
+# these methods will be shown as 'absolute' methods in the publication-ready figures
+config$abs_methods_final = c("quantiseq", "epic")
+```
 
 ### Run the pipeline
 

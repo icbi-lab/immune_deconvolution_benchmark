@@ -96,12 +96,13 @@ all_results = foreach(method=immunedeconv::deconvolution_methods,
 
 ```{r, include=FALSE}
 res_mixing_study = new.env()
+abs_methods = config$abs_methods_mixing
 ```
 
 The following methods have absolute (EPIC, quanTIseq) or pseudo-absolute (CIBERSORT abs. mode, xCell) scores, and we test how well they perform
 in terms of absolute deviation
 ```{r}
-abs_methods = c("cibersort_abs", "epic", "quantiseq", "xcell")
+abs_methods
 ```
 
 We perform an evaluation for the following cell types.

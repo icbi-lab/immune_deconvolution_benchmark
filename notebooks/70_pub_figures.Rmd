@@ -8,11 +8,11 @@ load("../results/cache/results_for_figures.rda")
 theme_set(theme_cowplot(font_size=11)) # reduce default font siz
 ```
 
-```{r define_names, include=TRUE}
+```{r define_names, include=FALSE}
 # Define names
 method_names = data.frame(
-  method = c("cibersort", "cibersort_abs", "epic", "mcp_counter", "quantiseq", "timer", "xcell"),
-  method_name = c("CIBERSORT", "CIBERSORT (abs.)", "EPIC", "MCPcounter", "quanTIseq", "TIMER", "xCell")
+  method = immunedeconv::deconvolution_methods
+  method_name = names(immunedeconv::deconvolution_methods)
 )
 
 validation_datasets = data.frame(
@@ -169,11 +169,11 @@ print(p_specificity)
 ```{r, fig.height=3.5, fig.width=8, include=FALSE}
 # Absolute deviation plot
 tmp_cell_types = res_mixing_study$deviation_from_slope$cell_type %>% unique()
-tmp_methods = c("epic", "quantiseq")
+tmp_methods = config$abs_methods_final
 tmp_matrix = crossing(tmp_cell_types, tmp_methods)
 colnames(tmp_matrix) = c("cell_type", "method")
 p_abs_deviation = res_mixing_study$deviation_from_slope %>%
-  filter(method %in% c("epic", "quantiseq")) %>%
+  filter(method %in% tmp_methods) %>%
   right_join(tmp_matrix) %>%
   inner_join(method_names) %>%
    # na -> 0 workaround, otherwise text label does not show

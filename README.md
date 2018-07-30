@@ -17,6 +17,7 @@ Short version:
 conda install snakemake
 git clone --recurse-submodules git@github.com:grst/immune_deconvolution_benchmark.git
 cd immune_deconvolution_benchmark
+#<copy CIBERSORT to `libs/CIBERSORT` (optional)>
 snakemake --use-conda
 ```
 
@@ -54,6 +55,9 @@ libs/CIBERSORT/
 folder of this repository.
 
 Alternatively, you can adjust the paths in `notebooks/config.R`
+
+If CIBERSORT is not available, it will automatically be excluded from the
+analysis (see `notebooks/config.R` for more details).
 
 
 ### Computational resources and caching

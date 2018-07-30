@@ -35,7 +35,6 @@ n_immune_cells = rep(c(seq(0, 50, 5)
 sensitivity_analysis_file = "../results/cache/sensitivity_analysis_res.rda"
 if(!file.exists(sensitivity_analysis_file)) {
   set.seed(42)
-  registerDoMC(cores=16)
   res = foreach(input_cell_type = show_cell_types,
                 .final = function(x) setNames(x, show_cell_types)) %:%
     foreach(method = config$deconvolution_methods,

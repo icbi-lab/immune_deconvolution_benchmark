@@ -149,7 +149,8 @@ def _clean():
     """
     rm -rfv results/book/*
     rm -rfv notebooks/_bookdown_files/*files
-    rm -fv notebooks/_main*
+    rm -rfv notebooks/_main_files
+    rm -rfv notebooks/_main.*
     rm -fv results/figures/*
     """)
 
@@ -165,6 +166,8 @@ def _wipe():
   shell(
     """
     rm -rfv notebooks/_bookdown_files
+    rm -rfv notebooks/_main_cache
+    rm -rfv notebooks/_main_files
     rm -rfv results
     """)
 

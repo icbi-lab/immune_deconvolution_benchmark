@@ -14,3 +14,4 @@ data.in
 data.tar.gz
 .snakemake
 .ipynb_checkpoints
+test_immunedeconv.yml

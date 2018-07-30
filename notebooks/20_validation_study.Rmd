@@ -42,7 +42,7 @@ timer_cancer_type = list(racle="SKCM", # actually PBMC
 
 # Run the deconvolution...
 all_results = foreach(dataset=datasets, dataset_name=names(datasets), .combine=bind_rows) %:%
-  foreach(method = immunedeconv::deconvolution_methods, .combine=bind_rows) %do% {
+  foreach(method = config$deconvolution_methods, .combine=bind_rows) %do% {
     timer_indications = rep(timer_cancer_type[[dataset_name]], ncol(dataset$expr_mat))
     deconvolute(dataset$expr_mat, method, indications=timer_indications) %>%
       process_result(method, dataset_name)

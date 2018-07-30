@@ -17,6 +17,7 @@ Short version:
 conda install snakemake
 git clone --recurse-submodules git@github.com:grst/immune_deconvolution_benchmark.git
 cd immune_deconvolution_benchmark
+#<copy CIBERSORT to `libs/CIBERSORT` (optional)>
 snakemake --use-conda
 ```
 
@@ -44,7 +45,7 @@ stackoverflow](https://stackoverflow.com/questions/3796927/how-to-git-clone-incl
 
 ### CIBERSORT
 Due to licensing restrictions, CIBERSORT could not be included in this repo.
-You have to got to the [CIBERSORT website](https://cibersort.stanford.edu),
+You have to go to the [CIBERSORT website](https://cibersort.stanford.edu),
 obtain a license and download the source code.
 
 Place the files `CIBERSORT.R` and `LM22.txt` in the
@@ -54,6 +55,9 @@ libs/CIBERSORT/
 folder of this repository.
 
 Alternatively, you can adjust the paths in `notebooks/config.R`
+
+If CIBERSORT is not available, it will automatically be excluded from the
+analysis (see `notebooks/config.R` for more details).
 
 
 ### Computational resources and caching
@@ -97,7 +101,7 @@ Have a look at the `Snakefile`, it is self-explanatory.
 A list of the most useful targets
 ```
 snakemake --use-conda book       # generate a HTML-book in `results/book`
-snakemake --use conda            # default target; = book
+snakemake --use conda            # default target (= book)
 snakemake clean                  # cleans the HTML book
 snakemake wipe                   # cleans everything, including all caches.
 snakemake get_cache              # downloads precomputed results for sensitivity and specificity
@@ -172,6 +176,7 @@ deconvolute_random = function(gene_expression_matrix) {
   # rescale the values to sum to 1 for each sample
   results = apply(results, 2, function(x) {x/sum(x)})
   rownames(results) = cell_types
+  colnames(results) = colnames(gene_expression_matrix)
 
   results
 }

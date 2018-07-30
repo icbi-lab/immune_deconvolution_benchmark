@@ -154,6 +154,12 @@ def _clean():
     """)
 
 
+rule _wipe_bookdown:
+  """wipe bookdown cache only, keep expensive sensitivity/specificity caches. """
+  run:
+    _wipe_bookdown()
+
+
 def _wipe():
   _clean()
   shell(
@@ -162,3 +168,9 @@ def _wipe():
     rm -rfv results
     """)
 
+def _wipe_bookdown():
+  _clean()
+  shell(
+    """
+    rm -rfv notebooks/_bookdown_files
+    """)

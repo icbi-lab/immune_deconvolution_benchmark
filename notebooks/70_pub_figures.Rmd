@@ -11,8 +11,8 @@ theme_set(theme_cowplot(font_size=11)) # reduce default font siz
 ```{r define_names, include=FALSE}
 # Define names
 method_names = data.frame(
-  method = immunedeconv::deconvolution_methods,
-  method_name = names(immunedeconv::deconvolution_methods)
+  method = config$deconvolution_methods,
+  method_name = names(config$deconvolution_methods)
 )
 
 validation_datasets = data.frame(
@@ -256,7 +256,7 @@ ggsave("../results/figures/summary.png", dpi=1200)
 
 ## Migration charts for Spillover analysis
 ```{r, fig.width = 16, fig.height=10, include=FALSE}
-methods = immunedeconv::deconvolution_methods
+methods = config$deconvolution_methods
 
 # cibersort and cibersort abs are identical in this analysis, no need to include both.
 methods = sort(methods[methods != "cibersort_abs"])

@@ -66,7 +66,7 @@ dataset_gold_standard = list(
 all_results_file = "../results/cache/specificity_analysis_res.rda"
 if(!file.exists(all_results_file)) {
   all_results = sapply(names(datasets), function(dataset) {
-                    sapply(immunedeconv::deconvolution_methods, function(method) {
+                    sapply(config$deconvolution_methods, function(method) {
                       # for timer, we use SKCM, although the samples either include no tumor cells, or both melanoma and OV cells.
                       timer_indications = rep("SKCM", ncol(datasets[[dataset]]))
                       deconvolute(datasets[[dataset]], method, indications=timer_indications)
@@ -82,7 +82,7 @@ load(all_results_file)
 all_results2 =  foreach(dataset = names(datasets),
                         gold_standard = dataset_gold_standard,
                         .combine = bind_rows) %:%
-                  foreach(method = immunedeconv::deconvolution_methods,
+                  foreach(method = config$deconvolution_methods,
                           .combine = bind_rows) %do% {
                             all_results[[dataset]][[method]] %>%
                               map_result_to_celltypes(show_cell_types, method) %>%
@@ -156,7 +156,7 @@ signal_noise_res %>%
 Download this figure as high quality [pdf](files/spillover_migration_all.pdf)
 
 ```{r, fig.width = 10, fig.height=24, echo=FALSE, results='hide', fig.cap="migration charts for all three dataset. The value in the middle of the chart indicates the 'noise ratio', i.e. the sum of all false positive predictions." }
-methods = immunedeconv::deconvolution_methods
+methods = config$deconvolution_methods
 layout(matrix(seq(1, length(datasets) * length(methods)), length(methods), length(datasets)))
 par(mar=rep(0.5, 4))
 circos.par(cell.padding = rep(0, 4))

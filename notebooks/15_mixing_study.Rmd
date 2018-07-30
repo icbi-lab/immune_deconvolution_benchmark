@@ -85,8 +85,8 @@ bulk_eset = make_bulk_eset(eset=single_cell_schelker$eset,
 ## Run the deconvolution
 ```{r mixing_deconvolution, cache=TRUE, message=FALSE, echo=FALSE, warning=FALSE, results='hide'}
 timer_indications = ifelse(is_melanoma, "SKCM", "OV")
-all_results = foreach(method=immunedeconv::deconvolution_methods,
-                      .final = function(x) {setNames(x, immunedeconv::deconvolution_methods)}) %do% {
+all_results = foreach(method=config$deconvolution_methods,
+                      .final = function(x) {setNames(x, config$deconvolution_methods)}) %do% {
   deconvolute(bulk_eset, method, column="gene_symbol", indications = timer_indications)
 }
 ```

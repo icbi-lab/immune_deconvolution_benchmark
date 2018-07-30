@@ -38,8 +38,8 @@ if(!file.exists(sensitivity_analysis_file)) {
   registerDoMC(cores=16)
   res = foreach(input_cell_type = show_cell_types,
                 .final = function(x) setNames(x, show_cell_types)) %:%
-    foreach(method = immunedeconv::deconvolution_methods,
-            .final = function(x) setNames(x, immunedeconv::deconvolution_methods)) %dopar% {
+    foreach(method = config$deconvolution_methods,
+            .final = function(x) setNames(x, config$deconvolution_methods)) %dopar% {
       expr_mat = lapply(n_immune_cells, function(k) {
         cell_n = make_cell_fraction_vector(input_cell_type, k)
         cell_frac = cell_n/sum(cell_n)
@@ -67,7 +67,7 @@ load(sensitivity_analysis_file)
 
 all_results = foreach(input_cell_type = show_cell_types,
         .combine=bind_rows) %:%
-  foreach(method = immunedeconv::deconvolution_methods,
+  foreach(method = config$deconvolution_methods,
           .combine=bind_rows) %do% {
     tmp_res = sensitivity_analysis_res[[input_cell_type]][[method]] %>%
                 map_result_to_celltypes(show_cell_types, method) %>%
@@ -126,7 +126,7 @@ ref_cell_type = all_results3 %>%
   filter(cell_type == input_cell_type) %>%
   select(input_cell_type, method, frac_immune_cells, ref_mean=mean, ref_ci=ci)
 
-all_combinations = crossing(method=immunedeconv::deconvolution_methods, input_cell_type=show_cell_types)
+all_combinations = crossing(method=config$deconvolution_methods, input_cell_type=show_cell_types)
 
 # filter and summarise, s.t. we end up having the minimal fraction at which the celltype is distinguishable from the others
 sensitivity_plot = all_results3 %>%

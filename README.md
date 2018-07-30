@@ -176,6 +176,7 @@ deconvolute_random = function(gene_expression_matrix) {
   # rescale the values to sum to 1 for each sample
   results = apply(results, 2, function(x) {x/sum(x)})
   rownames(results) = cell_types
+  colnames(results) = colnames(gene_expression_matrix)
 
   results
 }

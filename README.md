@@ -45,7 +45,7 @@ stackoverflow](https://stackoverflow.com/questions/3796927/how-to-git-clone-incl
 
 ### CIBERSORT
 Due to licensing restrictions, CIBERSORT could not be included in this repo.
-You have to got to the [CIBERSORT website](https://cibersort.stanford.edu),
+You have to go to the [CIBERSORT website](https://cibersort.stanford.edu),
 obtain a license and download the source code.
 
 Place the files `CIBERSORT.R` and `LM22.txt` in the
@@ -101,7 +101,7 @@ Have a look at the `Snakefile`, it is self-explanatory.
 A list of the most useful targets
 ```
 snakemake --use-conda book       # generate a HTML-book in `results/book`
-snakemake --use conda            # default target; = book
+snakemake --use conda            # default target (= book)
 snakemake clean                  # cleans the HTML book
 snakemake wipe                   # cleans everything, including all caches.
 snakemake get_cache              # downloads precomputed results for sensitivity and specificity

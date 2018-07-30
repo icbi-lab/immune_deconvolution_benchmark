@@ -62,7 +62,7 @@ Analysis is based on `r tcga_infiltration %>% select(sample) %>% distinct() %>% 
 
 ## Heatmap clustered by correlation
 ```{r, fig.width=15, fig.height=12, message=TRUE}
-use_cell_types = names(color_scales$cell_types_for_tcga)
+use_cell_types = c("T cell regulatory (Tregs)", "Macrophage", "Monocyte", names(color_scales$cell_types_for_tcga))
 
 quotemeta <- Vectorize(function(string) {
   str_replace_all(string, "(\\W)", "\\\\\\1")
@@ -79,6 +79,9 @@ annot_df = str_match(colnames(tcga_cor), "(.*) \\[(.*)\\]") %>% as.data.frame()
 colnames(annot_df) = c("names", "cell type", "method") 
 annot_df %<>% 
   mutate(`cell type` = get_supertype(`cell type`)) %>%
+  mutate(`cell type` = if_else(`cell type`=="T cell regulatory (Tregs)", "T cell CD4+", `cell type`)) %>%
+  mutate(`cell type` = if_else(`cell type` %in% c("Monocyte", "Macrophage"), "Macrophage/Monocyte", `cell type`)) %>%
+  mutate(`cell type` = if_else(!`cell type` %in% names(color_scales$cell_types_for_tcga), "other immune cells", `cell type`)) %>%
   column_to_rownames("names") 
 
 

@@ -31,39 +31,46 @@ n_immune_cells = rep(c(seq(0, 50, 5)
 ```
 
 
-```{r sens_generate_data, fig.height=18, fig.width=25, cache=TRUE, echo=FALSE}
-sensitivity_analysis_file = "../results/cache/sensitivity_analysis_res.rda"
+```{r sens_generate_data, cache=FALSE, echo=FALSE}
+sensitivity_analysis_file = "../results/cache/sensitivity_analysis_dataset.rda"
 if(!file.exists(sensitivity_analysis_file)) {
   set.seed(42)
   res = foreach(input_cell_type = show_cell_types,
-                .final = function(x) setNames(x, show_cell_types)) %:%
-    foreach(method = config$deconvolution_methods,
-            .final = function(x) setNames(x, config$deconvolution_methods)) %dopar% {
-      expr_mat = lapply(n_immune_cells, function(k) {
-        cell_n = make_cell_fraction_vector(input_cell_type, k)
-        cell_frac = cell_n/sum(cell_n)
-        make_random_bulk(eset=single_cell_schelker$eset, cell_fractions = cell_frac, n_cells = sum(cell_n))
-      }) %>% bind_cols() %>% as.matrix()
-
-
-      rownames(expr_mat) = rownames(single_cell_schelker$eset %>% exprs())
-
-      # use SKCM, although samples will also contain ovarian cancer acsites cells.
-      timer_indications = rep("SKCM", ncol(expr_mat))
-      deconvolute(expr_mat, method, indications=timer_indications)
+                .final = function(x) setNames(x, show_cell_types)) %dopar% {
+                  
+                    expr_mat = lapply(n_immune_cells, function(k) {
+                      cell_n = make_cell_fraction_vector(input_cell_type, k)
+                      cell_frac = cell_n/sum(cell_n)
+                      make_random_bulk(eset=single_cell_schelker$eset, cell_fractions = cell_frac, n_cells = sum(cell_n))
+                    }) %>% bind_cols() %>% as.matrix()
+               
+                    rownames(expr_mat) = rownames(single_cell_schelker$eset %>% exprs())
+                    expr_mat
     }
 
-  sensitivity_analysis_res = res
-  save(sensitivity_analysis_res, file=sensitivity_analysis_file)
+  sensitivity_analysis_dataset = res
+  save(sensitivity_analysis_dataset, file=sensitivity_analysis_file)
+} else {
+  load(sensitivity_analysis_file)
 }
+```
 
+```{r sens_deconvolute, fig.height=18, fig.width=25, cache=TRUE, echo=FALSE}
+res = foreach(input_cell_type = show_cell_types,
+              .final = function(x) setNames(x, show_cell_types)) %:%
+  foreach(method = config$deconvolution_methods,
+          .final = function(x) setNames(x, config$deconvolution_methods)) %dopar% {
+    expr_mat = sensitivity_analysis_dataset[[input_cell_type]]
+    # use SKCM, although samples will also contain ovarian cancer acsites cells.
+    timer_indications = rep("SKCM", ncol(expr_mat))
+    deconvolute(expr_mat, method, indications=timer_indications)
+  }
 
+sensitivity_analysis_res = res  
 ```
 
 ```{r sens_process_data, cache=TRUE, echo=FALSE, message=FALSE}
 # post process the deconvolution results
-load(sensitivity_analysis_file)
-
 all_results = foreach(input_cell_type = show_cell_types,
         .combine=bind_rows) %:%
   foreach(method = config$deconvolution_methods,

@@ -62,16 +62,10 @@ analysis (see `notebooks/config.R` for more details).
 
 ### Computational resources and caching
 Running the full pipeline can take a lot of time and computational resources.
-In particular the sensitivity and specificity analysis do a lot of simulations.
 
 By default, this process uses all pysical cores and requires about 12GB of
-memory per core. You can adjust the number of cores in `notebooks/config.R`.
-
-Alternatively, we provide precomputed results for sensitivity and specificity
-that you can obtain using
-```
-snakemake get_cache
-```
+memory per core. You can adjust the maximum number of cores in `notebooks/config.R`.
+Most of the pipeline is sequential though. 
 
 The pipeline internally generates caches to speed up repetitive builds.
 To eradicate all caches, use
@@ -104,7 +98,6 @@ snakemake --use-conda book       # generate a HTML-book in `results/book`
 snakemake --use conda            # default target (= book)
 snakemake clean                  # cleans the HTML book
 snakemake wipe                   # cleans everything, including all caches.
-snakemake get_cache              # downloads precomputed results for sensitivity and specificity
 ```
 
 

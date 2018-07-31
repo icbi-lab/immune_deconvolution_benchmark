@@ -63,7 +63,6 @@ dataset_gold_standard = list(
   artificial_bulk_bg = tibble(sample=colnames(artificial_bulk), true_cell_type=sample_types)
 )
 
-all_results_file = "../results/cache/specificity_analysis_res.rda"
 if(!file.exists(all_results_file)) {
   all_results = foreach(dataset = names(datasets),
                         .final = function(x) setNames(x, names(datasets))) %:%

@@ -137,7 +137,7 @@ rule _cache_archive:
     Generate a cache.tar.gz archive from results/cache to publish on github.
     """
     input:
-      "results/cache"
+      "results/cache/sensitivity_analysis_dataset.rda"
     output:
       "results/cache.tar.gz"
     shell:

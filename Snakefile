@@ -70,9 +70,7 @@ rule get_cache:
     # TODO change to github once published
     HTTP.remote("www.cip.ifi.lmu.de/~sturmg/cache.tar.gz", allow_redirects=True)
   output:
-     "results/cache/results_for_figures.rda",
-     "results/cache/sensitivity_analysis_res.rda",
-     "results/cache/specificity_analysis_res.rda"
+     "results/cache/sensitivity_analysis_dataset.rda",
   shell:
      "mkdir -p data && "
      "tar -xvzf {input} -C results/cache --strip-components 2"

@@ -63,9 +63,8 @@ dataset_gold_standard = list(
   artificial_bulk_bg = tibble(sample=colnames(artificial_bulk), true_cell_type=sample_types)
 )
 
-if(!file.exists(all_results_file)) {
-  all_results = foreach(dataset = names(datasets),
-                        .final = function(x) setNames(x, names(datasets))) %:%
+all_results = foreach(dataset = names(datasets),
+                      .final = function(x) setNames(x, names(datasets))) %:%
                   foreach(method = config$deconvolution_methods,
                           .final = function(x) setNames(x, config$deconvolution_methods)) %dopar% {
                           # for timer, we use SKCM, although the samples either
@@ -73,9 +72,6 @@ if(!file.exists(all_results_file)) {
                           timer_indications = rep("SKCM", ncol(datasets[[dataset]]))
                           deconvolute(datasets[[dataset]], method, indications=timer_indications)
                 }
-  save(all_results, file=all_results_file)
-}
-load(all_results_file)
 ```
 
 ```{r, cache=TRUE, message=FALSE, echo=FALSE}

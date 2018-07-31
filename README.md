@@ -17,7 +17,8 @@ Short version:
 conda install snakemake
 git clone --recurse-submodules git@github.com:grst/immune_deconvolution_benchmark.git
 cd immune_deconvolution_benchmark
-#<copy CIBERSORT to `libs/CIBERSORT` (optional)>
+#<add CIBERSORT source code; see below (optional>
+snakemake get_cache  # download some precomputed files to speed up the build process (optional)
 snakemake --use-conda
 ```
 
@@ -64,20 +65,21 @@ analysis (see `notebooks/config.R` for more details).
 Running the full pipeline can take a lot of time and computational resources.
 In particular the sensitivity and specificity analysis do a lot of simulations.
 
-By default, this process uses all pysical cores and requires about 12GB of
-memory per core. You can adjust the number of cores in `notebooks/config.R`.
-
-Alternatively, we provide precomputed results for sensitivity and specificity
-that you can obtain using
+We provide a precomputed dataset for sensitivity/specificity
+which you can obtain using
 ```
 snakemake get_cache
 ```
 
-The pipeline internally generates caches to speed up repetitive builds.
+Additionally, the pipeline internally generates caches to speed up repetitive builds.
 To eradicate all caches, use
 ```
 snakemake wipe
 ```
+
+By default, the pipline uses up to 8 cores and requires up to 12GB of
+memory per core. You can adjust the number of cores in `notebooks/config.R`.
+
 
 
 ### Run the pipeline

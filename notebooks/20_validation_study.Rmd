@@ -43,8 +43,9 @@ timer_cancer_type = list(racle="SKCM", # actually PBMC
 # Run the deconvolution...
 all_results = foreach(dataset=datasets, dataset_name=names(datasets), .combine=bind_rows) %:%
   foreach(method = config$deconvolution_methods, .combine=bind_rows) %do% {
+    tumor = (dataset_name != "hoek") # hoek is PBMC, all others are tumor
     timer_indications = rep(timer_cancer_type[[dataset_name]], ncol(dataset$expr_mat))
-    deconvolute(dataset$expr_mat, method, indications=timer_indications) %>%
+    deconvolute(dataset$expr_mat, method, indications=timer_indications, tumor=tumor) %>%
       process_result(method, dataset_name)
 }
 

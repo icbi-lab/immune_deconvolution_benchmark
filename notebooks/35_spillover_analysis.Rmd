@@ -67,10 +67,12 @@ all_results = foreach(dataset = names(datasets),
                       .final = function(x) setNames(x, names(datasets))) %:%
                   foreach(method = config$deconvolution_methods,
                           .final = function(x) setNames(x, config$deconvolution_methods)) %dopar% {
+                          # the immune cell reference samples are from PBMC, the others are tumor samples. 
+                          tumor = (dataset != "immune_reference") 
                           # for timer, we use SKCM, although the samples either
                           # include no tumor cells, or both melanoma and OV cells.
                           timer_indications = rep("SKCM", ncol(datasets[[dataset]]))
-                          deconvolute(datasets[[dataset]], method, indications=timer_indications)
+                          deconvolute(datasets[[dataset]], method, indications=timer_indications, tumor=tumor)
                 }
 ```
 

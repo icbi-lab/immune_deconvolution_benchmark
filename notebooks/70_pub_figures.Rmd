@@ -19,6 +19,8 @@ validation_datasets = data.frame(
   dataset = c("hoek", "racle", "schelker_ovarian"),
   description = c("Hoek (PBMC)", "Racle (melanoma)", "Schelker (ovarian)")
 )
+
+HEATMAP_FONT_SIZE = 2.7
 ```
 
 ```{r define_theme, include=FALSE}
@@ -32,12 +34,12 @@ theme_benchmark = function(...) {
 
 ```{r, define_cor_table, include=FALSE}
 #' plot correlations as a table colored by the absolute value.
-plot_cor_table = function(data) {
+plot_cor_table = function(data, dataset="none") {
   if(!("macrophage_only" %in% names(data))) {
     data %<>% mutate(macrophage_only = "no")
   }
   if(!("category" %in% names(data))) {
-    data %<>% mutate(category = "none")
+    data %<>% mutate(category = dataset)
   }
   data %>%
     mutate(pearson_text = if_else(pearson < 0, "< 0", as.character(round(pearson, 2))),
@@ -47,13 +49,13 @@ plot_cor_table = function(data) {
     inner_join(method_names) %>%
     ggplot(aes(x=column, y=method_name)) +
       geom_tile(aes(fill=pearson)) +
-      geom_text(aes(label=pearson_text), size=3) +
+      geom_text(aes(label=pearson_text), size=HEATMAP_FONT_SIZE) +
       scale_fill_distiller(type="div", palette = "RdYlGn", direction=1, values=c(0,1), limits=c(0, 1)) +
       theme_benchmark() +
       theme(axis.text.x.top=element_text(angle = 90, vjust = .5, hjust=0),
               legend.position="none",
               strip.text.x = element_text(size=11)) +
-      facet_wrap(~category, scales = "free", strip.position="right", nrow=1) +
+      facet_wrap(~category, scales = "free", strip.position="left", nrow=1) +
       # theme(strip.background = element_blank(),
       #       strip.text.x = element_blank()) +
       scale_x_discrete(position = "top") +
@@ -72,7 +74,7 @@ plot_cor_table = function(data) {
 noise_sc = res_methods_validity$all_results %>%
   group_by(method) %>%
   do(make_cor(.$bulk, .$mean)) %>%
-  mutate(column="stability single cell/bulk")
+  mutate(column="stability single cell/bulk", category="Schelker")
 
 noise = noise_sc
 
@@ -80,7 +82,7 @@ noise = noise_sc
 # Simulation Benchmark
 mixing =  res_mixing_study$correlations %>%
     rename(column=cell_type) %>%
-    mutate(category="cell_type")
+    mutate(category="Simulated dataset")
 
 ```
 
@@ -93,41 +95,41 @@ validation$all_results = res_validation$all_results %>% filter(cell_type %in% us
 validation$all_datasets = validation$all_results %>%
   group_by(method, cell_type) %>% 
   do(make_cor(.$estimate, .$true_fraction)) %>%
-  mutate(dataset_group = "All datasets")
+  mutate(category = "All datasets", column=cell_type)
 
 validation$all_datasets_all_cells = validation$all_results %>%
   group_by(method) %>%
   do(make_cor(.$estimate, .$true_fraction)) %>%
-  mutate(cell_type = ALL_CELLS, dataset_group = "All datasets")
+  mutate(cell_type = ALL_CELLS, category = "All datasets") %>%
+  mutate(column = cell_type)
 
 validation$hoek = validation$all_results %>%
   filter(dataset == 'hoek') %>% 
   group_by(method, cell_type) %>% 
   do(make_cor(.$estimate, .$true_fraction)) %>%
-  mutate(dataset_group = "Hoek")
+  mutate(category = "Hoek") %>%
+  mutate(column = cell_type)
 
 validation$hoek_all_cells = validation$all_results %>%
   filter(dataset == 'hoek') %>% 
   group_by(method) %>% 
   do(make_cor(.$estimate, .$true_fraction)) %>%
-  mutate(cell_type = ALL_CELLS, dataset_group = "Hoek")
+  mutate(cell_type = ALL_CELLS, category = "Hoek") %>%
+  mutate(column = cell_type)
 
 validation$racle_all_cells = validation$all_results %>%
   filter(dataset == 'racle') %>% 
   group_by(method) %>% 
   do(make_cor(.$estimate, .$true_fraction)) %>%
-  mutate(cell_type = ALL_CELLS, dataset_group = "Racle")
+  mutate(cell_type = ALL_CELLS, category = "Racle") %>%
+  mutate(column = cell_type)
 
 validation$schelker_all_cells = validation$all_results %>%
   filter(dataset == 'schelker_ovarian') %>% 
   group_by(method) %>% 
   do(make_cor(.$estimate, .$true_fraction)) %>%
-  mutate(cell_type = ALL_CELLS, dataset_group = "Schelker")
-
-validation$all = bind_rows(validation$all_datasets, validation$all_datasets_all_cells,
-                           validation$hoek, validation$hoek_all_cells,
-                           validation$racle_all_cells,
-                           validation$schelker_all_cells)
+  mutate(cell_type = ALL_CELLS, category = "Schelker") %>%
+  mutate(column = cell_type)
 
 ```
 
@@ -135,60 +137,55 @@ validation$all = bind_rows(validation$all_datasets, validation$all_datasets_all_
 
 ```{r, fig.height=3.5, include=FALSE}
 # make the correlation plots
-p_noise = plot_cor_table(noise) + ggtitle("Noise")
-p_mixing = plot_cor_table(mixing) + ggtitle("Simulation Benchmark")
-p_validation = validation$all %>%
-  rename(column=cell_type, category=dataset_group) %>%
-  plot_cor_table() + ggtitle("Validation") + geom_vline(xintercept = 1.5)
+p_noise = plot_cor_table(noise) 
+p_mixing = plot_cor_table(mixing)
+
+p_validation_all_datasets = bind_rows(validation$all_datasets, validation$all_datasets_all_cells) %>%
+  plot_cor_table() +
+    geom_vline(xintercept = 1.5)
+
+p_validation_hoek = bind_rows(validation$hoek, validation$hoek_all_cells) %>%
+  plot_cor_table() +
+    geom_vline(xintercept = 1.5)
+
+p_validation_schelker = validation$schelker_all_cells %>%
+  plot_cor_table() 
+
+p_validation_racle = validation$racle_all_cells %>%
+  plot_cor_table()
 
 print(p_noise)
 print(p_mixing)
-print(p_validation)
+print(p_validation_all_datasets)
+print(p_validation_hoek) 
+print(p_validation_racle)
+print(p_validation_schelker)
 ```
 
-```{r, fig.height=3.5, include=FALSE}
-# Make sensitivity plot. This plot looks similar to the correlation plots, however
-# the colors are inversed and use a non-linear scale (as .5 would already be really bad)
 
-p_sensitivity = res_sensitivity$sensitivity %>%
+```{r sens-spec-plot, include=FALSE}
+# Specificity heatmap
+tmp_sens = res_sensitivity$sensitivity %>%
   filter(method != "mcp_counter") %>%
   mutate(min_frac=ifelse(is.infinite(min_frac), 100, min_frac)) %>%
   mutate(min_frac = min_frac/100) %>%
   mutate(min_frac_text = as.character(round(min_frac, 2))) %>%
   na.omit() %>%
-  inner_join(method_names) %>%
-  ggplot(aes(x=input_cell_type, y=method_name)) +
-    geom_tile(aes(fill=min_frac)) +
-    geom_text(aes(label=min_frac_text), size=3) +
-    scale_fill_distiller(type="div", palette = "RdYlGn", direction=-1, values=c(0, .02, .1, 1)) +
-    scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
-    theme_benchmark() +
-    theme(axis.text.x.top=element_text(angle = 90, vjust = .5, hjust=0),
-            legend.position="none",
-            strip.text.x = element_text(size=11)) +
-    # facet_grid(~category) +
-    scale_x_discrete(position = "top") +
-    xlab(NULL) +
-    ylab(NULL) +
-    theme_title() +
-    ggtitle("Sensitivity")
+  mutate(category="Sensitivity", cell_type=input_cell_type) %>%
+  rename(estimate=min_frac, estimate_text=min_frac_text)
 
-print(p_sensitivity)
-```
-
-```{r, include=FALSE}
-# Specificity heatmap
+tmp_spec = res_sensitivity$specificity %>% mutate(category="Specificity")
 
 # summarise by mean.
-p_specificity = res_sensitivity$specificity %>%
+p_sens_spec = bind_rows(tmp_sens, tmp_spec) %>%
   filter(method != "mcp_counter") %>%
-  group_by(method, cell_type) %>%
+  group_by(method, cell_type, category) %>%
   summarise(estimate = mean(estimate)) %>%
   mutate(estimate_text = as.character(round(estimate, 2))) %>%
   inner_join(method_names) %>%
   ggplot(aes(x=cell_type, y=method_name)) +
     geom_tile(aes(fill=estimate)) +
-    geom_text(aes(label=estimate_text), size=3) +
+    geom_text(aes(label=estimate_text), size=HEATMAP_FONT_SIZE) +
     scale_fill_distiller(type="div", palette = "RdYlGn", direction=-1, values=c(0, .02, .1, 1)) +
     scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
     theme_benchmark() +
@@ -196,17 +193,13 @@ p_specificity = res_sensitivity$specificity %>%
             legend.position="none",
             strip.text.x = element_text(size=11)) +
     scale_x_discrete(position = "top", drop=FALSE) +
+    facet_wrap(~category, nrow=2) + 
     xlab(NULL) +
     ylab(NULL) +
-    theme_title() +
-    ggtitle("Specificity")
+    theme_title() 
+    
 
-print(p_specificity)
-```
-
-```{r, include=FALSE}
-# Spillover migration plots
-
+print(p_sens_spec)
 ```
 
 
@@ -232,8 +225,7 @@ p_abs_deviation = res_mixing_study$log_slope %>%
             legend.position="none",
             strip.text.x = element_text(size=9)) +
       # scale_fill_manual(values=color_scales$methods) +
-      scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
-      ggtitle("Absolute deviation") +
+      scale_alpha_manual(values=c("yes"=.3, "no"=1.)) + 
       xlab(NULL) +
       ylab("log2(slope)") +
       coord_flip(y=c(-3.5, 3.5)) +
@@ -242,8 +234,8 @@ p_abs_deviation = res_mixing_study$log_slope %>%
 print(p_abs_deviation)
 ```
 
-```{r rmse_plot, fig.height=6, fig.width=3}
-res_mixing_study$rmse %>%
+```{r rmse_plot, fig.height=6, fig.width=3, include=FALSE}
+p_abs_rmse = res_mixing_study$rmse %>%
   right_join(tmp_matrix) %>%
   inner_join(method_names) %>%
   mutate(rmse_text = as.character(round(rmse, 2))) %>%
@@ -251,7 +243,7 @@ res_mixing_study$rmse %>%
   ggplot(aes(x=column, y=cell_type)) +
     geom_tile(aes(fill=rmse)) +
     geom_text(aes(label=rmse_text), size=3) +
-    scale_fill_distiller(type="div", palette = "RdYlGn", direction=-1, values=c(0, .02, .1, 1), na.value="white") +
+    scale_fill_distiller(type="div", palette = "RdYlGn", direction=-1, na.value="white") +
     scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
     theme_benchmark() +
     theme(axis.text.x.top=element_text(angle = 90, vjust = .5, hjust=0),
@@ -263,62 +255,72 @@ res_mixing_study$rmse %>%
     ylab(NULL) +
     theme_title()
 
+print(p_abs_rmse)
 ```
 
 
 ## Benchmark results, Sensitivity, Specificity and absolute deviation
-```{r, fig.height=9, fig.width=7, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Benchmark results main figure. "}
+```{r, fig.height=9, fig.width=10, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Benchmark results main figure. "}
 # combine heatmaps
 
 ## margins
-MT1 = .2
+MT1 = 1
 MB1 = .5
 MT2 = .2
 MB2 = .7
 
 ## fine-tune formatting
-p2_noise = p_noise + theme(plot.margin = margin(t=MT1, b=MB1, unit="cm"),
-                           plot.title=element_text(hjust=1))
+p2_noise = p_noise + theme(plot.margin = margin(t=MT1, b=MB1, unit="cm"))
 p2_mixing = p_mixing + theme(axis.text.y=element_blank(), plot.margin = margin(t=MT1, l=0.2, b=MB1, unit="cm"),
-                             plot.title=element_text(hjust=1))
-p2_validation = p_validation + theme(axis.text.y=element_blank(), plot.margin = margin(t=MT1, l=.2, b=MB1, unit="cm"),
-                                     plot.title=element_text(hjust=1))
-p2_sensitivity = p_sensitivity + theme(plot.margin = margin(t=MT2, b=MB2, r=.5, unit= "cm"),
-                                       plot.title=element_text(hjust=1))
-p2_specificity = p_specificity + theme(axis.text.y = element_blank(),
-                                       plot.margin = margin(l = 1, t=MT2, b=MB2, unit="cm"),
-                                       plot.title=element_text(hjust=1))
-p2_abs_deviation = p_abs_deviation + scale_x_discrete(position = "bottom") +
-  theme(plot.margin = margin(t=0, unit="cm"), plot.title=element_text(hjust=1))
+                             axis.ticks.y=element_blank())
+p2_validation_all_datasets = p_validation_all_datasets + theme(axis.text.y=element_blank(), 
+                                                               plot.margin = margin(t=MT1, l=.2, b=MB1, unit="cm"),
+                                                               axis.ticks.y=element_blank())
+p2_validation_hoek = p_validation_hoek + theme(axis.text.y=element_blank(), 
+                                                               plot.margin = margin(t=MT1, l=-.1, b=MB1, unit="cm"),
+                                                               axis.ticks.y=element_blank())
+p2_validation_racle = p_validation_racle + theme(axis.text.y=element_blank(), 
+                                                               plot.margin = margin(t=MT1, l=-.1, b=MB1, unit="cm"),
+                                                               axis.ticks.y=element_blank())
+p2_validation_schelker = p_validation_schelker + theme(axis.text.y=element_blank(), 
+                                                               plot.margin = margin(t=MT1, l=-.1, b=MB1, unit="cm"),
+                                                               axis.ticks.y=element_blank())
+
+
+p2_sens_spec = p_sens_spec + theme(plot.margin = margin(r=3, unit="cm"))
+p2_abs_deviation = p_abs_deviation
+p2_abs_rmse = p_abs_rmse + theme(axis.text.y=element_blank(), axis.ticks = element_blank(),
+                             plot.margin = margin(l=-.2, unit="cm"))
 
 # align plots
-plots_left = align_plots(p2_noise, p2_sensitivity, p2_abs_deviation, align="v", axis="l")
-plots_right = align_plots(p2_validation, p2_specificity, plots_left[[3]], align="v", axis="r")
+plots_left = align_plots(p2_noise, p2_sens_spec, align="v", axis="l")
+plots_right = align_plots(p2_validation_schelker, p2_abs_rmse, align="v", axis="r")
 
 # first row
-plot_heatmap = plot_grid(plots_left[[1]], p2_mixing, plots_right[[1]],
-          align = "h", ncol = 3,
+plot_heatmap = plot_grid(plots_left[[1]], p2_mixing, p2_validation_all_datasets, 
+                         p2_validation_hoek, p2_validation_racle, plots_right[[1]],
+          align = "h", nrow = 1,
           axis="tb",
-          rel_widths = c(.6, .9, .6), labels = c("A", "B", "C"))
+          hjust = -.1,
+          label_size = 12,
+          rel_widths = c(.4, .75, .6, .45, .13, .13), labels = c("A Noise", "B Simulation Benchmark", "C Validation Benchmark"))
 
 # second row
-plot_sens_spec = plot_grid(plots_left[[2]], plots_right[[2]],
-                           align = "h", ncol = 2,
+plot_second_row = plot_grid(plots_left[[2]], p2_abs_deviation, plots_right[[2]],
+                           align = "h", ncol = 3,
                            axis = "t",
-                           rel_widths = c(.55, .35), labels = c("D", "E"))
+                           rel_widths = c(.4, .4, 0.04), labels = c("D", "E"))
 
 # combine all
 plot_grid(plot_heatmap,
-          plot_sens_spec,
-          plots_right[[3]],
+          plot_second_row,
           ncol=1,
-          rel_heights = c(.40, .35, .3),
-          labels = c("", "", "F"),
+          rel_heights = c(.4, .6),
           align="h",
           axis="l")
 
-ggsave("../results/figures/summary.pdf")
-ggsave("../results/figures/summary.png", dpi=1200)
+# ggsave("../results/figures/summary.pdf")
+# ggsave("../results/figures/summary.png", dpi=1200)
 ```
 
 

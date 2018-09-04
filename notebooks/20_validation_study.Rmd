@@ -206,6 +206,7 @@ cell_type_correlations %>%
 
 res_validation$between_sample_average = average
 res_validation$between_sample = cell_type_correlations
+res_validation$use_cell_types = use_cell_types2
 ```
 
 Note that, although the correlation for CD8+ T cells looks bad, it does not necessarily mean the predictions are bad. There is just little variance between the samples and CD8+ T cell abundance is generally low, which is correlctly predicted by the methods.

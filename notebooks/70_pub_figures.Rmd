@@ -53,9 +53,9 @@ plot_cor_table = function(data) {
       theme(axis.text.x.top=element_text(angle = 90, vjust = .5, hjust=0),
               legend.position="none",
               strip.text.x = element_text(size=11)) +
-      facet_grid(~category, scales = "free_x", space="free_x") +
-      theme(strip.background = element_blank(),
-            strip.text.x = element_blank()) +
+      facet_wrap(~category, scales = "free", strip.position="right", nrow=1) +
+      # theme(strip.background = element_blank(),
+      #       strip.text.x = element_blank()) +
       scale_x_discrete(position = "top") +
       xlab(NULL) +
       ylab(NULL) +
@@ -82,11 +82,53 @@ mixing =  res_mixing_study$correlations %>%
     rename(column=cell_type) %>%
     mutate(category="cell_type")
 
-# Validation Benchmark
+```
 
-validation = res_validation$between_sample %>%
-  rename(column=cell_type) %>%
-  select(method, column, pearson)
+```{r validation_benchmark, include=FALSE}
+# Validation Benchmark
+ALL_CELLS = "All cells"
+use_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte", "NK cell", "T cell CD4+", "T cell CD8+", "T cell")
+validation = new.env()
+validation$all_results = res_validation$all_results %>% filter(cell_type %in% use_cell_types)
+validation$all_datasets = validation$all_results %>%
+  group_by(method, cell_type) %>% 
+  do(make_cor(.$estimate, .$true_fraction)) %>%
+  mutate(dataset_group = "All datasets")
+
+validation$all_datasets_all_cells = validation$all_results %>%
+  group_by(method) %>%
+  do(make_cor(.$estimate, .$true_fraction)) %>%
+  mutate(cell_type = ALL_CELLS, dataset_group = "All datasets")
+
+validation$hoek = validation$all_results %>%
+  filter(dataset == 'hoek') %>% 
+  group_by(method, cell_type) %>% 
+  do(make_cor(.$estimate, .$true_fraction)) %>%
+  mutate(dataset_group = "Hoek")
+
+validation$hoek_all_cells = validation$all_results %>%
+  filter(dataset == 'hoek') %>% 
+  group_by(method) %>% 
+  do(make_cor(.$estimate, .$true_fraction)) %>%
+  mutate(cell_type = ALL_CELLS, dataset_group = "Hoek")
+
+validation$racle_all_cells = validation$all_results %>%
+  filter(dataset == 'racle') %>% 
+  group_by(method) %>% 
+  do(make_cor(.$estimate, .$true_fraction)) %>%
+  mutate(cell_type = ALL_CELLS, dataset_group = "Racle")
+
+validation$schelker_all_cells = validation$all_results %>%
+  filter(dataset == 'schelker_ovarian') %>% 
+  group_by(method) %>% 
+  do(make_cor(.$estimate, .$true_fraction)) %>%
+  mutate(cell_type = ALL_CELLS, dataset_group = "Schelker")
+
+validation$all = bind_rows(validation$all_datasets, validation$all_datasets_all_cells,
+                           validation$hoek, validation$hoek_all_cells,
+                           validation$racle_all_cells,
+                           validation$schelker_all_cells)
+
 ```
 
 
@@ -95,7 +137,9 @@ validation = res_validation$between_sample %>%
 # make the correlation plots
 p_noise = plot_cor_table(noise) + ggtitle("Noise")
 p_mixing = plot_cor_table(mixing) + ggtitle("Simulation Benchmark")
-p_validation = plot_cor_table(validation) + ggtitle("Validation")
+p_validation = validation$all %>%
+  rename(column=cell_type, category=dataset_group) %>%
+  plot_cor_table() + ggtitle("Validation") + geom_vline(xintercept = 1.5)
 
 print(p_noise)
 print(p_mixing)
@@ -168,21 +212,21 @@ print(p_specificity)
 
 ```{r, fig.height=3.5, fig.width=8, include=FALSE}
 # Absolute deviation plot
-tmp_cell_types = res_mixing_study$deviation_from_slope$cell_type %>% unique()
+exclude_cell_types = "Dendritic cell"
+tmp_cell_types = res_mixing_study$log_slope %>% filter(!cell_type %in% exclude_cell_types) %>% pull(cell_type) %>% unique() 
 tmp_methods = config$abs_methods_final
 tmp_matrix = crossing(tmp_cell_types, tmp_methods)
 colnames(tmp_matrix) = c("cell_type", "method")
-p_abs_deviation = res_mixing_study$deviation_from_slope %>%
-  filter(method %in% tmp_methods) %>%
+p_abs_deviation = res_mixing_study$log_slope %>%
   right_join(tmp_matrix) %>%
   inner_join(method_names) %>%
    # na -> 0 workaround, otherwise text label does not show
-   ggplot(aes(x=cell_type, y=ifelse(is.na(deviation), 0, deviation), alpha=macrophage_only)) +
+   ggplot(aes(x=cell_type, y=ifelse(is.na(log_slope), 0, log_slope), alpha=macrophage_only)) +
       geom_bar(fill="black", stat="identity") +
       geom_errorbar(aes(ymin=ci_lower, ymax=ci_upper), width=.2, color="red") +
       geom_hline(yintercept=0, col="grey") +
-      geom_text(aes(label=ifelse(is.na(deviation), "n/a", NA))) +
-      facet_wrap(~method_name, nrow=1, labeller = label_wrap_gen()) +
+      geom_text(aes(label=ifelse(is.na(log_slope), "n/a", NA))) +
+      facet_wrap(~method_name, nrow=2, labeller = label_wrap_gen()) +
       theme_benchmark() +
       theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
             legend.position="none",
@@ -191,12 +235,36 @@ p_abs_deviation = res_mixing_study$deviation_from_slope %>%
       scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
       ggtitle("Absolute deviation") +
       xlab(NULL) +
-      ylab("deviation from slope=1") +
-      coord_flip(ylim=c(-2, 2)) +
+      ylab("log2(slope)") +
+      coord_flip(y=c(-3.5, 3.5)) +
       theme_title(hjust=0)
 
 print(p_abs_deviation)
 ```
+
+```{r rmse_plot, fig.height=6, fig.width=3}
+res_mixing_study$rmse %>%
+  right_join(tmp_matrix) %>%
+  inner_join(method_names) %>%
+  mutate(rmse_text = as.character(round(rmse, 2))) %>%
+  mutate(column="RMSE") %>%
+  ggplot(aes(x=column, y=cell_type)) +
+    geom_tile(aes(fill=rmse)) +
+    geom_text(aes(label=rmse_text), size=3) +
+    scale_fill_distiller(type="div", palette = "RdYlGn", direction=-1, values=c(0, .02, .1, 1), na.value="white") +
+    scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
+    theme_benchmark() +
+    theme(axis.text.x.top=element_text(angle = 90, vjust = .5, hjust=0),
+            legend.position="none",
+            strip.text.x = element_blank()) +
+    scale_x_discrete(position = "top", drop=FALSE) +
+    facet_wrap(~method_name, nrow=2) + 
+    xlab(NULL) +
+    ylab(NULL) +
+    theme_title()
+
+```
+
 
 ## Benchmark results, Sensitivity, Specificity and absolute deviation
 ```{r, fig.height=9, fig.width=7, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Benchmark results main figure. "}

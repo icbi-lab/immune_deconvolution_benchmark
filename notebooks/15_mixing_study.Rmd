@@ -262,6 +262,8 @@ rmse = results_with_gold_standard %>%
   mutate(square_error = (estimate-true_fraction)^2) %>%
   group_by(method, cell_type, macrophage_only) %>%
   summarise(rmse = sqrt(mean(square_error)))
+
+res_mixing_study$rmse = rmse
     
 rmse %>% 
  right_join(cell_type_method_mat) %>%

@@ -201,24 +201,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="creating-publication-ready-figures" class="section level1">
 <h1><span class="header-section-number">8</span> Creating publication ready figures</h1>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1"><span class="co"># Define names</span></a>
-<a class="sourceLine" id="cb19-2" data-line-number="2">method_names =<span class="st"> </span><span class="kw">data.frame</span>(</a>
-<a class="sourceLine" id="cb19-3" data-line-number="3">  <span class="dt">method =</span> <span class="kw">c</span>(<span class="st">&quot;cibersort&quot;</span>, <span class="st">&quot;cibersort_abs&quot;</span>, <span class="st">&quot;epic&quot;</span>, <span class="st">&quot;mcp_counter&quot;</span>, <span class="st">&quot;quantiseq&quot;</span>, <span class="st">&quot;timer&quot;</span>, <span class="st">&quot;xcell&quot;</span>),</a>
-<a class="sourceLine" id="cb19-4" data-line-number="4">  <span class="dt">method_name =</span> <span class="kw">c</span>(<span class="st">&quot;CIBERSORT&quot;</span>, <span class="st">&quot;CIBERSORT (abs.)&quot;</span>, <span class="st">&quot;EPIC&quot;</span>, <span class="st">&quot;MCPcounter&quot;</span>, <span class="st">&quot;quanTIseq&quot;</span>, <span class="st">&quot;TIMER&quot;</span>, <span class="st">&quot;xCell&quot;</span>)</a>
-<a class="sourceLine" id="cb19-5" data-line-number="5">)</a>
-<a class="sourceLine" id="cb19-6" data-line-number="6"></a>
-<a class="sourceLine" id="cb19-7" data-line-number="7">validation_datasets =<span class="st"> </span><span class="kw">data.frame</span>(</a>
-<a class="sourceLine" id="cb19-8" data-line-number="8">  <span class="dt">dataset =</span> <span class="kw">c</span>(<span class="st">&quot;hoek&quot;</span>, <span class="st">&quot;racle&quot;</span>, <span class="st">&quot;schelker_ovarian&quot;</span>),</a>
-<a class="sourceLine" id="cb19-9" data-line-number="9">  <span class="dt">description =</span> <span class="kw">c</span>(<span class="st">&quot;Hoek (PBMC)&quot;</span>, <span class="st">&quot;Racle (melanoma)&quot;</span>, <span class="st">&quot;Schelker (ovarian)&quot;</span>)</a>
-<a class="sourceLine" id="cb19-10" data-line-number="10">)</a>
-<a class="sourceLine" id="cb19-11" data-line-number="11"></a>
-<a class="sourceLine" id="cb19-12" data-line-number="12">abs_methods =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;cibersort_abs&quot;</span>, <span class="st">&quot;quantiseq&quot;</span>, <span class="st">&quot;epic&quot;</span>)</a>
-<a class="sourceLine" id="cb19-13" data-line-number="13">within_methods =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;cibersort&quot;</span>, <span class="st">&quot;cibersort_abs&quot;</span>, <span class="st">&quot;quantiseq&quot;</span>, <span class="st">&quot;epic&quot;</span>)</a>
-<a class="sourceLine" id="cb19-14" data-line-number="14">between_methods =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;cibersort_abs&quot;</span>, <span class="st">&quot;quantiseq&quot;</span>, <span class="st">&quot;epic&quot;</span>, <span class="st">&quot;timer&quot;</span>, <span class="st">&quot;xcell&quot;</span>, <span class="st">&quot;mcp_counter&quot;</span>)</a></code></pre></div>
 <div id="benchmark-results-sensitivity-specificity-and-absolute-deviation" class="section level2">
 <h2><span class="header-section-number">8.1</span> Benchmark results, Sensitivity, Specificity and absolute deviation</h2>
-<div class="figure"><span id="fig:unnamed-chunk-58"></span>
-<img src="_main_files/figure-html/unnamed-chunk-58-1.png" alt="Benchmark results main figure. " width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-55"></span>
+<img src="_main_files/figure-html/unnamed-chunk-55-1.png" alt="Benchmark results main figure. " width="960" />
 <p class="caption">
 Figure 8.1: Benchmark results main figure.
 </p>
@@ -226,8 +212,8 @@ Figure 8.1: Benchmark results main figure.
 </div>
 <div id="migration-charts-for-spillover-analysis" class="section level2">
 <h2><span class="header-section-number">8.2</span> Migration charts for Spillover analysis</h2>
-<div class="figure"><span id="fig:unnamed-chunk-61"></span>
-<img src="_main_files/figure-html/unnamed-chunk-61-1.png" alt="Migration chart figure for paper. " width="1248" />
+<div class="figure"><span id="fig:unnamed-chunk-58"></span>
+<img src="_main_files/figure-html/unnamed-chunk-58-1.png" alt="Migration chart figure for paper. " width="1248" />
 <p class="caption">
 Figure 8.2: Migration chart figure for paper.
 </p>

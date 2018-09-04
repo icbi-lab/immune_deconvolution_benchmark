@@ -163,7 +163,7 @@ print(p_validation_schelker)
 ```
 
 
-```{r sens-spec-plot, include=FALSE}
+```{r sens-spec-plot-pubready, include=FALSE}
 # Specificity heatmap
 tmp_sens = res_sensitivity$sensitivity %>%
   filter(method != "mcp_counter") %>%
@@ -319,8 +319,8 @@ plot_grid(plot_heatmap,
           align="h",
           axis="l")
 
-# ggsave("../results/figures/summary.pdf")
-# ggsave("../results/figures/summary.png", dpi=1200)
+ggsave("../results/figures/summary.pdf")
+ggsave("../results/figures/summary.png", dpi=1200)
 ```
 
 

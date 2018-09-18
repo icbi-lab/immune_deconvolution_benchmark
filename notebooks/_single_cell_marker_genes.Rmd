@@ -1,4 +1,11 @@
+---
+output:
+  html_document:
+    self_contained: true
+---
+
 ```{r setup}
+library(knitr)
 library(ggplot2)
 library(dplyr)
 library(foreach)
@@ -8,32 +15,38 @@ library(magrittr)
 library(readr)
 library(BioQC)
 library(ggbeeswarm)
+library(ggpubr)
+opts_knit$set(self.contained=TRUE)
 ```
 
-
+# Investigating Markers of DCs/B cells
 ```{r}
 load("../data/schelker/single_cell_schelker.rda")
 mat = cbind(pData(single_cell_schelker), t(exprs(single_cell_schelker))) %>% as_tibble() 
 mat = mat %>% filter(source != "pbmc")
-
 ```
 
-## Define Markers
-```{r}
-
-
-
+## Show B cell and DC marker across the t-SNE plot
+```{r, fig.width=6, fig.height=6}
+foreach(gene = c("MS4A1", "CD19", "ITGAM", "ITGAX", "CLEC4C", "IL3RA", "TCL1A"),
+        cell_type = c("B cell", "B cell", "myleoid", "myleoid", "plasmacytoid DCs", "plasmacytoid DCs", "??")) %do% {
+          mat %>% ggplot(aes(x=tsneX1, y=tsneX2)) + 
+            geom_point(aes_string(colour=gene), size=.4) +
+#            scale_colour_distiller(palette="RdBu") +
+            ggtitle(paste(gene, "-", cell_type))
+        }
 ```
 
-```{r, fig.width=10, fig.height=10}
-mat %>% ggplot(aes(x=tsneX1, y=tsneX2)) + geom_point(aes(colour=`MS4A1`), size=.4)
-```
-
+**Conclusion**: The B cell and DC cluster separate well, the marker genes do not overlap. 
+The DC cluster are plasmacytoid DCs, mDCs are somewhere hidden in the Macrophage/Monocyte cluster
+and cannot be distinguished. 
 
 ```{r}
 load("../results/cache/sensitivity_analysis_dataset.rda")
 ```
 
+
+## Check expression of markers in "Sensitivity/Speicificity" simulation dataset. 
 ```{r}
 show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
                     "NK cell", "T cell CD4+", "T cell CD8+")
@@ -60,14 +73,14 @@ alldata2 %<>% inner_join(colname2ncell)
 ```
 
 
-# Correlation of marker genes with simulated samples of certain type. 
-```{r}
+```{r, fig.cap="Correlation of marker genes with increase of the amount of a certain cell type. Along x-axis: cell type used for simulation. Along y-axis: groups of marker genes. ", fig.height=12, fig.width=12}
 markers = list(
-  "B cell" = c("MS4A1", #CD20
+  "B cell" = c("MS4A1", #=CD20
                "CD19", "CD22"
   ), 
-  "DC" = c("ITGAM", "ITGAX"), # CD11B
-  "MHC class II" = c("HLA-DRB1", "HLA-DRA"))
+  "myleoid" = c("ITGAM", "ITGAX"), #=CD11B,CD11C
+  "MHC class II" = c("HLA-DRB1", "HLA-DRA"),
+  "plasmacytoid DC" = c("CLEC4C", "IL3RA"))
 markers_df = foreach(cell_type = names(markers), genes=markers, .combine=bind_rows) %do% {
   data.frame(gene=genes) %>% mutate(markers_for=cell_type)
 }
@@ -76,12 +89,22 @@ alldata2 %>% filter(gene %in% allmarkers) %>%
   inner_join(markers_df) %>%
   ggplot(aes(x=ncell, y=TPM)) +
     geom_point(aes(colour=gene)) +
-    facet_grid(markers_for~celltype, scales = "free_y") + 
-    scale_color_brewer(palette="Set3")
+    facet_grid(gene~celltype, scales = "free_y") + 
+    scale_color_brewer(palette="Set3") + stat_cor()
 
+alldata2 %>% filter(celltype == "Dendritic cell", gene == "MS4A1") %>% 
+  ggplot(aes(x=ncell, y=TPM)) + 
+  geom_point()+ 
+  stat_smooth(method="lm") +
+  stat_cor()
 ```
 
-# Check quanTIseq marker genes
+### Derive marker genes from quanTIseq/EPIC signature matrices. 
+We use gini-index (Zhang et al. (2017), BMC genomics) to filter for highly discriminating genes
+within the matrix. We select all genes with a gini index > 0.7. We assign all selected genes as marker gene
+to the cell type in which it is expressed the most. 
+In the end, we receive a list of signature genes for each cell type. 
+
 ```{r, message=FALSE, warning=FALSE}
 til10 = read_tsv("../immunedeconv/inst/extdata/quantiseq/TIL10_signature.txt")
 gini_index = apply(til10, 1, gini)
@@ -94,7 +117,7 @@ quantiseq_markers = sapply(colnames(til10_gini_rk), function(cell_type) {
 }, simplify = FALSE, USE.NAMES = TRUE)
 ```
 
-# Check EPIC marker genes
+Same fore EPIC:
 ```{r}
 tref = EPIC::TRef$refProfiles[EPIC::TRef$sigGenes,]
 gini_index = apply(tref, 1, gini)
@@ -107,7 +130,7 @@ epic_markers = sapply(colnames(tref_gini_rk), function(cell_type) {
 ```
 
 
-```{r, fig.width=10, fig.height=15}
+```{r, fig.width=10, fig.height=15, warning=FALSE, message=FALSE, fig.cap="Expression across cell types. Along x-axis: cell types used for simulation. Along y-axis: Signature genes from EPIC/quanTIseq for the cell types. "}
 marker_list = list(quantiseq=quantiseq_markers, epic=epic_markers)
 foreach(method = names(marker_list)) %do% {
   markers = marker_list[[method]]
@@ -122,10 +145,11 @@ foreach(method = names(marker_list)) %do% {
   alldata3 %>%
     ggplot(aes(x=gene, y=TPM)) +
       geom_boxplot() + 
-    coord_flip() + 
+      coord_flip() + 
       facet_grid(markers_for~celltype, scales = "free", space="free") + 
       scale_color_brewer(palette="Set1") + 
-      theme(strip.text.y = element_text(angle=0))
+      theme(strip.text.y = element_text(angle=0)) + 
+      ggtitle(method)
 }
 
 ```

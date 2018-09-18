@@ -1,3 +1,19 @@
+---
+jupyter:
+  jupytext_format_version: '1.0'
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
+  language_info:
+    codemirror_mode: r
+    file_extension: .r
+    mimetype: text/x-r-source
+    name: R
+    pygments_lexer: r
+    version: 3.4.1
+---
+
 ```{r setup, include=FALSE}
 # tidyverse
 library(dplyr)
@@ -29,7 +45,7 @@ source("../lib/make_cell_fraction_vector.R")
 source("../lib/make_cor.R")
 source("../lib/dt_caption.R")
 
-# edit this file for configuration options. 
+# edit this file for configuration options.
 source("config.R")
 
 color_file = "../tables/color_scales.xlsx"
@@ -60,7 +76,7 @@ A dataset of more than 11,000 single cancer and immune cells, classified by cell
 We use a hierachy of immune cell types to map the cell types between different methods and datasets.
 The following figure shows this hierarchy visualized as a tree
 
-```{r hierarchy, fig.height=8, fig.width=8, echo=FALSE, fig.cap="Hierarchy of immune cell types used for mapping cell types between methods and datasets."}
+```{r hierarchy, echo=FALSE, fig.height=8, fig.width=8, fig.cap="Hierarchy of immune cell types used for mapping cell types between methods and datasets."}
 cell_type_hierarchy = new.env()
 with(cell_type_hierarchy, {
   tree = immunedeconv::cell_type_tree
@@ -76,7 +92,7 @@ with(cell_type_hierarchy, {
 
 ## Single cell data for simulated mixtures
 
-```{r single_cell_schelker, message=FALSE, cache=TRUE, echo=FALSE}
+```{r single_cell_schelker, echo=FALSE, message=FALSE, cache=TRUE}
 tmp_env = new.env()
 with(tmp_env, {
   load("../data/schelker/single_cell_schelker.rda")
@@ -98,7 +114,7 @@ single_cell_schelker$eset = tmp_env$eset
 single_cell_schelker$cell_types = pData(single_cell_schelker$eset)$cell_type %>% unique()
 ```
 
-```{r, echo=FALSE}
+```{r echo=FALSE}
 cell_types = as.environment(list(
   available=pData(single_cell_schelker$eset) %>% select(cell_type) %>% distinct() %>% pull(cell_type),
   cancer=c("Melanoma cell", "Ovarian carcinoma cell"),
@@ -126,7 +142,7 @@ Unknown cells are excluded from the downstream analysis.
 The dataset consists of single cells from PBMC, melanoma and ovarian cancer ascites.
 As we are interested in the deconvolution of cancer samples, we exclude the PBMC cells from all downstream analyses.
 
-```{r, echo=FALSE, }
+```{r echo=FALSE}
 pData(single_cell_schelker$eset) %>%
   group_by(cell_type) %>%
   count() %>%
@@ -134,7 +150,7 @@ pData(single_cell_schelker$eset) %>%
                                                 ncol(exprs(single_cell_schelker$eset))))
 ```
 
-```{r, echo=FALSE, message=FALSE, fig.width=13, fig.height=10, fig.cap="tSNE-clustering of the ~12,000 single cells from @Schelker2017. "}
+```{r echo=FALSE, message=FALSE, fig.width=13, fig.height=10, fig.cap="tSNE-clustering of the ~12,000 single cells from @Schelker2017. "}
 pData(single_cell_schelker$eset) %>%
   ggplot(aes(x=tsneX1, y=tsneX2, colour=cell_type)) +
            geom_point(size=1) +
@@ -152,7 +168,7 @@ ggsave("../results/figures/schelker_single_cell_tsne.png", dpi=1200)
 ## Immune cell reference samples
 RNAseq samples of pure immune cells of 10 types from 5 studies curated by @quantiseq2017.
 
-```{r, message=FALSE, cache=TRUE, echo=FALSE, results="asis"}
+```{r echo=FALSE, message=FALSE, cache=TRUE, results="asis"}
 immune_cell_reference = new.env()
 with(immune_cell_reference, {
   tidy = read_tsv("../data/immune_cell_reference/immune_cell_reference_tidy.tsv")
@@ -244,14 +260,14 @@ with(schelker_ovarian, {
 
 ```
 
-```{r, echo=FALSE}
+```{r echo=FALSE}
 dt_caption("Flow cytometry estimates of Schelker et al. ")
 schelker_ovarian$ref %>% DT::datatable()
 ```
 
 The samples have also been profiled by single cell RNA sequencing. The following table shows the
 cell count for each sample.
-```{r, echo=FALSE}
+```{r echo=FALSE}
 schelker_ovarian$true_cell_count_sc %>%
   group_by(donor) %>%
   summarise(sum(cell_count)) %>%
@@ -259,7 +275,7 @@ schelker_ovarian$true_cell_count_sc %>%
 ```
 
 ## 4 metastatic melanoma samples from @EPIC2017
-```{r racle, message=FALSE, echo=FALSE}
+```{r racle, echo=FALSE, message=FALSE}
 tmp_env = new.env()
 with(tmp_env, {
   ensg_hgnc = read_tsv("../data/ensemble_hgnc.txt") %>%
@@ -291,7 +307,7 @@ racle$ref = tmp_env$racle_cyto %>%
 
 ```
 
-```{r racle_tab, message=FALSE, echo=FALSE, results="asis"}
+```{r racle_tab, echo=FALSE, message=FALSE, results="asis"}
 dt_caption("Flow cytometry estimates of Racle et al. ")
 racle$ref %>% select(sample, cell_type, true_fraction) %>% DT::datatable()
 ```
@@ -302,7 +318,7 @@ Here, we plot the distributions of the different gene expression datasets to ens
 that everything looks like we expect it to, e.g. if all datasets are
 on non-log scale.
 
-```{r, fig.height=6, fig.width=10, echo=FALSE, fig.cap="Histogram of gene expression data of all datasets"}
+```{r echo=FALSE, fig.height=6, fig.width=10, fig.cap="Histogram of gene expression data of all datasets"}
 par(mfrow=c(2,3))
 hist(c(exprs(single_cell_schelker$eset)))
 hist(c(racle$expr_mat))
@@ -311,7 +327,7 @@ hist(c(hoek$expr_mat))
 hist(c(immune_cell_reference$expr_mat))
 ```
 
-```{r, fig.width=10, fig.height=6, echo=FALSE, fig.cap="Histogram of log-tranformed gene expression data of all datasets"}
+```{r echo=FALSE, fig.width=10, fig.height=6, fig.cap="Histogram of log-tranformed gene expression data of all datasets"}
 par(mfrow=c(2,3))
 hist(log2(c(exprs(single_cell_schelker$eset))+1))
 hist(log2(c(racle$expr_mat)+1))
@@ -321,7 +337,7 @@ hist(log2(c(immune_cell_reference$expr_mat)+1))
 ```
 
 The mean values of all datasets:
-```{r, results='hold', cache=TRUE}
+```{r results='hold', cache=TRUE}
 mean(c(exprs(single_cell_schelker$eset)))
 mean(c(racle$expr_mat))
 mean(c(schelker_ovarian$expr_mat))

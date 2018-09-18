@@ -1,0 +1,134 @@
+```{r setup}
+library(ggplot2)
+library(dplyr)
+library(foreach)
+library(tibble)
+library(tidyr)
+library(magrittr)
+library(readr)
+library(BioQC)
+library(ggbeeswarm)
+```
+
+
+```{r}
+load("../data/schelker/single_cell_schelker.rda")
+mat = cbind(pData(single_cell_schelker), t(exprs(single_cell_schelker))) %>% as_tibble() 
+mat = mat %>% filter(source != "pbmc")
+
+```
+
+## Define Markers
+```{r}
+
+
+
+```
+
+```{r, fig.width=10, fig.height=10}
+mat %>% ggplot(aes(x=tsneX1, y=tsneX2)) + geom_point(aes(colour=`MS4A1`), size=.4)
+```
+
+
+```{r}
+load("../results/cache/sensitivity_analysis_dataset.rda")
+```
+
+```{r}
+show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
+                    "NK cell", "T cell CD4+", "T cell CD8+")
+```
+
+```{r, echo=FALSE}
+n_immune_cells = rep(c(seq(0, 50, 5)
+                     , seq(60, 100, 10)
+                     , seq(150, 500, 50)
+                     , seq(600, 1000, 100)
+                     ), 5)
+```
+
+
+```{r}
+alldata = foreach(celltype = names(sensitivity_analysis_dataset),
+        .combine=bind_rows) %do% {
+          sensitivity_analysis_dataset[[celltype]] %>% as.tibble(rownames="gene") %>% mutate(celltype=celltype)
+  
+        }
+colname2ncell = data.frame(sample=colnames(sensitivity_analysis_dataset$`B cell`), ncell=n_immune_cells)
+alldata2 = alldata %>% gather(sample, TPM, -gene, -celltype)
+alldata2 %<>% inner_join(colname2ncell)
+```
+
+
+# Correlation of marker genes with simulated samples of certain type. 
+```{r}
+markers = list(
+  "B cell" = c("MS4A1", #CD20
+               "CD19", "CD22"
+  ), 
+  "DC" = c("ITGAM", "ITGAX"), # CD11B
+  "MHC class II" = c("HLA-DRB1", "HLA-DRA"))
+markers_df = foreach(cell_type = names(markers), genes=markers, .combine=bind_rows) %do% {
+  data.frame(gene=genes) %>% mutate(markers_for=cell_type)
+}
+allmarkers = unlist(markers)
+alldata2 %>% filter(gene %in% allmarkers) %>%
+  inner_join(markers_df) %>%
+  ggplot(aes(x=ncell, y=TPM)) +
+    geom_point(aes(colour=gene)) +
+    facet_grid(markers_for~celltype, scales = "free_y") + 
+    scale_color_brewer(palette="Set3")
+
+```
+
+# Check quanTIseq marker genes
+```{r, message=FALSE, warning=FALSE}
+til10 = read_tsv("../immunedeconv/inst/extdata/quantiseq/TIL10_signature.txt")
+gini_index = apply(til10, 1, gini)
+til10_gini = til10[gini_index > .7,]
+til10_gini_rk = apply(til10_gini %>% select(-ID), 1, function(x) {rank(-x)}) %>% t()
+rownames(til10_gini_rk) = til10_gini$ID
+
+quantiseq_markers = sapply(colnames(til10_gini_rk), function(cell_type) {
+   rownames(til10_gini_rk)[til10_gini_rk[,cell_type] == 1]
+}, simplify = FALSE, USE.NAMES = TRUE)
+```
+
+# Check EPIC marker genes
+```{r}
+tref = EPIC::TRef$refProfiles[EPIC::TRef$sigGenes,]
+gini_index = apply(tref, 1, gini)
+tref_gini = tref[gini_index > .7,]
+tref_gini_rk = apply(tref, 1, function(x) {rank(-x)}) %>% t()
+
+epic_markers = sapply(colnames(tref_gini_rk), function(cell_type) {
+  rownames(tref_gini_rk)[tref_gini_rk[,cell_type] == 1]
+}, simplify = FALSE, USE.NAMES = TRUE)
+```
+
+
+```{r, fig.width=10, fig.height=15}
+marker_list = list(quantiseq=quantiseq_markers, epic=epic_markers)
+foreach(method = names(marker_list)) %do% {
+  markers = marker_list[[method]]
+  markers_df = foreach(cell_type = names(markers), genes=markers, .combine=bind_rows) %do% {
+    data.frame(gene=genes) %>% mutate(markers_for=cell_type)
+  }
+  allmarkers = unlist(markers)
+  alldata3 = alldata2 %>% filter(gene %in% allmarkers) %>%
+    filter(ncell > 600) %>%
+    inner_join(markers_df)
+  
+  alldata3 %>%
+    ggplot(aes(x=gene, y=TPM)) +
+      geom_boxplot() + 
+    coord_flip() + 
+      facet_grid(markers_for~celltype, scales = "free", space="free") + 
+      scale_color_brewer(palette="Set1") + 
+      theme(strip.text.y = element_text(angle=0))
+}
+
+```
+
+
+

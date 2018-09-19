@@ -106,11 +106,11 @@ to the cell type in which it is expressed the most.
 In the end, we receive a list of signature genes for each cell type. 
 
 ```{r, message=FALSE, warning=FALSE}
-til10 = read_tsv("../immunedeconv/inst/extdata/quantiseq/TIL10_signature.txt")
+til10 = read_tsv("../immunedeconv/inst/extdata/quantiseq/TIL10_signature.txt") %>% as.data.frame() %>%
+  column_to_rownames("ID")
 gini_index = apply(til10, 1, gini)
 til10_gini = til10[gini_index > .7,]
-til10_gini_rk = apply(til10_gini %>% select(-ID), 1, function(x) {rank(-x)}) %>% t()
-rownames(til10_gini_rk) = til10_gini$ID
+til10_gini_rk = apply(til10_gini, 1, function(x) {rank(-x)}) %>% t()
 
 quantiseq_markers = sapply(colnames(til10_gini_rk), function(cell_type) {
    rownames(til10_gini_rk)[til10_gini_rk[,cell_type] == 1]
@@ -129,9 +129,21 @@ epic_markers = sapply(colnames(tref_gini_rk), function(cell_type) {
 }, simplify = FALSE, USE.NAMES = TRUE)
 ```
 
+Same for CIBERSORT
+```{r}
+lm22 = read_tsv("../lib/CIBERSORT/LM22.txt") %>% as.data.frame() %>% column_to_rownames("Gene symbol")
+gini_index = apply(tref, 1, gini)
+lm22_gini = tref[gini_index > .7,]
+lm22_gini_rk = apply(lm22, 1, function(x) {rank(-x)}) %>% t()
+
+cibersort_markers = sapply(colnames(lm22_gini_rk), function(cell_type) {
+  rownames(lm22_gini_rk)[lm22_gini_rk[,cell_type] == 1]
+}, simplify = FALSE, USE.NAMES = TRUE)
+```
+
 
 ```{r, fig.width=10, fig.height=15, warning=FALSE, message=FALSE, fig.cap="Expression across cell types. Along x-axis: cell types used for simulation. Along y-axis: Signature genes from EPIC/quanTIseq for the cell types. "}
-marker_list = list(quantiseq=quantiseq_markers, epic=epic_markers)
+marker_list = list(quantiseq=quantiseq_markers, epic=epic_markers, cibersort=cibersort_markers)
 foreach(method = names(marker_list)) %do% {
   markers = marker_list[[method]]
   markers_df = foreach(cell_type = names(markers), genes=markers, .combine=bind_rows) %do% {
@@ -141,7 +153,7 @@ foreach(method = names(marker_list)) %do% {
   alldata3 = alldata2 %>% filter(gene %in% allmarkers) %>%
     filter(ncell > 600) %>%
     inner_join(markers_df)
-  
+ 
   alldata3 %>%
     ggplot(aes(x=gene, y=TPM)) +
       geom_boxplot() + 
@@ -150,6 +162,7 @@ foreach(method = names(marker_list)) %do% {
       scale_color_brewer(palette="Set1") + 
       theme(strip.text.y = element_text(angle=0)) + 
       ggtitle(method)
+  ggsave(paste0("../results/figures/marker_gene_expression_", method, ".pdf"), width = 15, height = ifelse(method=="cibersort", 75, 15), limitsize=FALSE)
 }
 
 ```

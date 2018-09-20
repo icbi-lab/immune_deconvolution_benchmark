@@ -55,6 +55,7 @@ rule marker_gene_report:
   that are responsible for the DC-> B cell spillover
   on simulated data"""
   input:
+    "notebooks/_single_cell_marker_genes.Rmd",
     "data/schelker/single_cell_schelker.rda",
     "results/cache/sensitivity_analysis_dataset.rda",
     "immunedeconv/inst/extdata/quantiseq/TIL10_signature.txt",

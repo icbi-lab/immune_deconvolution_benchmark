@@ -1,17 +1,17 @@
-# Sensitivity and Specificity
+# Detection limit and false positive predictions
 ```{r, include=FALSE}
 res_sensitivity = new.env()
 ```
 
-How many cells of a certain type do we need for a method to detect immune cell infiltration? (=Sensitivity)
-How many cells of a certain type are detected, although we know they are not there? (=Specificity)
+How many cells of a certain type do we need for a method to detect immune cell infiltration? (=Detection limit)
+How many cells of a certain type are detected, although we know they are not there? (=false positives)
 
 We again use the single cell dataset to simulate samples that consist of background cells
 (i.e. non-immune cells: fibroblasts, endothelial cells cancer cells) and add an increasing amount
 of immune cells of a certain type.
 
-We define sensitivity as the minimal fraction at which the method the abundance of the cell type to
-be significantly different from zero. We define specificity as the predicted fraction of a certain cell type
+We define the detection limit as the minimal fraction at which the method the abundance of the cell type to
+be significantly different from zero. We define false positives as the predicted fraction of a certain cell type
 at zero inflitration level.
 
 For each amount of immune cells, we generate 5 random samples to compute a confidence interval.
@@ -113,7 +113,7 @@ all_results2 %>%
     scale_color_manual(values = color_scales$immune_cells)
 ```
 
-## Sensitivity
+## Detection Limit
 
 ```{r, warning=FALSE, message=FALSE, cache=TRUE, echo=FALSE}
 # add fallback values, if none of the fractions exceed the specified value
@@ -180,7 +180,7 @@ sensitivity_plot %>%
 ```
 
 
-## Specificity
+## False-positive predictions
 
 Predicted amount of cells when there are none.
 This analysis is based on all of the data above where only background cells are present, i.e. fraction of immune cells = 0.

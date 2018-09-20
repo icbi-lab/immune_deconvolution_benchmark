@@ -171,10 +171,10 @@ tmp_sens = res_sensitivity$sensitivity %>%
   mutate(min_frac = min_frac/100) %>%
   mutate(min_frac_text = as.character(round(min_frac, 2))) %>%
   na.omit() %>%
-  mutate(category="Sensitivity", cell_type=input_cell_type) %>%
+  mutate(category="Detection limit", cell_type=input_cell_type) %>%
   rename(estimate=min_frac, estimate_text=min_frac_text)
 
-tmp_spec = res_sensitivity$specificity %>% mutate(category="Specificity")
+tmp_spec = res_sensitivity$specificity %>% mutate(category="False positives")
 
 # summarise by mean.
 p_sens_spec = bind_rows(tmp_sens, tmp_spec) %>%
@@ -259,7 +259,7 @@ print(p_abs_rmse)
 ```
 
 
-## Benchmark results, Sensitivity, Specificity and absolute deviation
+## Benchmark results, detection limit, false positives and absolute deviation
 ```{r, fig.height=9, fig.width=10, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Benchmark results main figure. "}
 # combine heatmaps
 

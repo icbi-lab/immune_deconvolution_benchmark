@@ -97,7 +97,7 @@ markers = list(
   "plasmacytoid DC" = c("CLEC4C", "IL3RA"))
 ```
 
-```{r, echo=FALSE, message=FALSE, fig.cap="Correlation of marker genes with increase of the amount of a certain cell type. Along x-axis: cell type used for simulation. Along y-axis: groups of marker genes. ", fig.height=12, fig.width=12}
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Correlation of marker genes with increase of the amount of a certain cell type. Along x-axis: cell type used for simulation. Along y-axis: groups of marker genes. ", fig.height=12, fig.width=12}
 markers_df = foreach(cell_type = names(markers), genes=markers, .combine=bind_rows) %do% {
   data.frame(gene=genes) %>% mutate(markers_for=cell_type)
 }
@@ -231,7 +231,7 @@ res_all = bind_rows(res_before, res_after) %>%
 
 ```
 
-```{r, fig.width=12, fig.cap="Predicted", echo=FALSE, message=FALSE, fig.cap="Predictions on 10 simulated DC samples before and after removal of the five genes. "}
+```{r, fig.width=12, fig.cap="Predicted", echo=FALSE, message=FALSE, fig.cap="Predictions on 10 simulated DC samples before and after removal of the five genes. ", warning=FALSE}
 res_all %>% 
   ggplot(aes(x=dataset, y=predicted_fraction, colour=dataset)) +
     geom_quasirandom() + 

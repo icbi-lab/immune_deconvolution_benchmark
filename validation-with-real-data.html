@@ -48,7 +48,7 @@
 
 
 
-<script src="libs/htmlwidgets-1.0/htmlwidgets.js"></script>
+<script src="libs/htmlwidgets-1.2/htmlwidgets.js"></script>
 <script src="libs/viz-0.3/viz.js"></script>
 <link href="libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
 <script src="libs/grViz-binding-1.0.0/grViz.js"></script>
@@ -235,8 +235,8 @@ We distinguish between three types of comparisons:</p>
 <h2><span class="header-section-number">5.1</span> Between- and within-sample comparisons</h2>
 <p>Only works for methods providing an absolute score (cibersort_abs, quantiseq, epic).
 All other methods are included for reference.</p>
-<div class="figure"><span id="fig:unnamed-chunk-33"></span>
-<img src="_main_files/figure-html/unnamed-chunk-33-1.png" alt="Comparison of absolute predictions for three validation dataset. " width="960" />
+<div class="figure"><span id="fig:unnamed-chunk-36"></span>
+<img src="_main_files/figure-html/unnamed-chunk-36-1.png" alt="Comparison of absolute predictions for three validation dataset. " width="960" />
 <p class="caption">
 Figure 5.1: Comparison of absolute predictions for three validation dataset.
 </p>
@@ -246,15 +246,15 @@ Figure 5.1: Comparison of absolute predictions for three validation dataset.
 <h2><span class="header-section-number">5.2</span> Within-sample comparison</h2>
 <p>only works with methods that provide an absolute score, or a score that is relative to total immune
 cell content (cibersort, cibersort_abs, quantiseq, epic).</p>
-<div class="figure"><span id="fig:unnamed-chunk-34"></span>
-<img src="_main_files/figure-html/unnamed-chunk-34-1.png" alt="Comparison of predictions within each individual sample" width="768" />
+<div class="figure"><span id="fig:unnamed-chunk-37"></span>
+<img src="_main_files/figure-html/unnamed-chunk-37-1.png" alt="Comparison of predictions within each individual sample" width="768" />
 <p class="caption">
 Figure 5.2: Comparison of predictions within each individual sample
 </p>
 </div>
 Compute the average over all samples:
-<div class="figure"><span id="fig:unnamed-chunk-35"></span>
-<img src="_main_files/figure-html/unnamed-chunk-35-1.png" alt="Correlations of within-sample comparisons. The last column shows the mean over all samples. " width="768" />
+<div class="figure"><span id="fig:unnamed-chunk-38"></span>
+<img src="_main_files/figure-html/unnamed-chunk-38-1.png" alt="Correlations of within-sample comparisons. The last column shows the mean over all samples. " width="768" />
 <p class="caption">
 Figure 5.3: Correlations of within-sample comparisons. The last column shows the mean over all samples.
 </p>
@@ -264,8 +264,8 @@ Figure 5.3: Correlations of within-sample comparisons. The last column shows the
 <h2><span class="header-section-number">5.3</span> Between-sample comparisons</h2>
 <p>For this, we need to look at every cell type independently.
 Works for all methods except CIBERSORT.</p>
-<div class="figure"><span id="fig:unnamed-chunk-36"></span>
-<img src="_main_files/figure-html/unnamed-chunk-36-1.png" alt="Correlations of known vs. predicted fractions for each cell type independenctly. The 'Tcell' column corresponds to the amount of profiled total T cells or the sum of CD4+ and CD8+ T cells respectively. " width="1152" />
+<div class="figure"><span id="fig:unnamed-chunk-39"></span>
+<img src="_main_files/figure-html/unnamed-chunk-39-1.png" alt="Correlations of known vs. predicted fractions for each cell type independenctly. The 'Tcell' column corresponds to the amount of profiled total T cells or the sum of CD4+ and CD8+ T cells respectively. " width="1152" />
 <p class="caption">
 Figure 5.4: Correlations of known vs. predicted fractions for each cell type independenctly. The ‘Tcell’ column corresponds to the amount of profiled total T cells or the sum of CD4+ and CD8+ T cells respectively.
 </p>
@@ -275,8 +275,8 @@ We only use cell types with at least 5 samples to obtain reasonable
 correlation estimates. We also exclude the T-cell supercategory to
 avoid redundancies.</p>
 <div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" data-line-number="1">use_cell_types2 =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>, <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</a></code></pre></div>
-<div class="figure"><span id="fig:unnamed-chunk-38"></span>
-<img src="_main_files/figure-html/unnamed-chunk-38-1.png" alt="Performance on validation datasets by cell type. The last column shows the mean over all cell types. " width="480" />
+<div class="figure"><span id="fig:unnamed-chunk-41"></span>
+<img src="_main_files/figure-html/unnamed-chunk-41-1.png" alt="Performance on validation datasets by cell type. The last column shows the mean over all cell types. " width="480" />
 <p class="caption">
 Figure 5.5: Performance on validation datasets by cell type. The last column shows the mean over all cell types.
 </p>

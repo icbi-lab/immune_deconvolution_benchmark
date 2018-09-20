@@ -48,7 +48,7 @@
 
 
 
-<script src="libs/htmlwidgets-1.0/htmlwidgets.js"></script>
+<script src="libs/htmlwidgets-1.2/htmlwidgets.js"></script>
 <script src="libs/viz-0.3/viz.js"></script>
 <link href="libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
 <script src="libs/grViz-binding-1.0.0/grViz.js"></script>
@@ -271,8 +271,8 @@ Figure 4.2: The figure shows the correlation of predicted vs. known fractions o
 <a class="sourceLine" id="cb12-2" data-line-number="2"><span class="st">  </span><span class="kw">spread</span>(cell_type, pearson)</a>
 <a class="sourceLine" id="cb12-3" data-line-number="3"></a>
 <a class="sourceLine" id="cb12-4" data-line-number="4"><span class="kw">write_tsv</span>(correlations_tab, <span class="st">&quot;../results/tables/mixing_study_correlations.tsv&quot;</span>, <span class="dt">na=</span><span class="st">&quot;&quot;</span>)</a></code></pre></div>
-<div class="figure"><span id="fig:unnamed-chunk-25"></span>
-<img src="_main_files/figure-html/unnamed-chunk-25-1.png" alt="Correlations of predicted vs. known fractions on 100 simulated bulk RNA-seq samples, organized by cell type. " width="768" />
+<div class="figure"><span id="fig:unnamed-chunk-28"></span>
+<img src="_main_files/figure-html/unnamed-chunk-28-1.png" alt="Correlations of predicted vs. known fractions on 100 simulated bulk RNA-seq samples, organized by cell type. " width="768" />
 <p class="caption">
 Figure 4.3: Correlations of predicted vs. known fractions on 100 simulated bulk RNA-seq samples, organized by cell type.
 </p>
@@ -303,8 +303,8 @@ FAQ</a>)</p>
 <pre><code>## Joining, by = c(&quot;cell_type&quot;, &quot;method&quot;)</code></pre>
 <pre><code>## Warning: Removed 32 rows containing missing values (geom_text).</code></pre>
 <pre><code>## Warning: Removed 19 rows containing missing values (geom_errorbar).</code></pre>
-<div class="figure"><span id="fig:unnamed-chunk-26"></span>
-<img src="_main_files/figure-html/unnamed-chunk-26-1.png" alt="Comparison of absolute methods. The bars indicate the log2(slope). Values &lt; 0 indicate an under-prediction of the cell type, values &gt; 0 an over-prediction respectively. " width="768" />
+<div class="figure"><span id="fig:unnamed-chunk-29"></span>
+<img src="_main_files/figure-html/unnamed-chunk-29-1.png" alt="Comparison of absolute methods. The bars indicate the log2(slope). Values &lt; 0 indicate an under-prediction of the cell type, values &gt; 0 an over-prediction respectively. " width="768" />
 <p class="caption">
 Figure 4.4: Comparison of absolute methods. The bars indicate the log2(slope). Values &lt; 0 indicate an under-prediction of the cell type, values &gt; 0 an over-prediction respectively.
 </p>

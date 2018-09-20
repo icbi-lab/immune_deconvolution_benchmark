@@ -48,7 +48,7 @@
 
 
 
-<script src="libs/htmlwidgets-1.0/htmlwidgets.js"></script>
+<script src="libs/htmlwidgets-1.2/htmlwidgets.js"></script>
 <script src="libs/viz-0.3/viz.js"></script>
 <link href="libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
 <script src="libs/grViz-binding-1.0.0/grViz.js"></script>
@@ -237,14 +237,17 @@ Figure 3.2: Correlation of the methods’ predictions on both simulated and genu
 The poor overlap of xCell is proabably due to the fact that there is little variance between the samples which xCell
 requires to compute a meaningful score (see their <a href="https://github.com/dviraran/xCell/blob/ce4d43121c4a161b1e72a50dc875e43d9cf89b0d/README.Md">README on
 GitHub</a>).</p>
+<p>To demonstrate that this is the case, we run xCell on the same sample, but this time include 50 immune cell reference samples in the run. By adding additional samples,
+we add additional variance which enables xCell to compute a meaningful score.</p>
+<p><img src="_main_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
 </div>
 <div id="correlation-with-immune-reference-samples." class="section level2">
 <h2><span class="header-section-number">3.3</span> Correlation with immune reference samples.</h2>
 <p>To demonstrate that the simulated bulk samples are also biologically meaningflu, we generate
 simulated bulk samples of different immune cell types and correlate them with
 reference profiles of pure immune cells.</p>
-<div class="figure"><span id="fig:unnamed-chunk-16"></span>
-<img src="_main_files/figure-html/unnamed-chunk-16-1.png" alt="Correlation of simulated bulk samples of a certain immune cell type (y-axis) with immune cell reference samples (x-axis)" width="768" />
+<div class="figure"><span id="fig:unnamed-chunk-19"></span>
+<img src="_main_files/figure-html/unnamed-chunk-19-1.png" alt="Correlation of simulated bulk samples of a certain immune cell type (y-axis) with immune cell reference samples (x-axis)" width="768" />
 <p class="caption">
 Figure 3.3: Correlation of simulated bulk samples of a certain immune cell type (y-axis) with immune cell reference samples (x-axis)
 </p>

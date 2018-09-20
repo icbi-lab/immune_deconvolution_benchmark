@@ -239,7 +239,12 @@ requires to compute a meaningful score (see their <a href="https://github.com/dv
 GitHub</a>).</p>
 <p>To demonstrate that this is the case, we run xCell on the same sample, but this time include 50 immune cell reference samples in the run. By adding additional samples,
 we add additional variance which enables xCell to compute a meaningful score.</p>
-<p><img src="_main_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<div class="figure"><span id="fig:unnamed-chunk-18"></span>
+<img src="_main_files/figure-html/unnamed-chunk-18-1.png" alt="Correlation of xCell's prediction on both simulated and genuine bulk RNA-seq samples, including additional samples to increase the variance. " width="768" />
+<p class="caption">
+Figure 3.3: Correlation of xCell’s prediction on both simulated and genuine bulk RNA-seq samples, including additional samples to increase the variance.
+</p>
+</div>
 </div>
 <div id="correlation-with-immune-reference-samples." class="section level2">
 <h2><span class="header-section-number">3.3</span> Correlation with immune reference samples.</h2>
@@ -249,7 +254,7 @@ reference profiles of pure immune cells.</p>
 <div class="figure"><span id="fig:unnamed-chunk-19"></span>
 <img src="_main_files/figure-html/unnamed-chunk-19-1.png" alt="Correlation of simulated bulk samples of a certain immune cell type (y-axis) with immune cell reference samples (x-axis)" width="768" />
 <p class="caption">
-Figure 3.3: Correlation of simulated bulk samples of a certain immune cell type (y-axis) with immune cell reference samples (x-axis)
+Figure 3.4: Correlation of simulated bulk samples of a certain immune cell type (y-axis) with immune cell reference samples (x-axis)
 </p>
 </div>
 <p>In general, the highest correlation is observed between the expression of the sorted cells and the simulated bulk sample.

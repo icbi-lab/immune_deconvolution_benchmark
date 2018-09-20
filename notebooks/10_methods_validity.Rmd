@@ -112,9 +112,9 @@ xcell_all = bind_rows(xcell_bulk, xcell_simulated) %>%
   spread(source, fraction)
 ```
 
-```{r, echo=FALSE}
+```{r, fig.width=8, fig.height=3, echo=FALSE, fig.cap="Correlation of xCell's prediction on both simulated and genuine bulk RNA-seq samples, including additional samples to increase the variance. "}
 xcell_all %>% 
-  ggplot(aes(x=bulk, y=mean)) + geom_point(aes(colour=cell_type)) + stat_cor()
+  ggplot(aes(x=bulk, y=mean)) + geom_point(aes(colour=cell_type)) + stat_cor() + guides(color=guide_legend(ncol=2))
 
 ```
 

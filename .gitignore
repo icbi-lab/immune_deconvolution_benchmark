@@ -17,3 +17,4 @@ data.tar.gz
 test_immunedeconv.yml
 notebooks/*.html
 notebooks/libs
+notebooks/*_cache

@@ -35,6 +35,7 @@ rule book:
     "results/cache/results_for_figures.rda",
     "results/figures/schelker_single_cell_tsne.pdf",
     "results/figures/spillover_migration_chart.pdf",
+    "results/figures/spillover_migration_all.pdf",
     "results/figures/summary.pdf",
     "results/tables/mixing_study_correlations.tsv",
     "results/tables/sensitivity.tsv",
@@ -43,8 +44,33 @@ rule book:
   conda:
     "envs/bookdown.yml"
   shell:
-    "cd notebooks && "
-    "Rscript -e \"bookdown::render_book('index.Rmd')\""
+    """
+    rm -f results/book/figures && ln -s ../figures results/book/figures
+    cd notebooks && Rscript -e "bookdown::render_book('index.Rmd')"
+    """
+
+
+rule marker_gene_report:
+  """Build report that finds the marker genes
+  that are responsible for the DC-> B cell spillover
+  on simulated data"""
+  input:
+    "data/schelker/single_cell_schelker.rda",
+    "results/cache/sensitivity_analysis_dataset.rda",
+    "immunedeconv/inst/extdata/quantiseq/TIL10_signature.txt",
+    "lib/CIBERSORT/LM22.txt"
+  output:
+    expand("results/figures/marker_gene_expression_{method}.pdf",
+                          method=["cibersort", "epic", "quantiseq"]),
+    "results/book/_single_cell_marker_genes.html"
+  conda:
+    "envs/bookdown.yml"
+  shell:
+    """
+    cd notebooks && \\
+    Rscript -e "rmarkdown::render('_single_cell_marker_genes.Rmd', rmarkdown::html_document(), output_dir='../results/book')"
+    """
+
 
 
 rule data:
@@ -80,12 +106,12 @@ rule upload_book:
   """publish the book on github pages"""
   input:
     "results/book/index.html",
-    "results/figures/spillover_migration_all.pdf"
+    "results/figures/spillover_migration_all.pdf",
+    "results/book/_single_cell_marker_genes.html"
   shell:
     """
-    cp results/figures/spillover_migration_all.pdf gh-pages/files
     cd gh-pages && \
-    cp -R ../results/book/* ./ && \
+    cp -LR ../results/book/* ./ && \
     git add --all * && \
     git commit --allow-empty -m "update docs" && \
     git push github gh-pages

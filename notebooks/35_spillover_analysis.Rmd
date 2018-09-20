@@ -152,7 +152,7 @@ signal_noise_res %>%
 
 ## Summary figure: migration charts
 
-Download this figure as high quality [pdf](files/spillover_migration_all.pdf)
+Download this figure as high quality [pdf](figures/spillover_migration_all.pdf)
 
 ```{r, fig.width = 10, fig.height=24, echo=FALSE, results='hide', fig.cap="migration charts for all three dataset. The value in the middle of the chart indicates the 'noise ratio', i.e. the sum of all false positive predictions." }
 methods = config$deconvolution_methods

@@ -1,10 +1,4 @@
----
-output:
-  html_document:
-    self_contained: true
----
-
-```{r setup}
+```{r setup, include=FALSE}
 library(knitr)
 library(ggplot2)
 library(dplyr)
@@ -14,20 +8,40 @@ library(tidyr)
 library(magrittr)
 library(readr)
 library(BioQC)
-library(ggbeeswarm)
+library(doMC)
 library(ggpubr)
+library(ggbeeswarm)
 opts_knit$set(self.contained=TRUE)
+devtools::load_all("../immunedeconv")
+source("../lib/make_cell_fraction_vector.R")
+source("config.R")
+
 ```
 
-# Investigating Markers of DCs/B cells
+# Investigate marker genes
 ```{r}
 load("../data/schelker/single_cell_schelker.rda")
 mat = cbind(pData(single_cell_schelker), t(exprs(single_cell_schelker))) %>% as_tibble() 
 mat = mat %>% filter(source != "pbmc")
 ```
 
+
 ## Show B cell and DC marker across the t-SNE plot
-```{r, fig.width=6, fig.height=6}
+```{r, fig.cap="B cell and D cell clusters in the single cell dataset. ", echo=FALSE}
+mat %>% 
+  mutate(cell_type = ifelse(!cell_type %in% c("Dendritic cells", "B cells"), "other", cell_type)) %>% 
+  ggplot(aes(x=tsneX1, y=tsneX2, colour=cell_type)) +
+           geom_point(size=1) + 
+           theme(legend.position="right") +
+#           scale_color_manual(values=color_scales$cell_types) +
+           guides(colour=guide_legend(ncol = 1, override.aes= list(size=4))) +
+           xlab("tSNE-1") +
+           ylab("tSNE-2") +
+           labs(color="cell type")
+```
+
+### Marker gene expression:
+```{r, fig.width=5, fig.height=4, echo=FALSE, message=FALSE}
 foreach(gene = c("MS4A1", "CD19", "ITGAM", "ITGAX", "CLEC4C", "IL3RA", "TCL1A"),
         cell_type = c("B cell", "B cell", "myleoid", "myleoid", "plasmacytoid DCs", "plasmacytoid DCs", "??")) %do% {
           mat %>% ggplot(aes(x=tsneX1, y=tsneX2)) + 
@@ -41,13 +55,13 @@ foreach(gene = c("MS4A1", "CD19", "ITGAM", "ITGAX", "CLEC4C", "IL3RA", "TCL1A"),
 The DC cluster are plasmacytoid DCs, mDCs are somewhere hidden in the Macrophage/Monocyte cluster
 and cannot be distinguished. 
 
-```{r}
+```{r, cache=TRUE, include=FALSE}
 load("../results/cache/sensitivity_analysis_dataset.rda")
 ```
 
 
-## Check expression of markers in "Sensitivity/Speicificity" simulation dataset. 
-```{r}
+## Check expression of markers in "detection limit" simulation dataset. 
+```{r, include=FALSE}
 show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
                     "NK cell", "T cell CD4+", "T cell CD8+")
 ```
@@ -61,7 +75,7 @@ n_immune_cells = rep(c(seq(0, 50, 5)
 ```
 
 
-```{r}
+```{r, cache=TRUE, include=FALSE}
 alldata = foreach(celltype = names(sensitivity_analysis_dataset),
         .combine=bind_rows) %do% {
           sensitivity_analysis_dataset[[celltype]] %>% as.tibble(rownames="gene") %>% mutate(celltype=celltype)
@@ -73,7 +87,7 @@ alldata2 %<>% inner_join(colname2ncell)
 ```
 
 
-```{r, fig.cap="Correlation of marker genes with increase of the amount of a certain cell type. Along x-axis: cell type used for simulation. Along y-axis: groups of marker genes. ", fig.height=12, fig.width=12}
+```{r}
 markers = list(
   "B cell" = c("MS4A1", #=CD20
                "CD19", "CD22"
@@ -81,6 +95,9 @@ markers = list(
   "myleoid" = c("ITGAM", "ITGAX"), #=CD11B,CD11C
   "MHC class II" = c("HLA-DRB1", "HLA-DRA"),
   "plasmacytoid DC" = c("CLEC4C", "IL3RA"))
+```
+
+```{r, echo=FALSE, message=FALSE, fig.cap="Correlation of marker genes with increase of the amount of a certain cell type. Along x-axis: cell type used for simulation. Along y-axis: groups of marker genes. ", fig.height=12, fig.width=12}
 markers_df = foreach(cell_type = names(markers), genes=markers, .combine=bind_rows) %do% {
   data.frame(gene=genes) %>% mutate(markers_for=cell_type)
 }
@@ -91,10 +108,13 @@ alldata2 %>% filter(gene %in% allmarkers) %>%
     geom_point(aes(colour=gene)) +
     facet_grid(gene~celltype, scales = "free_y") + 
     scale_color_brewer(palette="Set3") + stat_cor()
+```
 
-alldata2 %>% filter(celltype == "Dendritic cell", gene == "MS4A1") %>% 
-  ggplot(aes(x=ncell, y=TPM)) + 
-  geom_point()+ 
+```{r, echo=FALSE, fig.width=3, fig.height=3, fig.cap="Even though the number of dendritic cells does correlate with MS4A1, a B cell marker, the absolute expression is really low. This effect can be driven by few misclassified cells but cannot explain the spillover effects we observe. "}
+
+alldata2 %>% filter(celltype == "Dendritic cell", gene == "MS4A1") %>%
+  ggplot(aes(x=ncell, y=TPM)) +
+  geom_point()+
   stat_smooth(method="lm") +
   stat_cor()
 ```
@@ -117,8 +137,8 @@ quantiseq_markers = sapply(colnames(til10_gini_rk), function(cell_type) {
 }, simplify = FALSE, USE.NAMES = TRUE)
 ```
 
-Same fore EPIC:
-```{r}
+The same procedure is applied to EPIC and CIBERSORT. 
+```{r, include=FALSE}
 tref = EPIC::TRef$refProfiles[EPIC::TRef$sigGenes,]
 gini_index = apply(tref, 1, gini)
 tref_gini = tref[gini_index > .7,]
@@ -129,8 +149,7 @@ epic_markers = sapply(colnames(tref_gini_rk), function(cell_type) {
 }, simplify = FALSE, USE.NAMES = TRUE)
 ```
 
-Same for CIBERSORT
-```{r}
+```{r, include=FALSE}
 lm22 = read_tsv("../lib/CIBERSORT/LM22.txt") %>% as.data.frame() %>% column_to_rownames("Gene symbol")
 gini_index = apply(tref, 1, gini)
 lm22_gini = tref[gini_index > .7,]
@@ -142,7 +161,7 @@ cibersort_markers = sapply(colnames(lm22_gini_rk), function(cell_type) {
 ```
 
 
-```{r, fig.width=10, fig.height=15, warning=FALSE, message=FALSE, fig.cap="Expression across cell types. Along x-axis: cell types used for simulation. Along y-axis: Signature genes from EPIC/quanTIseq for the cell types. "}
+```{r, include=FALSE, fig.width=10, fig.height=15, warning=FALSE, message=FALSE, fig.cap="Expression across cell types. Along x-axis: cell types used for simulation. Along y-axis: Signature genes from EPIC/quanTIseq for the cell types. "}
 marker_list = list(quantiseq=quantiseq_markers, epic=epic_markers, cibersort=cibersort_markers)
 foreach(method = names(marker_list)) %do% {
   markers = marker_list[[method]]
@@ -161,11 +180,63 @@ foreach(method = names(marker_list)) %do% {
       facet_grid(markers_for~celltype, scales = "free", space="free") + 
       scale_color_brewer(palette="Set1") + 
       theme(strip.text.y = element_text(angle=0)) + 
-      ggtitle(method)
+      ggtitle(method) # + scale_y_log10() 
   ggsave(paste0("../results/figures/marker_gene_expression_", method, ".pdf"), width = 15, height = ifelse(method=="cibersort", 75, 15), limitsize=FALSE)
 }
 
 ```
 
+See figures:
+* [EPIC](figures/marker_gene_expression_epic.pdf)
+* [quanTIseq](figures/marker_gene_expression_quantiseq.pdf)
+* [CIBERSORT](figures/marker_gene_expression_cibersort.pdf)
+
+The figures show the expression of marker genes across cell types. Along x-axis: cell types used for simulation. Along y-axis: signature genes for the cell types derived from the signature matrices of the deconvolution methods. 
 
 
+## Deconvolution results before and after
+```{r, include=FALSE}
+dc_expression = foreach(i=1:10,
+        .combine = bind_cols,
+        .final = as.matrix) %do% {
+          cell_n = make_cell_fraction_vector("Dendritic cells", k=500, background=NULL)
+          cell_frac = cell_n/sum(cell_n)
+          make_random_bulk(single_cell_schelker, cell_frac, n_cells=500)
+        }
+rownames(dc_expression) = rownames(exprs(single_cell_schelker))
+
+use_methods = c("epic", "quantiseq", "cibersort")
+show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
+                    "NK cell", "T cell CD4+", "T cell CD8+")
+
+res_before = foreach(method=use_methods, 
+                     .combine=bind_rows) %do% {
+                       deconvolute(dc_expression, method=method) %>% 
+                         map_result_to_celltypes(show_cell_types, method) %>% 
+                         as_tibble(rownames = "cell_type") %>% 
+                         mutate(method=method, dataset="before")
+                     }
+
+res_after = foreach(method=use_methods, 
+                     .combine=bind_rows) %do% {
+                       deconvolute(dc_expression, method=method, rmgenes=c("TCL1A", "TCF4", "CD73", "SPIB", "BCL11A")) %>% 
+                         map_result_to_celltypes(show_cell_types, method) %>% 
+                         as_tibble(rownames = "cell_type") %>% 
+                         mutate(method=method, dataset="after")
+                     }
+
+res_all = bind_rows(res_before, res_after) %>%
+  gather(sample, predicted_fraction, -cell_type, -method, -dataset) %>% 
+  mutate(dataset = factor(dataset, levels=c("before", "after")))
+
+```
+
+```{r, fig.width=12, fig.cap="Predicted", echo=FALSE, message=FALSE, fig.cap="Predictions on 10 simulated DC samples before and after removal of the five genes. "}
+res_all %>% 
+  ggplot(aes(x=dataset, y=predicted_fraction, colour=dataset)) +
+    geom_quasirandom() + 
+    stat_summary(fun.y=mean, geom="crossbar", fun.ymin=mean, fun.ymax=mean, width=.5, color="black") + 
+   facet_grid(method~cell_type, drop = TRUE) + 
+  stat_compare_means(paired = TRUE, method = "t.test")
+
+```

@@ -43,6 +43,7 @@ library(gridGraphics)
 devtools::load_all("../immunedeconv")
 source("../lib/make_cell_fraction_vector.R")
 source("../lib/make_cor.R")
+source("../lib/get_slope.R")
 source("../lib/dt_caption.R")
 
 # edit this file for configuration options.

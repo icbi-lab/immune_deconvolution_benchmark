@@ -86,8 +86,8 @@ bulk_eset = make_bulk_eset(eset=single_cell_schelker$eset,
 ```{r mixing_deconvolution, cache=TRUE, message=FALSE, echo=FALSE, warning=FALSE, results='hide'}
 timer_indications = ifelse(is_melanoma, "SKCM", "OV")
 all_results = foreach(method=config$deconvolution_methods,
-                      .final = function(x) {setNames(x, config$deconvolution_methods)}) %do% {
-  deconvolute(bulk_eset, method, column="gene_symbol", indications = timer_indications)
+                      .final = function(x) {setNames(x, config$deconvolution_methods)}) %dopar% {
+  deconvolute(bulk_eset, method, column="gene_symbol", indications = timer_indications, scale_mrna=TRUE)
 }
 ```
 
@@ -185,17 +185,21 @@ write_tsv(correlations_tab, "../results/tables/mixing_study_correlations.tsv", n
 ```
 
 
-```{r, fig.width=8, fig.height=6, echo=FALSE, fig.cap="Correlations of predicted vs. known fractions on 100 simulated bulk RNA-seq samples, organized by cell type. "}
+```{r, fig.width=8, fig.height=4, echo=FALSE, fig.cap="Correlations of predicted vs. known fractions on 100 simulated bulk RNA-seq samples, organized by cell type. "}
 correlations %>%
-  ggplot(aes(x=method, y=pearson, alpha=macrophage_only)) +
-    geom_bar(aes(fill=method), stat="identity") +
+  ggplot(aes(x=method, y=pearson, color=macrophage_only)) +
+    geom_crossbar(aes(ymin=pearson, ymax=pearson)) +
+    geom_hline(yintercept = 0) + 
     geom_errorbar(aes(ymin=conf_int_lower, ymax=conf_int_upper), width=.2) +
     facet_wrap(~cell_type, nrow=2, labeller = label_wrap_gen()) +
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
           legend.position="top",
           strip.text.x = element_text(size=9)) +
     scale_fill_manual(values=color_scales$methods, na.value="grey") +
-    scale_alpha_manual(values=c("yes"=.3, "no"=1.))
+    scale_color_manual(values=c("yes"="grey", "no"="black")) + 
+    coord_flip() + 
+    theme_bw() + 
+    theme(legend.position = "top") 
 ```
 
 
@@ -216,17 +220,6 @@ xCell and CIBERSORT abs. scale the output score to be 'absolute':
 
 Confidence intervals are two-sided 95% confidence intervales derived using `confint` and `lm`.
 ```{r mixing_abs, echo=FALSE, cache=TRUE}
-get_slope = function(df) {
-  fit = lm(estimate~true_fraction, data=df)
-  conf_int = confint(fit, "true_fraction", level=0.95)
-  data.frame(
-    slope = fit$coefficients[2],
-    ci_lower = conf_int[1],
-    ci_upper = conf_int[2]
-  )
-}
-
-
 log_slope = results_with_gold_standard %>%
   filter(method %in% abs_methods) %>%
   group_by(macrophage_only, cell_type, method) %>%
@@ -239,24 +232,26 @@ cell_type_method_mat = crossing(config$abs_methods_mixing, show_cell_types)
 colnames(cell_type_method_mat) = c("method", "cell_type")
 ```
 
-```{r, fig.width=8, fig.height=6, echo=FALSE, fig.cap="Comparison of absolute methods. The bars indicate the log2(slope). Values < 0 indicate an under-prediction of the cell type, values > 0 an over-prediction respectively. "}
+```{r, fig.width=12, fig.height=4, echo=FALSE, fig.cap="Comparison of absolute methods. The bars indicate the log2(slope). Values < 0 indicate an under-prediction of the cell type, values > 0 an over-prediction respectively. "}
 log_slope %>%
   right_join(cell_type_method_mat) %>%
   # na -> 0 workaround, otherwise text label does not show
-  ggplot(aes(x=method, y=ifelse(is.na(log_slope), 0, log_slope), alpha=macrophage_only)) +
+  ggplot(aes(x=cell_type, y=ifelse(is.na(log_slope), 0, log_slope), alpha=macrophage_only)) +
     geom_bar(aes(fill=method), stat="identity") +
-    geom_text(aes(label=ifelse(is.na(log_slope), "n/a", NA)), angle=90) + 
+    geom_text(aes(label=ifelse(is.na(log_slope), "n/a", NA)), angle=0) + 
     geom_errorbar(aes(ymin=ci_lower, ymax=ci_upper), width=.2) +
-    facet_wrap(~cell_type, nrow=2, labeller = label_wrap_gen()) +
+    facet_wrap(~method, nrow=1, labeller = label_wrap_gen()) +
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
           legend.position="top",
           strip.text.x = element_text(size=9)) +
     scale_fill_manual(values=color_scales$methods, na.value="grey") +
     scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
-    geom_hline(yintercept=0, col="grey")
+    geom_hline(yintercept=0, col="grey") +  
+    coord_flip() + 
+    ylab("log2(slope) of linear fit")
 ```
 
-```{r abs_rmse, fig.width=10, fig.height=6, echo=FALSE, fig.cap="Comparison of absolute methods. The values show the RMSE"}
+```{r abs_rmse, fig.width=12, fig.height=4, echo=FALSE, fig.cap="Comparison of absolute methods. The values show the RMSE"}
 rmse = results_with_gold_standard %>%
   filter(method %in% abs_methods) %>% 
   mutate(square_error = (estimate-true_fraction)^2) %>%
@@ -267,14 +262,16 @@ res_mixing_study$rmse = rmse
     
 rmse %>% 
  right_join(cell_type_method_mat) %>%
- ggplot(aes(x=method, y=ifelse(is.na(rmse), 0, rmse), alpha=macrophage_only)) +
+ ggplot(aes(x=cell_type, y=ifelse(is.na(rmse), 0, rmse), alpha=macrophage_only)) +
     geom_bar(aes(fill=method), stat="identity") +
-    geom_text(aes(label=ifelse(is.na(rmse), "n/a", NA)), angle=90, y=0.05) + 
-    facet_wrap(~cell_type, nrow=2, labeller = label_wrap_gen()) +
+    geom_text(aes(label=ifelse(is.na(rmse), "n/a", NA)), angle=0, y=0.05) + 
+    facet_wrap(~method, nrow=1, labeller = label_wrap_gen()) +
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
           legend.position="top",
           strip.text.x = element_text(size=9)) +
     scale_fill_manual(values=color_scales$methods, na.value="grey") +
     scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
-    geom_hline(yintercept=0, col="grey")
+    coord_flip() + 
+    geom_hline(yintercept=0, col="grey") + 
+    ylab("RMSE")
 ```

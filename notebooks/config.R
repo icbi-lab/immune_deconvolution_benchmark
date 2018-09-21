@@ -25,8 +25,8 @@ if(!file.exists(config$cibersort_binary) || !file.exists(config$cibersort_mat)) 
   config$deconvolution_methods = immunedeconv::deconvolution_methods
 
   # these methods will be treated as 'absolute' methods in the mixing benchmark
-  config$abs_methods_mixing = c("cibersort_abs", "epic", "quantiseq", "xcell", "random")
+  config$abs_methods_mixing = c("cibersort_abs", "epic", "quantiseq", "xcell")
 
   # these methods will be shown as 'absolute' methods in the publication-ready figures
-  config$abs_methods_final = c("quantiseq", "epic", "random")
+  config$abs_methods_final = c("quantiseq", "epic")
 }

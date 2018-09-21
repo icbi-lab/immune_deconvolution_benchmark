@@ -38,8 +38,8 @@ rule book:
     "results/figures/spillover_migration_all.pdf",
     "results/figures/summary.pdf",
     "results/tables/mixing_study_correlations.tsv",
-    "results/tables/sensitivity.tsv",
-    "results/tables/specificity.tsv",
+    "results/tables/detection_limit.tsv",
+    "results/tables/false_positives.tsv",
     "results/tables/spillover_signal_noise.tsv"
   conda:
     "envs/bookdown.yml"

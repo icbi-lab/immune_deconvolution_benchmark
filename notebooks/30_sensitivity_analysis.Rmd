@@ -159,7 +159,7 @@ sensitivity_plot %>%
   mutate(min_frac = ifelse(is.infinite(min_frac), 100, min_frac)) %>%
   mutate(min_frac = min_frac / 100) %>%
   spread(input_cell_type, min_frac) %>%
-  write_tsv("../results/tables/sensitivity.tsv", na="")
+  write_tsv("../results/tables/detection_limit.tsv", na="")
 ```
 
 ```{r sens-plot, fig.width=7, fig.height=6, echo=FALSE, fig.cap="Sensitivity of the methods per cell type. The bars indicate the minimal percentage of infiltration at which the method first reliably detects the cell type. Opaque bars indicate that the methods does not provide an estimate for the cell type."}
@@ -175,7 +175,7 @@ sensitivity_plot %>%
         strip.text.x = element_text(size=9)) +
   scale_fill_manual(values=color_scales$methods, na.value="grey") +
   scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
-  ggtitle("Sensitivity")
+  ggtitle("Detection limit")
 
 ```
 
@@ -194,7 +194,7 @@ sens_spec_table = all_results %>%
   spread(cell_type, median_estimate)
 
 sens_spec_table %>%
-  write_tsv("../results/tables/specificity.tsv", na="")
+  write_tsv("../results/tables/false_positives.tsv", na="")
 ```
 
 ```{r sens_spec_data, fig.height=6, fig.width=6, echo=FALSE}

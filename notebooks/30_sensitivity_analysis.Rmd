@@ -162,20 +162,25 @@ sensitivity_plot %>%
   write_tsv("../results/tables/detection_limit.tsv", na="")
 ```
 
-```{r sens-plot, fig.width=7, fig.height=6, echo=FALSE, fig.cap="Sensitivity of the methods per cell type. The bars indicate the minimal percentage of infiltration at which the method first reliably detects the cell type. Opaque bars indicate that the methods does not provide an estimate for the cell type."}
-sensitivity_plot %>%
-  mutate(min_frac=ifelse(is.infinite(min_frac), 100, min_frac)) %>%
-  mutate(not_measured=ifelse(is.na(min_frac), "yes", "no")) %>%
-  mutate(min_frac=ifelse(is.na(min_frac), 100, min_frac)) %>%
-  ggplot(aes(x=method, y=min_frac, fill=method, alpha=not_measured)) +
-  geom_bar(stat='identity') +
-  facet_wrap(~input_cell_type, nrow=2, labeller = label_wrap_gen()) +
-  theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position="top",
-        strip.text.x = element_text(size=9)) +
-  scale_fill_manual(values=color_scales$methods, na.value="grey") +
-  scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
-  ggtitle("Detection limit")
+```{r sens-plot, fig.width=4, fig.height=4, echo=FALSE, fig.cap="Sensitivity of the methods per cell type. The bars indicate the minimal percentage of infiltration at which the method first reliably detects the cell type. Opaque bars indicate that the methods does not provide an estimate for the cell type."}
+sensitivity_plot %>% 
+  mutate(min_frac = ifelse(min_frac >100, 100, min_frac)) %>% 
+  mutate(min_frac_text = round(min_frac/100, 2)) %>%
+  filter(method != "mcp_counter") %>% 
+  ggplot(aes(x=input_cell_type, y=method)) +
+    geom_tile(aes(fill=min_frac)) +
+    geom_text(aes(label=min_frac_text), size=HEATMAP_FONT_SIZE) +
+    scale_fill_distiller(type="div", palette = "RdYlGn", direction=-1, values=c(0, .02, .1, 1)) +
+    scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
+    theme_benchmark() +
+    theme(axis.text.x.top=element_text(angle = 90, vjust = .5, hjust=0),
+            legend.position="none",
+            strip.text.x = element_text(size=11)) +
+    scale_x_discrete(position = "top", drop=FALSE) +
+    xlab(NULL) +
+    ylab(NULL) +
+    theme_title()  + 
+    ggtitle("Detection limit")
 
 ```
 
@@ -206,14 +211,15 @@ specificity_data = all_results %>%
 res_sensitivity$specificity = specificity_data
 ```
 
-```{r, sens-spec-plot, fig.height=6, fig.width=6, echo=FALSE, fig.cap="Predicted amount of a certain cell type while it is actually absent."}
+```{r, sens-spec-plot, fig.height=3, fig.width=12, echo=FALSE, fig.cap="Predicted amount of a certain cell type while it is actually absent."}
 specificity_data %>%
-  ggplot(aes(x=method, y=estimate, color=method)) +
+  ggplot(aes(x=cell_type, y=estimate)) +
     geom_boxplot(position="dodge") +
-    facet_wrap(~cell_type) +
+    facet_wrap(~method, nrow=1) +
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
           legend.position="top",
           strip.text.x = element_text(size=9)) +
-    scale_color_manual(values=color_scales$methods, na.value="grey")
+    scale_color_manual(values=color_scales$methods, na.value="grey") + 
+    coord_flip()
 ```
 

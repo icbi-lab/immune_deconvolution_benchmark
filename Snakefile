@@ -15,7 +15,8 @@ DATA_FILES = [
     "data/racle/GSE93722_RAW/GSM2461005_LAU355.genes.results.txt",
     "data/racle/GSE93722_RAW/GSM2461003_LAU125.genes.results.txt",
     "data/racle/racle2017_flow_cytometry.xlsx",
-    "data/hoek/HoekPBMC_mixture.RData",
+    "data/hoek/hoek_quantiseq.RData",
+    "data/hoek/hoek_star_rsem.rds",
     "data/hoek/HoekPBMC_gtruth.RData"
 ]
 

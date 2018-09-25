@@ -45,6 +45,7 @@ source("../lib/make_cell_fraction_vector.R")
 source("../lib/make_cor.R")
 source("../lib/get_slope.R")
 source("../lib/dt_caption.R")
+source("../lib/ggthemes.R")
 
 # edit this file for configuration options.
 source("config.R")
@@ -200,7 +201,7 @@ DT::datatable(immune_cell_reference$sample_description %>% select(sample, Study,
 ```{r hoek, echo=FALSE, message=FALSE}
 tmp_env = new.env()
 with(tmp_env, {
-  load("../data/hoek/HoekPBMC_mixture.RData")
+  load("../data/hoek/hoek_quantiseq.RData")
   load("../data/hoek/HoekPBMC_gtruth.RData")
 })
 hoek = new.env()
@@ -346,4 +347,6 @@ mean(c(hoek$expr_mat))
 mean(c(immune_cell_reference$expr_mat))
 ```
 
-
+```{r}
+save.image(file="../results/cache/input_data.rda", compress=FALSE)
+```

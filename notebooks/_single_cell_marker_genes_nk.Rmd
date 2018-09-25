@@ -29,7 +29,7 @@ mat = mat %>% filter(source != "pbmc")
 ## Show B cell and DC marker across the t-SNE plot
 ```{r, fig.cap="B cell and D cell clusters in the single cell dataset. ", echo=FALSE}
 mat %>% 
-  mutate(cell_type = ifelse(!cell_type %in% c("Dendritic cells", "B cells"), "other", cell_type)) %>% 
+  mutate(cell_type = ifelse(!cell_type %in% c("Natural killer cells", "CD4+ T cells"), "other", cell_type)) %>% 
   ggplot(aes(x=tsneX1, y=tsneX2, colour=cell_type)) +
            geom_point(size=1) + 
            theme(legend.position="right") +
@@ -161,8 +161,8 @@ cibersort_markers = sapply(colnames(lm22_gini_rk), function(cell_type) {
 ```
 
 
-```{r, include=FALSE, fig.width=10, fig.height=15, warning=FALSE, message=FALSE, fig.cap="Expression across cell types. Along x-axis: cell types used for simulation. Along y-axis: Signature genes from EPIC/quanTIseq for the cell types. "}
-marker_list = list(quantiseq=quantiseq_markers, epic=epic_markers, cibersort=cibersort_markers)
+```{r, echo=FALSE, fig.width=10, fig.height=3, warning=FALSE, message=FALSE, fig.cap="Expression across cell types. Along x-axis: cell types used for simulation. Along y-axis: Signature genes from EPIC/quanTIseq for the cell types. "}
+marker_list = list(quantiseq=quantiseq_markers, epic=epic_markers)
 foreach(method = names(marker_list)) %do% {
   markers = marker_list[[method]]
   markers_df = foreach(cell_type = names(markers), genes=markers, .combine=bind_rows) %do% {
@@ -171,17 +171,18 @@ foreach(method = names(marker_list)) %do% {
   allmarkers = unlist(markers)
   alldata3 = alldata2 %>% filter(gene %in% allmarkers) %>%
     filter(ncell > 600) %>%
-    inner_join(markers_df)
+    inner_join(markers_df) %>%
+    filter(markers_for %in% c("T.cells.CD8", "CD8_Tcells"))
  
   alldata3 %>%
     ggplot(aes(x=gene, y=TPM)) +
       geom_boxplot() + 
       coord_flip() + 
-      facet_grid(markers_for~celltype, scales = "free", space="free") + 
+      facet_grid(markers_for~celltype, space="free") + 
       scale_color_brewer(palette="Set1") + 
       theme(strip.text.y = element_text(angle=0)) + 
       ggtitle(method) # + scale_y_log10() 
-  ggsave(paste0("../results/figures/marker_gene_expression_", method, ".pdf"), width = 15, height = ifelse(method=="cibersort", 75, 15), limitsize=FALSE)
+  # ggsave(paste0("../results/figures/marker_gene_expression_", method, ".pdf"), width = 15, height = ifelse(method=="cibersort", 75, 15), limitsize=FALSE)
 }
 
 ```
@@ -199,7 +200,7 @@ The figures show the expression of marker genes across cell types. Along x-axis:
 dc_expression = foreach(i=1:10,
         .combine = bind_cols,
         .final = as.matrix) %do% {
-          cell_n = make_cell_fraction_vector("Dendritic cells", k=500, background=NULL)
+          cell_n = make_cell_fraction_vector("Natural killer cells", k=500, background=NULL)
           cell_frac = cell_n/sum(cell_n)
           make_random_bulk(single_cell_schelker, cell_frac, n_cells=500)
         }
@@ -221,7 +222,7 @@ res_before = foreach(method=use_methods,
 
 res_after = foreach(method=use_methods, 
                      .combine=bind_rows) %do% {
-                       deconvolute(dc_expression, method=method, indications=timer_indications, rmgenes=c("TCL1A", "TCF4", "CD73", "SPIB", "BCL11A")) %>% 
+                       deconvolute(dc_expression, method=method, indications=timer_indications, rmgenes=c("IL7R", "TRAT1")) %>% 
                          map_result_to_celltypes(show_cell_types, method) %>% 
                          as_tibble(rownames = "cell_type") %>% 
                          mutate(method=method, dataset="after")

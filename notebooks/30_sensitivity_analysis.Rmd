@@ -169,7 +169,7 @@ sensitivity_plot %>%
   filter(method != "mcp_counter") %>% 
   ggplot(aes(x=input_cell_type, y=method)) +
     geom_tile(aes(fill=min_frac)) +
-    geom_text(aes(label=min_frac_text), size=HEATMAP_FONT_SIZE) +
+    geom_text(aes(label=min_frac_text), size=2.7) +
     scale_fill_distiller(type="div", palette = "RdYlGn", direction=-1, values=c(0, .02, .1, 1)) +
     scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
     theme_benchmark() +

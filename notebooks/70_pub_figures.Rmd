@@ -23,14 +23,6 @@ validation_datasets = data.frame(
 HEATMAP_FONT_SIZE = 2.7
 ```
 
-```{r define_theme, include=FALSE}
-# Collection of theme functions to add to every individual plot
-theme_title = function(...) theme(plot.title = element_text(face="bold", size=11, ...))
-theme_benchmark = function(...) {
-  theme_bw() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), ...)
-}
-
-```
 
 ```{r, define_cor_table, include=FALSE}
 #' plot correlations as a table colored by the absolute value.
@@ -333,13 +325,19 @@ methods = sort(methods[methods != "cibersort_abs"])
 tmp_method_names = as.list(method_names %>% pull(method_name))
 names(tmp_method_names) = method_names$method
 
+# migration = res_spillover$all_results %>%
+#   filter(dataset == "immune_reference") %>%
+#   # exclude neutrophils as not measured by most methods
+#   filter(true_cell_type != "Neutrophil") %>%
+#   # aggregate macro/mono into a single category
+#   mutate(true_cell_type = ifelse(true_cell_type %in% c("Macrophage M1", "Macrophage M2", "Monocyte"), "Macrophage/Monocyte", true_cell_type)) %>%
+#   mutate(true_cell_type = ifelse(true_cell_type == "T cell regulatory (Tregs)", "T cell CD4+", true_cell_type)) %>%
+#   group_by(method, cell_type, true_cell_type) %>%
+#   summarise(estimate = mean(estimate)) %>%
+#   ungroup()
+
 migration = res_spillover$all_results %>%
-  filter(dataset == "immune_reference") %>%
-  # exclude neutrophils as not measured by most methods
-  filter(true_cell_type != "Neutrophil") %>%
-  # aggregate macro/mono into a single category
-  mutate(true_cell_type = ifelse(true_cell_type %in% c("Macrophage M1", "Macrophage M2", "Monocyte"), "Macrophage/Monocyte", true_cell_type)) %>%
-  mutate(true_cell_type = ifelse(true_cell_type == "T cell regulatory (Tregs)", "T cell CD4+", true_cell_type)) %>%
+  filter(dataset == "artificial_bulk") %>% 
   group_by(method, cell_type, true_cell_type) %>%
   summarise(estimate = mean(estimate)) %>%
   ungroup()

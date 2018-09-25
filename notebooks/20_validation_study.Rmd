@@ -80,7 +80,7 @@ We distinguish between three types of comparisons:
 
 Here, we assign the methods to their respective group:
 ```{r}
-abs_methods = c("cibersort_abs", "quantisq", "epic")
+abs_methods = c("cibersort_abs", "quantiseq", "epic")
 within_methods = c("cibersort", "cibersort_abs", "quantiseq", "epic")
 between_methods = c("cibersort_abs", "quantiseq", "epic", "timer", "xcell", "mcp_counter")
 ```
@@ -105,7 +105,7 @@ all_results_ref %>%
     stat_cor()
 ```
 
-```{r mixing_abs_val, echo=FALSE, cache=TRUE, warning=FALSE}
+```{r mixing_abs_val, echo=FALSE, cache=TRUE, warning=FALSE, message=FALSE}
 log_slope = all_results_ref %>%
   filter(method %in% abs_methods) %>%
   group_by(cell_type, method) %>%
@@ -116,7 +116,7 @@ cell_type_method_mat = crossing(abs_methods, use_cell_types)
 colnames(cell_type_method_mat) = c("method", "cell_type")
 ```
 
-```{r, fig.width=9, fig.height=4, echo=FALSE, warning=FALSE, fig.cap="Comparison of absolute methods. The bars indicate the log2(slope). Values < 0 indicate an under-prediction of the cell type, values > 0 an over-prediction respectively. -Inf indicates that the correlation coefficient is negative. "}
+```{r, fig.width=9, fig.height=4, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Comparison of absolute methods. The bars indicate the log2(slope). Values < 0 indicate an under-prediction of the cell type, values > 0 an over-prediction respectively. -Inf indicates that the correlation coefficient is negative. "}
 log_slope %>%
   right_join(cell_type_method_mat) %>%
   # na -> 0 workaround, otherwise text label does not show
@@ -134,15 +134,13 @@ log_slope %>%
     coord_flip() + 
     ylab("log2(slope) of linear fit")
 ```
-```{r abs_rmse_val, fig.width=9, fig.height=4, echo=FALSE, fig.cap="Comparison of absolute methods. The values show the RMSE"}
+```{r abs_rmse_val, fig.width=9, fig.height=4, echo=FALSE, message=FALSE, fig.cap="Comparison of absolute methods. The values show the RMSE"}
 rmse = all_results_ref %>%
   filter(method %in% abs_methods) %>% 
   mutate(square_error = (estimate-true_fraction)^2) %>%
   group_by(method, cell_type) %>%
   summarise(rmse = sqrt(mean(square_error)))
 
-res_mixing_study$rmse = rmse
-    
 rmse %>% 
  right_join(cell_type_method_mat) %>%
  ggplot(aes(x=cell_type, y=ifelse(is.na(rmse), 0, rmse))) +

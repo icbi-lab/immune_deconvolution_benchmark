@@ -87,7 +87,7 @@ bulk_eset = make_bulk_eset(eset=single_cell_schelker$eset,
 timer_indications = ifelse(is_melanoma, "SKCM", "OV")
 all_results = foreach(method=config$deconvolution_methods,
                       .final = function(x) {setNames(x, config$deconvolution_methods)}) %dopar% {
-  deconvolute(bulk_eset, method, column="gene_symbol", indications = timer_indications, scale_mrna=TRUE)
+  deconvolute(bulk_eset, method, column="gene_symbol", indications = timer_indications, scale_mrna=FALSE)
 }
 ```
 
@@ -232,7 +232,7 @@ cell_type_method_mat = crossing(config$abs_methods_mixing, show_cell_types)
 colnames(cell_type_method_mat) = c("method", "cell_type")
 ```
 
-```{r, fig.width=12, fig.height=4, echo=FALSE, fig.cap="Comparison of absolute methods. The bars indicate the log2(slope). Values < 0 indicate an under-prediction of the cell type, values > 0 an over-prediction respectively. "}
+```{r, fig.width=12, fig.height=4, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Comparison of absolute methods. The bars indicate the log2(slope). Values < 0 indicate an under-prediction of the cell type, values > 0 an over-prediction respectively. "}
 log_slope %>%
   right_join(cell_type_method_mat) %>%
   # na -> 0 workaround, otherwise text label does not show

@@ -1,0 +1,83 @@
+```{r setup}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(ggpubr)
+library(foreach)
+library(doMC)
+devtools::load_all("../immunedeconv")
+source("config.R")
+
+```
+
+```{r}
+load("../data/hoek/hoek_quantiseq.RData")
+load("../data/hoek/HoekPBMC_gtruth.RData")
+hoek_ref = RefData
+hoek_quantiseq = mix.mat
+hoek_rsem = read_rds("../data/hoek/hoek_star_rsem.rds")
+```
+
+```{r}
+all_gene_expr = hoek_quantiseq %>% 
+  as_tibble(rownames="hgnc") %>% 
+  gather(sample, tpm, -hgnc) %>%
+  mutate(dataset="quantiseq") %>%
+  bind_rows(
+    hoek_rsem %>%
+      as_tibble(rownames="hgnc") %>%
+      gather(sample, tpm, -hgnc) %>%
+      mutate(dataset="rsem")
+  ) %>% 
+  spread(dataset, tpm) %>%
+  drop_na()
+
+```
+
+```{r, fig.width=10, fig.height=8}
+all_gene_expr %>% 
+  mutate(quantiseq=log10(quantiseq+1), rsem=log10(rsem+1)) %>% 
+  ggplot(aes(x=quantiseq, y=rsem)) + 
+    geom_point(alpha=.1) +  
+  stat_density_2d(aes(fill = ..level..), geom = "polygon") + 
+    facet_wrap(~sample) +
+    stat_cor() + 
+    facet_wrap(~sample)
+
+```
+
+
+
+```{r}
+timer_indications = rep("OV", ncol(hoek_quantiseq))
+all_results_quantiseq = foreach(method = config$deconvolution_methods) %do% {
+  deconvolute(hoek_quantiseq, method, indications=timer_indications) %>%
+    mutate(method=method) %>%
+    mutate(source="quantiseq")
+}
+
+all_results_rsem = foreach(method=config$deconvolution_methods) %do% {
+  deconvolute(hoek_rsem, method, indications=timer_indications) %>%
+    mutate(method=method) %>%
+    mutate(source="rsem")
+}
+
+all_results = bind_rows(all_results_quantiseq, all_results_rsem) %>%
+  # select(cell_type, `7873M`, `7882M`, `7892M`, source, method) %>%
+  gather(donor, fraction, -cell_type, -source, -method) %>%
+  spread(source, fraction)
+
+
+```
+
+```{r, fig.width=12, figh.heigth=8}
+all_results %>% 
+  ggplot(aes(x=quantiseq, y=rsem)) + 
+  geom_point(aes(color=cell_type)) + 
+  facet_wrap(~method, scales = "free") + 
+  stat_cor() + 
+  ggtitle("impact of preprocessing")
+  
+
+```

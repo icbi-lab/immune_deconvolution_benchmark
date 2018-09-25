@@ -128,60 +128,40 @@ In the end, we receive a list of signature genes for each cell type.
 ```{r, message=FALSE, warning=FALSE}
 til10 = read_tsv("../immunedeconv/inst/extdata/quantiseq/TIL10_signature.txt") %>% as.data.frame() %>%
   column_to_rownames("ID")
-gini_index = apply(til10, 1, gini)
-til10_gini = til10[gini_index > .7,]
-til10_gini_rk = apply(til10_gini, 1, function(x) {rank(-x)}) %>% t()
-
-quantiseq_markers = sapply(colnames(til10_gini_rk), function(cell_type) {
-   rownames(til10_gini_rk)[til10_gini_rk[,cell_type] == 1]
-}, simplify = FALSE, USE.NAMES = TRUE)
 ```
 
 The same procedure is applied to EPIC and CIBERSORT. 
 ```{r, include=FALSE}
 tref = EPIC::TRef$refProfiles[EPIC::TRef$sigGenes,]
-gini_index = apply(tref, 1, gini)
-tref_gini = tref[gini_index > .7,]
-tref_gini_rk = apply(tref, 1, function(x) {rank(-x)}) %>% t()
-
-epic_markers = sapply(colnames(tref_gini_rk), function(cell_type) {
-  rownames(tref_gini_rk)[tref_gini_rk[,cell_type] == 1]
-}, simplify = FALSE, USE.NAMES = TRUE)
 ```
 
 ```{r, include=FALSE}
 lm22 = read_tsv("../lib/CIBERSORT/LM22.txt") %>% as.data.frame() %>% column_to_rownames("Gene symbol")
-gini_index = apply(tref, 1, gini)
-lm22_gini = tref[gini_index > .7,]
-lm22_gini_rk = apply(lm22, 1, function(x) {rank(-x)}) %>% t()
-
-cibersort_markers = sapply(colnames(lm22_gini_rk), function(cell_type) {
-  rownames(lm22_gini_rk)[lm22_gini_rk[,cell_type] == 1]
-}, simplify = FALSE, USE.NAMES = TRUE)
 ```
 
 
 ```{r, include=FALSE, fig.width=10, fig.height=15, warning=FALSE, message=FALSE, fig.cap="Expression across cell types. Along x-axis: cell types used for simulation. Along y-axis: Signature genes from EPIC/quanTIseq for the cell types. "}
-marker_list = list(quantiseq=quantiseq_markers, epic=epic_markers, cibersort=cibersort_markers)
-foreach(method = names(marker_list)) %do% {
-  markers = marker_list[[method]]
-  markers_df = foreach(cell_type = names(markers), genes=markers, .combine=bind_rows) %do% {
-    data.frame(gene=genes) %>% mutate(markers_for=cell_type)
-  }
-  allmarkers = unlist(markers)
-  alldata3 = alldata2 %>% filter(gene %in% allmarkers) %>%
-    filter(ncell > 600) %>%
-    inner_join(markers_df)
+matrices = list(quantiseq=til10, epic=tref, cibersort=lm22)
+foreach(method = names(matrices)) %do% {
+  markers = rownames(matrices[[method]])
+  alldata3 = alldata2 %>% filter(gene %in% markers) %>%
+    filter(ncell > 600) 
+  gene_rank = alldata3 %>% 
+    spread(celltype, TPM) %>% 
+    mutate(rank = `B cell` * `Dendritic cell`) %>%
+    group_by(gene) %>%
+    summarise(rank = mean(rank)) %>%
+    arrange(rank)
  
   alldata3 %>%
-    ggplot(aes(x=gene, y=TPM)) +
+    ggplot(aes(x=factor(gene, levels=gene_rank$gene), y=TPM)) +
       geom_boxplot() + 
       coord_flip() + 
-      facet_grid(markers_for~celltype, scales = "free", space="free") + 
+      facet_grid(.~celltype, scales = "free", space="free") + 
       scale_color_brewer(palette="Set1") + 
       theme(strip.text.y = element_text(angle=0)) + 
       ggtitle(method) # + scale_y_log10() 
-  ggsave(paste0("../results/figures/marker_gene_expression_", method, ".pdf"), width = 15, height = ifelse(method=="cibersort", 75, 15), limitsize=FALSE)
+  ggsave(paste0("../results/figures/marker_gene_expression_", method, ".pdf"), width = 15, height = ifelse(method=="cibersort", 75, 20), limitsize=FALSE)
 }
 
 ```
@@ -196,6 +176,7 @@ The figures show the expression of marker genes across cell types. Along x-axis:
 
 ## Deconvolution results before and after
 ```{r, include=FALSE}
+set.seed(42)
 dc_expression = foreach(i=1:10,
         .combine = bind_cols,
         .final = as.matrix) %do% {
@@ -206,7 +187,7 @@ dc_expression = foreach(i=1:10,
 rownames(dc_expression) = rownames(exprs(single_cell_schelker))
 
 use_methods = c("epic", "quantiseq", "cibersort")
-use_methods = immunedeconv::deconvolution_methods
+# use_methods = immunedeconv::deconvolution_methods
 show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
                     "NK cell", "T cell CD4+", "T cell CD8+")
 timer_indications = rep("OV", ncol(dc_expression))
@@ -221,7 +202,7 @@ res_before = foreach(method=use_methods,
 
 res_after = foreach(method=use_methods, 
                      .combine=bind_rows) %do% {
-                       deconvolute(dc_expression, method=method, indications=timer_indications, rmgenes=c("TCL1A", "TCF4", "CD73", "SPIB", "BCL11A")) %>% 
+                       deconvolute(dc_expression, method=method, indications=timer_indications, rmgenes=c("TCL1A", "TCF4", "CD37", "SPIB", "BCL11A", "IRF8")) %>% 
                          map_result_to_celltypes(show_cell_types, method) %>% 
                          as_tibble(rownames = "cell_type") %>% 
                          mutate(method=method, dataset="after")
@@ -241,4 +222,21 @@ res_all %>%
    facet_grid(method~cell_type, drop = TRUE, scales = "free") + 
   stat_compare_means(paired = TRUE, method = "t.test")
 
+
+```
+
+```{r, fig.width=5.5, fig.height=3}
+res_all %>% 
+  filter(cell_type == "B cell") %>% 
+  mutate(dataset = if_else(dataset == "before", "no", "yes")) %>% 
+  ggplot(aes(x=dataset, y=predicted_fraction, colour=dataset)) +
+    geom_quasirandom() + 
+    stat_summary(fun.y=mean, geom="crossbar", fun.ymin=mean, fun.ymax=mean, width=.5, color="black") + 
+    facet_wrap(~method, drop = TRUE, scales = "free") + 
+    stat_compare_means(paired = TRUE, method = "t.test", label="p.signif") + 
+    theme(legend.position = "none") + 
+    ylim(0, .5) + 
+    ggtitle("spillover with and without signature genes removed.") + 
+    xlab("signature genes removed") + 
+    ylab("predicted fraction")
 ```

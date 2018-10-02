@@ -221,8 +221,8 @@ known as “spillover”.</p>
 <li><em>artificial bulk with background</em>: simulated bulk RNA seq profiles from single cells with ~80% other cells (cancer, fibroblasts, …)</li>
 </ul>
 <p>We test the following cell types:</p>
-<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb34-1" data-line-number="1">show_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>,</a>
-<a class="sourceLine" id="cb34-2" data-line-number="2">                    <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb33-1" data-line-number="1">show_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>,</a>
+<a class="sourceLine" id="cb33-2" data-line-number="2">                    <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</a></code></pre></div>
 <div id="complete-spillover-matrix" class="section level2">
 <h2><span class="header-section-number">7.1</span> Complete Spillover Matrix</h2>
 <div class="figure"><span id="fig:unnamed-chunk-56"></span>
@@ -259,8 +259,8 @@ Figure 7.3: migration charts for all three dataset. The value in the middle of t
 <div id="investigate-marker-genes" class="section level2">
 <h2><span class="header-section-number">7.4</span> Investigate marker genes</h2>
 <p>We asked which marker genes drive the spillover from Dendritic cells to B cells.</p>
-<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb35-1" data-line-number="1">mat =<span class="st"> </span><span class="kw">cbind</span>(<span class="kw">pData</span>(single_cell_schelker<span class="op">$</span>eset), <span class="kw">t</span>(<span class="kw">exprs</span>(single_cell_schelker<span class="op">$</span>eset))) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as_tibble</span>() </a>
-<a class="sourceLine" id="cb35-2" data-line-number="2">mat =<span class="st"> </span>mat <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(source <span class="op">!=</span><span class="st"> &quot;pbmc&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb34-1" data-line-number="1">mat =<span class="st"> </span><span class="kw">cbind</span>(<span class="kw">pData</span>(single_cell_schelker<span class="op">$</span>eset), <span class="kw">t</span>(<span class="kw">exprs</span>(single_cell_schelker<span class="op">$</span>eset))) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as_tibble</span>() </a>
+<a class="sourceLine" id="cb34-2" data-line-number="2">mat =<span class="st"> </span>mat <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(source <span class="op">!=</span><span class="st"> &quot;pbmc&quot;</span>)</a></code></pre></div>
 First, we suspected that the effect might be due to misannotations in the single cell dataset.
 Here, we show the B cells and DCs in the t-SNE plot of the single cell dataset.
 <div class="figure"><span id="fig:unnamed-chunk-62"></span>
@@ -297,13 +297,13 @@ and cannot be distinguished.</p>
 </div>
 <div id="check-expression-of-markers-in-detection-limit-simulation-dataset." class="section level2">
 <h2><span class="header-section-number">7.5</span> Check expression of markers in “detection limit” simulation dataset.</h2>
-<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb43-1" data-line-number="1">markers =<span class="st"> </span><span class="kw">list</span>(</a>
-<a class="sourceLine" id="cb43-2" data-line-number="2">  <span class="st">&quot;B cell&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;MS4A1&quot;</span>, <span class="co">#=CD20</span></a>
-<a class="sourceLine" id="cb43-3" data-line-number="3">               <span class="st">&quot;CD19&quot;</span>, <span class="st">&quot;CD22&quot;</span></a>
-<a class="sourceLine" id="cb43-4" data-line-number="4">  ), </a>
-<a class="sourceLine" id="cb43-5" data-line-number="5">  <span class="st">&quot;myleoid&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;ITGAM&quot;</span>, <span class="st">&quot;ITGAX&quot;</span>), <span class="co">#=CD11B,CD11C</span></a>
-<a class="sourceLine" id="cb43-6" data-line-number="6">  <span class="st">&quot;MHC class II&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;HLA-DRB1&quot;</span>, <span class="st">&quot;HLA-DRA&quot;</span>),</a>
-<a class="sourceLine" id="cb43-7" data-line-number="7">  <span class="st">&quot;plasmacytoid DC&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;CLEC4C&quot;</span>, <span class="st">&quot;IL3RA&quot;</span>))</a></code></pre></div>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb42-1" data-line-number="1">markers =<span class="st"> </span><span class="kw">list</span>(</a>
+<a class="sourceLine" id="cb42-2" data-line-number="2">  <span class="st">&quot;B cell&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;MS4A1&quot;</span>, <span class="co">#=CD20</span></a>
+<a class="sourceLine" id="cb42-3" data-line-number="3">               <span class="st">&quot;CD19&quot;</span>, <span class="st">&quot;CD22&quot;</span></a>
+<a class="sourceLine" id="cb42-4" data-line-number="4">  ), </a>
+<a class="sourceLine" id="cb42-5" data-line-number="5">  <span class="st">&quot;myleoid&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;ITGAM&quot;</span>, <span class="st">&quot;ITGAX&quot;</span>), <span class="co">#=CD11B,CD11C</span></a>
+<a class="sourceLine" id="cb42-6" data-line-number="6">  <span class="st">&quot;MHC class II&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;HLA-DRB1&quot;</span>, <span class="st">&quot;HLA-DRA&quot;</span>),</a>
+<a class="sourceLine" id="cb42-7" data-line-number="7">  <span class="st">&quot;plasmacytoid DC&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;CLEC4C&quot;</span>, <span class="st">&quot;IL3RA&quot;</span>))</a></code></pre></div>
 <div class="figure"><span id="fig:unnamed-chunk-68"></span>
 <img src="_main_files/figure-html/unnamed-chunk-68-1.png" alt="Correlation of marker genes with increase of the amount of a certain cell type. Along x-axis: cell type used for simulation. Along y-axis: groups of marker genes. " width="1152" />
 <p class="caption">
@@ -322,8 +322,8 @@ Figure 7.6: Even though the number of dendritic cells does correlate with MS4A1,
 within the matrix. We select all genes with a gini index &gt; 0.7. We assign all selected genes as marker gene
 to the cell type in which it is expressed the most.
 In the end, we receive a list of signature genes for each cell type.</p>
-<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb44-1" data-line-number="1">til10 =<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;../immunedeconv/inst/extdata/quantiseq/TIL10_signature.txt&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.data.frame</span>() <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb44-2" data-line-number="2"><span class="st">  </span><span class="kw">column_to_rownames</span>(<span class="st">&quot;ID&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb43-1" data-line-number="1">til10 =<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;../immunedeconv/inst/extdata/quantiseq/TIL10_signature.txt&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.data.frame</span>() <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb43-2" data-line-number="2"><span class="st">  </span><span class="kw">column_to_rownames</span>(<span class="st">&quot;ID&quot;</span>)</a></code></pre></div>
 <p>The same procedure is applied to EPIC and CIBERSORT.</p>
 <p>See figures:
 * <a href="figures/marker_gene_expression_epic.pdf">EPIC</a>

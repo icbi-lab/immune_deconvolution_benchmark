@@ -50,31 +50,6 @@ rule book:
     cd notebooks && Rscript -e "bookdown::render_book('index.Rmd')"
     """
 
-
-rule marker_gene_report:
-  """Build report that finds the marker genes
-  that are responsible for the DC-> B cell spillover
-  on simulated data"""
-  input:
-    "notebooks/_single_cell_marker_genes.Rmd",
-    "data/schelker/single_cell_schelker.rda",
-    "results/cache/sensitivity_analysis_dataset.rda",
-    "immunedeconv/inst/extdata/quantiseq/TIL10_signature.txt",
-    "lib/CIBERSORT/LM22.txt"
-  output:
-    expand("results/figures/marker_gene_expression_{method}.pdf",
-                          method=["cibersort", "epic", "quantiseq"]),
-    "results/book/_single_cell_marker_genes.html"
-  conda:
-    "envs/bookdown.yml"
-  shell:
-    """
-    cd notebooks && \\
-    Rscript -e "rmarkdown::render('_single_cell_marker_genes.Rmd', rmarkdown::html_document(), output_dir='../results/book')"
-    """
-
-
-
 rule data:
    """download data from archive"""
    input:
@@ -109,7 +84,6 @@ rule upload_book:
   input:
     "results/book/index.html",
     "results/figures/spillover_migration_all.pdf",
-    "results/book/_single_cell_marker_genes.html"
   shell:
     """
     cd gh-pages && \

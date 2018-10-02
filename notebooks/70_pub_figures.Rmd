@@ -15,10 +15,7 @@ method_names = data.frame(
   method_name = names(config$deconvolution_methods)
 )
 
-validation_datasets = data.frame(
-  dataset = c("hoek", "racle", "schelker_ovarian"),
-  description = c("Hoek (PBMC)", "Racle (melanoma)", "Schelker (ovarian)")
-)
+validation_datasets = list("hoek"="Hoek (PBMC, n=8)", racle="Racle (melanoma, n=4)", schelker="Schelker (ovarian, n=3)")
 
 HEATMAP_FONT_SIZE = 2.7
 ```
@@ -68,7 +65,7 @@ plot_cor_table = function(data, dataset="none") {
 noise_sc = res_methods_validity$all_results %>%
   group_by(method) %>%
   do(make_cor(.$bulk, .$mean)) %>%
-  mutate(column="stability single cell/bulk", category="Schelker")
+  mutate(column="stability single cell/bulk", category=validation_datasets$schelker)
 
 noise = noise_sc
 
@@ -102,28 +99,28 @@ validation$hoek = validation$all_results %>%
   filter(dataset == 'hoek') %>% 
   group_by(method, cell_type) %>% 
   do(make_cor(.$estimate, .$true_fraction)) %>%
-  mutate(category = "Hoek") %>%
+  mutate(category = validation_datasets$hoek) %>%
   mutate(column = cell_type)
 
 validation$hoek_all_cells = validation$all_results %>%
   filter(dataset == 'hoek') %>% 
   group_by(method) %>% 
   do(make_cor(.$estimate, .$true_fraction)) %>%
-  mutate(cell_type = ALL_CELLS, category = "Hoek") %>%
+  mutate(cell_type = ALL_CELLS, category = validation_datasets$hoek) %>%
   mutate(column = cell_type)
 
 validation$racle_all_cells = validation$all_results %>%
   filter(dataset == 'racle') %>% 
   group_by(method) %>% 
   do(make_cor(.$estimate, .$true_fraction)) %>%
-  mutate(cell_type = ALL_CELLS, category = "Racle") %>%
+  mutate(cell_type = ALL_CELLS, category = validation_datasets$racle) %>%
   mutate(column = cell_type)
 
 validation$schelker_all_cells = validation$all_results %>%
   filter(dataset == 'schelker_ovarian') %>% 
   group_by(method) %>% 
   do(make_cor(.$estimate, .$true_fraction)) %>%
-  mutate(cell_type = ALL_CELLS, category = "Schelker") %>%
+  mutate(cell_type = ALL_CELLS, category = validation_datasets$schelker) %>%
   mutate(column = cell_type)
 
 ```
@@ -201,20 +198,23 @@ print(p_sens_spec)
 
 ```{r, fig.height=3.5, fig.width=8, include=FALSE}
 # Absolute deviation plot
-exclude_cell_types = "Dendritic cell"
-tmp_cell_types = res_mixing_study$log_slope %>% filter(!cell_type %in% exclude_cell_types) %>% pull(cell_type) %>% unique() 
+tmp_cell_types = res_validation$slope %>% pull(cell_type) %>% unique() 
 tmp_methods = config$abs_methods_final
-tmp_matrix = crossing(tmp_cell_types, tmp_methods)
+tmp_n_samples = res_validation$slope %>% select(cell_type, n) %>% distinct()
+tmp_matrix = crossing(tmp_cell_types, tmp_methods) 
 colnames(tmp_matrix) = c("cell_type", "method")
-p_abs_deviation = res_mixing_study$log_slope %>%
+p_abs_deviation = res_validation$slope %>% 
+  select(-n) %>% 
   right_join(tmp_matrix) %>%
   inner_join(method_names) %>%
+  left_join(tmp_n_samples) %>% 
+  mutate(cell_type_name = sprintf("%s [n=%i]", cell_type, n)) %>%
    # na -> 0 workaround, otherwise text label does not show
-   ggplot(aes(x=cell_type, y=ifelse(is.na(log_slope), 0, log_slope), alpha=macrophage_only)) +
-      geom_bar(fill="black", stat="identity") +
-      geom_errorbar(aes(ymin=ci_lower, ymax=ci_upper), width=.2, color="red") +
-      geom_hline(yintercept=0, col="grey") +
-      geom_text(aes(label=ifelse(is.na(log_slope), "n/a", NA))) +
+   ggplot(aes(x=cell_type_name, y=ifelse(is.na(slope), 1, slope))) +
+      geom_crossbar(aes(ymin=slope, ymax=slope), colour="black") +
+      geom_errorbar(aes(ymin=ci_lower, ymax=ci_upper), width=.2, color="black") +
+      geom_hline(yintercept=1, col="grey") +
+      geom_text(aes(label=ifelse(is.na(slope), "n/a", NA))) +
       facet_wrap(~method_name, nrow=2, labeller = label_wrap_gen()) +
       theme_benchmark() +
       theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
@@ -223,15 +223,15 @@ p_abs_deviation = res_mixing_study$log_slope %>%
       # scale_fill_manual(values=color_scales$methods) +
       scale_alpha_manual(values=c("yes"=.3, "no"=1.)) + 
       xlab(NULL) +
-      ylab("log2(slope)") +
-      coord_flip(y=c(-3.5, 3.5)) +
+      ylab("slope of linear model") +
+      coord_flip() +
       theme_title(hjust=0)
 
 print(p_abs_deviation)
 ```
 
 ```{r rmse_plot, fig.height=6, fig.width=3, include=FALSE}
-p_abs_rmse = res_mixing_study$rmse %>%
+p_abs_rmse = res_validation$rmse %>%
   right_join(tmp_matrix) %>%
   inner_join(method_names) %>%
   mutate(rmse_text = as.character(round(rmse, 2))) %>%
@@ -311,7 +311,7 @@ plot_second_row = plot_grid(plots_left[[2]], p2_abs_deviation, plots_right[[2]],
 plot_grid(plot_heatmap,
           plot_second_row,
           ncol=1,
-          rel_heights = c(.4, .6),
+          rel_heights = c(.45, .6),
           align="h",
           axis="l")
 

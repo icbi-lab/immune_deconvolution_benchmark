@@ -106,24 +106,27 @@ all_results_ref %>%
 ```
 
 ```{r mixing_abs_val, echo=FALSE, cache=TRUE, warning=FALSE, message=FALSE}
-log_slope = all_results_ref %>%
+slope = all_results_ref %>%
   filter(method %in% abs_methods) %>%
-  group_by(cell_type, method) %>%
+  group_by(cell_type) %>%
+  mutate(n=n_distinct(sample)) %>% 
+  group_by(cell_type, method, n) %>% 
   do(get_slope(.)) %>%
-  mutate(log_slope=ifelse(slope <= 0, -Inf, log2(slope)), ci_lower=log2(ci_lower), ci_upper=log2(ci_upper))
+  ungroup()
 
 cell_type_method_mat = crossing(abs_methods, use_cell_types)
 colnames(cell_type_method_mat) = c("method", "cell_type")
+res_validation$slope = slope
 ```
 
 ```{r, fig.width=9, fig.height=4, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Comparison of absolute methods. The bars indicate the log2(slope). Values < 0 indicate an under-prediction of the cell type, values > 0 an over-prediction respectively. -Inf indicates that the correlation coefficient is negative. "}
-log_slope %>%
+slope %>%
   right_join(cell_type_method_mat) %>%
   # na -> 0 workaround, otherwise text label does not show
-  ggplot(aes(x=cell_type, y=ifelse(is.infinite(log_slope) | is.na(log_slope), 0, log_slope))) +
-    geom_bar(aes(fill=method), stat="identity") +
-    geom_hline(yintercept=0, col="grey") + 
-    geom_text(aes(label=ifelse(is.na(log_slope), "n/a", ifelse(is.infinite(log_slope), "-Inf", NA))), angle=0) + 
+  ggplot(aes(x=cell_type, y=ifelse(is.na(slope), 1, slope))) +
+    geom_crossbar(aes(color=method, ymin=slope, ymax=slope), stat="identity") +
+    geom_hline(yintercept=1, col="grey") + 
+    geom_text(aes(label=ifelse(is.na(slope), "n/a", NA)), angle=0) + 
     geom_errorbar(aes(ymin=ci_lower, ymax=ci_upper), width=.2) +
     facet_wrap(~method, nrow=1, labeller = label_wrap_gen()) +
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
@@ -131,8 +134,8 @@ log_slope %>%
           strip.text.x = element_text(size=9)) +
     scale_fill_manual(values=color_scales$methods, na.value="grey") +
     scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
-    coord_flip() + 
-    ylab("log2(slope) of linear fit")
+    coord_flip(y=c(-5, 10)) + 
+    ylab("slope of linear fit")
 ```
 ```{r abs_rmse_val, fig.width=9, fig.height=4, echo=FALSE, message=FALSE, fig.cap="Comparison of absolute methods. The values show the RMSE"}
 rmse = all_results_ref %>%
@@ -154,6 +157,8 @@ rmse %>%
     scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
     coord_flip() + 
     geom_hline(yintercept=0, col="grey")
+
+res_validation$rmse = rmse
 ```
 
 ## Within-sample comparison

@@ -220,25 +220,24 @@ xCell and CIBERSORT abs. scale the output score to be 'absolute':
 
 Confidence intervals are two-sided 95% confidence intervales derived using `confint` and `lm`.
 ```{r mixing_abs, echo=FALSE, cache=TRUE}
-log_slope = results_with_gold_standard %>%
+slope = results_with_gold_standard %>%
   filter(method %in% abs_methods) %>%
   group_by(macrophage_only, cell_type, method) %>%
-  do(get_slope(.)) %>%
-  mutate(log_slope=log2(slope), ci_lower=log2(ci_lower), ci_upper=log2(ci_upper))
+  do(get_slope(.)) 
 
-res_mixing_study$log_slope = log_slope
+res_mixing_study$slope = slope
 
 cell_type_method_mat = crossing(config$abs_methods_mixing, show_cell_types)
 colnames(cell_type_method_mat) = c("method", "cell_type")
 ```
 
 ```{r, fig.width=12, fig.height=4, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Comparison of absolute methods. The bars indicate the log2(slope). Values < 0 indicate an under-prediction of the cell type, values > 0 an over-prediction respectively. "}
-log_slope %>%
+slope %>%
   right_join(cell_type_method_mat) %>%
   # na -> 0 workaround, otherwise text label does not show
-  ggplot(aes(x=cell_type, y=ifelse(is.na(log_slope), 0, log_slope), alpha=macrophage_only)) +
-    geom_bar(aes(fill=method), stat="identity") +
-    geom_text(aes(label=ifelse(is.na(log_slope), "n/a", NA)), angle=0) + 
+  ggplot(aes(x=cell_type, y=ifelse(is.na(slope), 1, slope), alpha=macrophage_only)) +
+    geom_crossbar(aes(colour=method, ymin=slope, ymax=slope), stat="identity") +
+    geom_text(aes(label=ifelse(is.na(slope), "n/a", NA)), angle=0) + 
     geom_errorbar(aes(ymin=ci_lower, ymax=ci_upper), width=.2) +
     facet_wrap(~method, nrow=1, labeller = label_wrap_gen()) +
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
@@ -246,9 +245,9 @@ log_slope %>%
           strip.text.x = element_text(size=9)) +
     scale_fill_manual(values=color_scales$methods, na.value="grey") +
     scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
-    geom_hline(yintercept=0, col="grey") +  
+    geom_hline(yintercept=1, col="grey") +  
     coord_flip() + 
-    ylab("log2(slope) of linear fit")
+    ylab("slope of linear fit")
 ```
 
 ```{r abs_rmse, fig.width=12, fig.height=4, echo=FALSE, fig.cap="Comparison of absolute methods. The values show the RMSE"}

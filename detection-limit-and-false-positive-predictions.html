@@ -33,8 +33,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-<link rel="prev" href="detection-limit-and-false-positive-predictions.html">
-<link rel="next" href="creating-publication-ready-figures.html">
+<link rel="prev" href="validation-with-real-data.html">
+<link rel="next" href="spillover-analysis.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -199,49 +199,47 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="spillover-analysis" class="section level1">
-<h1><span class="header-section-number">7</span> Spillover Analysis</h1>
-<p>In this chapter, we investigate which other cell types a method predicts,
-if there is actually only a certain cell type present. In FACS, this phenomenon is
-known as “spillover”.</p>
-<p>To this end, we use three datasets</p>
-<ul>
-<li><em>immune reference</em>: bulk RNA seq profiles from sorted immune cells (=quanTIseq training data)</li>
-<li><em>artificial bulk</em>: simulated bulk RNA seq profiles from single cells (e.g. only T cells)</li>
-<li><em>artificial bulk with background</em>: simulated bulk RNA seq profiles from single cells with ~80% other cells (cancer, fibroblasts, …)</li>
-</ul>
-<p>We test the following cell types:</p>
-<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" data-line-number="1">show_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>,</a>
-<a class="sourceLine" id="cb25-2" data-line-number="2">                    <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</a></code></pre></div>
-<div id="complete-spillover-matrix" class="section level2">
-<h2><span class="header-section-number">7.1</span> Complete Spillover Matrix</h2>
-<div class="figure"><span id="fig:unnamed-chunk-53"></span>
-<img src="_main_files/figure-html/unnamed-chunk-53-1.png" alt="This figure shows the spillover for all methods, cell types and datasets" width="2304" />
+<div id="detection-limit-and-false-positive-predictions" class="section level1">
+<h1><span class="header-section-number">6</span> Detection limit and false positive predictions</h1>
+<p>How many cells of a certain type do we need for a method to detect immune cell infiltration? (=Detection limit)
+How many cells of a certain type are detected, although we know they are not there? (=false positives)</p>
+<p>We again use the single cell dataset to simulate samples that consist of background cells
+(i.e. non-immune cells: fibroblasts, endothelial cells cancer cells) and add an increasing amount
+of immune cells of a certain type.</p>
+<p>We define the detection limit as the minimal fraction at which the method the abundance of the cell type to
+be significantly different from zero. We define false positives as the predicted fraction of a certain cell type
+at zero inflitration level.</p>
+<p>For each amount of immune cells, we generate 5 random samples to compute a confidence interval.</p>
+<p>We use the following cell types:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" data-line-number="1">show_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>,</a>
+<a class="sourceLine" id="cb23-2" data-line-number="2">                    <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</a></code></pre></div>
+<div id="predictions-with-increasing-immune-cell-content" class="section level2">
+<h2><span class="header-section-number">6.1</span> Predictions with increasing immune cell content</h2>
+<div class="figure"><span id="fig:unnamed-chunk-47"></span>
+<img src="_main_files/figure-html/unnamed-chunk-47-1.png" alt="We add an increasing amount of each cell type independently to the 1,800 background cells. The figure shows the predictions for each cell type and method at increasing infiltration levels. " width="2400" />
 <p class="caption">
-Figure 7.1: This figure shows the spillover for all methods, cell types and datasets
+Figure 6.1: We add an increasing amount of each cell type independently to the 1,800 background cells. The figure shows the predictions for each cell type and method at increasing infiltration levels.
 </p>
 </div>
 </div>
-<div id="summary-figure-signal-to-noise-ratio" class="section level2">
-<h2><span class="header-section-number">7.2</span> Summary figure: Signal to noise ratio</h2>
-<p>Noise is defined as the sum of all predictions of other cell types than the one that is actually present.
-Signal is defined as the predicted fraction of the cell type that is actually present.
-The signal ratio is defined as <span class="math inline">\(\frac{\text{signal}}{\text{signal+noise}}\)</span>. Higher values
-indicate less noise (i.e. predictions of cell types that are not there).</p>
-<div class="figure"><span id="fig:unnamed-chunk-55"></span>
-<img src="_main_files/figure-html/unnamed-chunk-55-1.png" alt="Signal ratios for each cell type and dataset. " width="960" />
+<div id="detection-limit" class="section level2">
+<h2><span class="header-section-number">6.2</span> Detection Limit</h2>
+<pre><code>## Warning: Removed 2 rows containing missing values (geom_text).</code></pre>
+<div class="figure"><span id="fig:sens-plot"></span>
+<img src="_main_files/figure-html/sens-plot-1.png" alt="Sensitivity of the methods per cell type. The bars indicate the minimal percentage of infiltration at which the method first reliably detects the cell type. Opaque bars indicate that the methods does not provide an estimate for the cell type." width="384" />
 <p class="caption">
-Figure 7.2: Signal ratios for each cell type and dataset.
+Figure 6.2: Sensitivity of the methods per cell type. The bars indicate the minimal percentage of infiltration at which the method first reliably detects the cell type. Opaque bars indicate that the methods does not provide an estimate for the cell type.
 </p>
 </div>
 </div>
-<div id="summary-figure-migration-charts" class="section level2">
-<h2><span class="header-section-number">7.3</span> Summary figure: migration charts</h2>
-<p>Download this figure as high quality <a href="figures/spillover_migration_all.pdf">pdf</a></p>
-<div class="figure"><span id="fig:unnamed-chunk-57"></span>
-<img src="_main_files/figure-html/unnamed-chunk-57-1.png" alt="migration charts for all three dataset. The value in the middle of the chart indicates the 'noise ratio', i.e. the sum of all false positive predictions." width="960" />
+<div id="false-positive-predictions" class="section level2">
+<h2><span class="header-section-number">6.3</span> False-positive predictions</h2>
+<p>Predicted amount of cells when there are none.
+This analysis is based on all of the data above where only background cells are present, i.e. fraction of immune cells = 0.</p>
+<div class="figure"><span id="fig:sens-spec-plot"></span>
+<img src="_main_files/figure-html/sens-spec-plot-1.png" alt="Predicted amount of a certain cell type while it is actually absent." width="1152" />
 <p class="caption">
-Figure 7.3: migration charts for all three dataset. The value in the middle of the chart indicates the ‘noise ratio’, i.e. the sum of all false positive predictions.
+Figure 6.3: Predicted amount of a certain cell type while it is actually absent.
 </p>
 </div>
 
@@ -252,8 +250,8 @@ Figure 7.3: migration charts for all three dataset. The value in the middle of t
           </div>
         </div>
       </div>
-<a href="detection-limit-and-false-positive-predictions.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="creating-publication-ready-figures.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="validation-with-real-data.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="spillover-analysis.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>

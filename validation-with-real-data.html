@@ -34,7 +34,7 @@
   
   
 <link rel="prev" href="simulation-benchmark.html">
-<link rel="next" href="sensitivity-and-specificity.html">
+<link rel="next" href="detection-limit-and-false-positive-predictions.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -167,10 +167,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="5.2" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#within-sample-comparison"><i class="fa fa-check"></i><b>5.2</b> Within-sample comparison</a></li>
 <li class="chapter" data-level="5.3" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#between-sample-comparisons"><i class="fa fa-check"></i><b>5.3</b> Between-sample comparisons</a></li>
 </ul></li>
-<li class="chapter" data-level="6" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html"><i class="fa fa-check"></i><b>6</b> Sensitivity and Specificity</a><ul>
-<li class="chapter" data-level="6.1" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html#predictions-with-increasing-immune-cell-content"><i class="fa fa-check"></i><b>6.1</b> Predictions with increasing immune cell content</a></li>
-<li class="chapter" data-level="6.2" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html#sensitivity"><i class="fa fa-check"></i><b>6.2</b> Sensitivity</a></li>
-<li class="chapter" data-level="6.3" data-path="sensitivity-and-specificity.html"><a href="sensitivity-and-specificity.html#specificity"><i class="fa fa-check"></i><b>6.3</b> Specificity</a></li>
+<li class="chapter" data-level="6" data-path="detection-limit-and-false-positive-predictions.html"><a href="detection-limit-and-false-positive-predictions.html"><i class="fa fa-check"></i><b>6</b> Detection limit and false positive predictions</a><ul>
+<li class="chapter" data-level="6.1" data-path="detection-limit-and-false-positive-predictions.html"><a href="detection-limit-and-false-positive-predictions.html#predictions-with-increasing-immune-cell-content"><i class="fa fa-check"></i><b>6.1</b> Predictions with increasing immune cell content</a></li>
+<li class="chapter" data-level="6.2" data-path="detection-limit-and-false-positive-predictions.html"><a href="detection-limit-and-false-positive-predictions.html#detection-limit"><i class="fa fa-check"></i><b>6.2</b> Detection Limit</a></li>
+<li class="chapter" data-level="6.3" data-path="detection-limit-and-false-positive-predictions.html"><a href="detection-limit-and-false-positive-predictions.html#false-positive-predictions"><i class="fa fa-check"></i><b>6.3</b> False-positive predictions</a></li>
 </ul></li>
 <li class="chapter" data-level="7" data-path="spillover-analysis.html"><a href="spillover-analysis.html"><i class="fa fa-check"></i><b>7</b> Spillover Analysis</a><ul>
 <li class="chapter" data-level="7.1" data-path="spillover-analysis.html"><a href="spillover-analysis.html#complete-spillover-matrix"><i class="fa fa-check"></i><b>7.1</b> Complete Spillover Matrix</a></li>
@@ -178,7 +178,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="7.3" data-path="spillover-analysis.html"><a href="spillover-analysis.html#summary-figure-migration-charts"><i class="fa fa-check"></i><b>7.3</b> Summary figure: migration charts</a></li>
 </ul></li>
 <li class="chapter" data-level="8" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html"><i class="fa fa-check"></i><b>8</b> Creating publication ready figures</a><ul>
-<li class="chapter" data-level="8.1" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#benchmark-results-sensitivity-specificity-and-absolute-deviation"><i class="fa fa-check"></i><b>8.1</b> Benchmark results, Sensitivity, Specificity and absolute deviation</a></li>
+<li class="chapter" data-level="8.1" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#benchmark-results-detection-limit-false-positives-and-absolute-deviation"><i class="fa fa-check"></i><b>8.1</b> Benchmark results, detection limit, false positives and absolute deviation</a></li>
 <li class="chapter" data-level="8.2" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#migration-charts-for-spillover-analysis"><i class="fa fa-check"></i><b>8.2</b> Migration charts for Spillover analysis</a></li>
 </ul></li>
 <li class="chapter" data-level="9" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i><b>9</b> References</a></li>
@@ -204,22 +204,22 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>We use datasets which estimate the immune cell proportions using flow cytometry as an additional validation
 for our simulation benchmark.</p>
 <p>We use the following three validation datasets (see section <a href="input-data.html#input-data">2</a>):</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1">datasets =<span class="st"> </span><span class="kw">list</span>(</a>
-<a class="sourceLine" id="cb19-2" data-line-number="2">  <span class="dt">racle=</span>racle,</a>
-<a class="sourceLine" id="cb19-3" data-line-number="3">  <span class="dt">hoek=</span>hoek,</a>
-<a class="sourceLine" id="cb19-4" data-line-number="4">  <span class="dt">schelker_ovarian=</span>schelker_ovarian</a>
-<a class="sourceLine" id="cb19-5" data-line-number="5">)</a></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1">datasets =<span class="st"> </span><span class="kw">list</span>(</a>
+<a class="sourceLine" id="cb17-2" data-line-number="2">  <span class="dt">racle=</span>racle,</a>
+<a class="sourceLine" id="cb17-3" data-line-number="3">  <span class="dt">hoek=</span>hoek,</a>
+<a class="sourceLine" id="cb17-4" data-line-number="4">  <span class="dt">schelker_ovarian=</span>schelker_ovarian</a>
+<a class="sourceLine" id="cb17-5" data-line-number="5">)</a></code></pre></div>
 <p>We use the following cell types, which are available in (some of) the datasets</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1">use_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;T cell&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>,</a>
-<a class="sourceLine" id="cb20-2" data-line-number="2">                   <span class="st">&quot;Macrophage/Monocyte&quot;</span>, <span class="st">&quot;B cell&quot;</span>,</a>
-<a class="sourceLine" id="cb20-3" data-line-number="3">                   <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;Neutrophil&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1">use_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;T cell&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>,</a>
+<a class="sourceLine" id="cb18-2" data-line-number="2">                   <span class="st">&quot;Macrophage/Monocyte&quot;</span>, <span class="st">&quot;B cell&quot;</span>,</a>
+<a class="sourceLine" id="cb18-3" data-line-number="3">                   <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;Neutrophil&quot;</span>)</a></code></pre></div>
 <p>Here, we combine the predictions with the ‘gold standard’ reference data.</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1">all_results_ref =<span class="st"> </span><span class="kw">inner_join</span>(all_results, all_refs,</a>
-<a class="sourceLine" id="cb21-2" data-line-number="2">                             <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&quot;sample&quot;</span> =<span class="st"> &quot;sample&quot;</span>,</a>
-<a class="sourceLine" id="cb21-3" data-line-number="3">                                    <span class="st">&quot;dataset&quot;</span> =<span class="st"> &quot;dataset&quot;</span>,</a>
-<a class="sourceLine" id="cb21-4" data-line-number="4">                                    <span class="st">&quot;cell_type&quot;</span> =<span class="st"> &quot;cell_type&quot;</span>))</a>
-<a class="sourceLine" id="cb21-5" data-line-number="5"></a>
-<a class="sourceLine" id="cb21-6" data-line-number="6">res_validation<span class="op">$</span>all_results =<span class="st"> </span>all_results_ref</a></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1">all_results_ref =<span class="st"> </span><span class="kw">inner_join</span>(all_results, all_refs,</a>
+<a class="sourceLine" id="cb19-2" data-line-number="2">                             <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&quot;sample&quot;</span> =<span class="st"> &quot;sample&quot;</span>,</a>
+<a class="sourceLine" id="cb19-3" data-line-number="3">                                    <span class="st">&quot;dataset&quot;</span> =<span class="st"> &quot;dataset&quot;</span>,</a>
+<a class="sourceLine" id="cb19-4" data-line-number="4">                                    <span class="st">&quot;cell_type&quot;</span> =<span class="st"> &quot;cell_type&quot;</span>))</a>
+<a class="sourceLine" id="cb19-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb19-6" data-line-number="6">res_validation<span class="op">$</span>all_results =<span class="st"> </span>all_results_ref</a></code></pre></div>
 <p>The scores of the methods have different properties and not all of them are directly comparable.
 We distinguish between three types of comparisons:</p>
 <ul>
@@ -228,17 +228,30 @@ We distinguish between three types of comparisons:</p>
 <li>scores in arbitrary units, that only allow to compare between samples.</li>
 </ul>
 <p>Here, we assign the methods to their respective group:</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" data-line-number="1">abs_methods =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;cibersort_abs&quot;</span>, <span class="st">&quot;quantiseq&quot;</span>, <span class="st">&quot;epic&quot;</span>)</a>
-<a class="sourceLine" id="cb22-2" data-line-number="2">within_methods =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;cibersort&quot;</span>, <span class="st">&quot;cibersort_abs&quot;</span>, <span class="st">&quot;quantiseq&quot;</span>, <span class="st">&quot;epic&quot;</span>)</a>
-<a class="sourceLine" id="cb22-3" data-line-number="3">between_methods =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;cibersort_abs&quot;</span>, <span class="st">&quot;quantiseq&quot;</span>, <span class="st">&quot;epic&quot;</span>, <span class="st">&quot;timer&quot;</span>, <span class="st">&quot;xcell&quot;</span>, <span class="st">&quot;mcp_counter&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1">abs_methods =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;cibersort_abs&quot;</span>, <span class="st">&quot;quantiseq&quot;</span>, <span class="st">&quot;epic&quot;</span>)</a>
+<a class="sourceLine" id="cb20-2" data-line-number="2">within_methods =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;cibersort&quot;</span>, <span class="st">&quot;cibersort_abs&quot;</span>, <span class="st">&quot;quantiseq&quot;</span>, <span class="st">&quot;epic&quot;</span>)</a>
+<a class="sourceLine" id="cb20-3" data-line-number="3">between_methods =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;cibersort_abs&quot;</span>, <span class="st">&quot;quantiseq&quot;</span>, <span class="st">&quot;epic&quot;</span>, <span class="st">&quot;timer&quot;</span>, <span class="st">&quot;xcell&quot;</span>, <span class="st">&quot;mcp_counter&quot;</span>)</a></code></pre></div>
 <div id="between--and-within-sample-comparisons" class="section level2">
 <h2><span class="header-section-number">5.1</span> Between- and within-sample comparisons</h2>
 <p>Only works for methods providing an absolute score (cibersort_abs, quantiseq, epic).
 All other methods are included for reference.</p>
-<div class="figure"><span id="fig:unnamed-chunk-36"></span>
-<img src="_main_files/figure-html/unnamed-chunk-36-1.png" alt="Comparison of absolute predictions for three validation dataset. " width="960" />
+<div class="figure"><span id="fig:unnamed-chunk-37"></span>
+<img src="_main_files/figure-html/unnamed-chunk-37-1.png" alt="Comparison of absolute predictions for three validation dataset. " width="960" />
 <p class="caption">
 Figure 5.1: Comparison of absolute predictions for three validation dataset.
+</p>
+</div>
+<div class="figure"><span id="fig:unnamed-chunk-38"></span>
+<img src="_main_files/figure-html/unnamed-chunk-38-1.png" alt="Comparison of absolute methods. The bars indicate the log2(slope). Values &lt; 0 indicate an under-prediction of the cell type, values &gt; 0 an over-prediction respectively. -Inf indicates that the correlation coefficient is negative. " width="864" />
+<p class="caption">
+Figure 5.2: Comparison of absolute methods. The bars indicate the log2(slope). Values &lt; 0 indicate an under-prediction of the cell type, values &gt; 0 an over-prediction respectively. -Inf indicates that the correlation coefficient is negative.
+</p>
+</div>
+<pre><code>## Warning: Removed 22 rows containing missing values (geom_text).</code></pre>
+<div class="figure">
+<img src="_main_files/figure-html/abs_rmse_val-1.png" alt="Comparison of absolute methods. The values show the RMSE" width="864" />
+<p class="caption">
+(#fig:abs_rmse_val)Comparison of absolute methods. The values show the RMSE
 </p>
 </div>
 </div>
@@ -246,17 +259,17 @@ Figure 5.1: Comparison of absolute predictions for three validation dataset.
 <h2><span class="header-section-number">5.2</span> Within-sample comparison</h2>
 <p>only works with methods that provide an absolute score, or a score that is relative to total immune
 cell content (cibersort, cibersort_abs, quantiseq, epic).</p>
-<div class="figure"><span id="fig:unnamed-chunk-37"></span>
-<img src="_main_files/figure-html/unnamed-chunk-37-1.png" alt="Comparison of predictions within each individual sample" width="768" />
+<div class="figure"><span id="fig:unnamed-chunk-39"></span>
+<img src="_main_files/figure-html/unnamed-chunk-39-1.png" alt="Comparison of predictions within each individual sample" width="768" />
 <p class="caption">
-Figure 5.2: Comparison of predictions within each individual sample
+Figure 5.3: Comparison of predictions within each individual sample
 </p>
 </div>
 Compute the average over all samples:
-<div class="figure"><span id="fig:unnamed-chunk-38"></span>
-<img src="_main_files/figure-html/unnamed-chunk-38-1.png" alt="Correlations of within-sample comparisons. The last column shows the mean over all samples. " width="768" />
+<div class="figure"><span id="fig:unnamed-chunk-40"></span>
+<img src="_main_files/figure-html/unnamed-chunk-40-1.png" alt="Correlations of within-sample comparisons. The last column shows the mean over all samples. " width="768" />
 <p class="caption">
-Figure 5.3: Correlations of within-sample comparisons. The last column shows the mean over all samples.
+Figure 5.4: Correlations of within-sample comparisons. The last column shows the mean over all samples.
 </p>
 </div>
 </div>
@@ -264,21 +277,21 @@ Figure 5.3: Correlations of within-sample comparisons. The last column shows the
 <h2><span class="header-section-number">5.3</span> Between-sample comparisons</h2>
 <p>For this, we need to look at every cell type independently.
 Works for all methods except CIBERSORT.</p>
-<div class="figure"><span id="fig:unnamed-chunk-39"></span>
-<img src="_main_files/figure-html/unnamed-chunk-39-1.png" alt="Correlations of known vs. predicted fractions for each cell type independenctly. The 'Tcell' column corresponds to the amount of profiled total T cells or the sum of CD4+ and CD8+ T cells respectively. " width="1152" />
+<div class="figure"><span id="fig:unnamed-chunk-41"></span>
+<img src="_main_files/figure-html/unnamed-chunk-41-1.png" alt="Correlations of known vs. predicted fractions for each cell type independenctly. The 'Tcell' column corresponds to the amount of profiled total T cells or the sum of CD4+ and CD8+ T cells respectively. " width="1152" />
 <p class="caption">
-Figure 5.4: Correlations of known vs. predicted fractions for each cell type independenctly. The ‘Tcell’ column corresponds to the amount of profiled total T cells or the sum of CD4+ and CD8+ T cells respectively.
+Figure 5.5: Correlations of known vs. predicted fractions for each cell type independenctly. The ‘Tcell’ column corresponds to the amount of profiled total T cells or the sum of CD4+ and CD8+ T cells respectively.
 </p>
 </div>
 <p>Compute the average over all cell types.
 We only use cell types with at least 5 samples to obtain reasonable
 correlation estimates. We also exclude the T-cell supercategory to
 avoid redundancies.</p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" data-line-number="1">use_cell_types2 =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>, <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</a></code></pre></div>
-<div class="figure"><span id="fig:unnamed-chunk-41"></span>
-<img src="_main_files/figure-html/unnamed-chunk-41-1.png" alt="Performance on validation datasets by cell type. The last column shows the mean over all cell types. " width="480" />
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" data-line-number="1">use_cell_types2 =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>, <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</a></code></pre></div>
+<div class="figure"><span id="fig:unnamed-chunk-43"></span>
+<img src="_main_files/figure-html/unnamed-chunk-43-1.png" alt="Performance on validation datasets by cell type. The last column shows the mean over all cell types. " width="480" />
 <p class="caption">
-Figure 5.5: Performance on validation datasets by cell type. The last column shows the mean over all cell types.
+Figure 5.6: Performance on validation datasets by cell type. The last column shows the mean over all cell types.
 </p>
 </div>
 <p>Note that, although the correlation for CD8+ T cells looks bad, it does not necessarily mean the predictions are bad. There is just little variance between the samples and CD8+ T cell abundance is generally low, which is correlctly predicted by the methods.</p>
@@ -291,7 +304,7 @@ Figure 5.5: Performance on validation datasets by cell type. The last column sho
         </div>
       </div>
 <a href="simulation-benchmark.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="sensitivity-and-specificity.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="detection-limit-and-false-positive-predictions.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>

@@ -35,6 +35,9 @@ dependencies:
   - r-gridgraphics=0.3_0
   - r-bioqc=1.5.2
   - r-ggbeeswarm=0.6.0
+  - bioconductor-org.hs.eg.db=3.5.0
+  - bioconductor-go.db=3.5.0
+  - r-ggbeeswarm=0.6.0
   # packages for immune_deconvolution_methods
   - r-r.methodss3=1.7.1
   - r-e1071=1.6

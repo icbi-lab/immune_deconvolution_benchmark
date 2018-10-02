@@ -1,35 +1,16 @@
-```{r setup, include=FALSE}
-library(knitr)
-library(ggplot2)
-library(dplyr)
-library(foreach)
-library(tibble)
-library(tidyr)
-library(magrittr)
-library(readr)
-library(BioQC)
-library(doMC)
-library(ggpubr)
-library(ggbeeswarm)
-opts_knit$set(self.contained=TRUE)
-devtools::load_all("../immunedeconv")
-source("../lib/make_cell_fraction_vector.R")
-source("config.R")
-
-```
-
-# Investigate marker genes
+## Investigate marker genes
+We asked which marker genes drive the spillover from Dendritic cells to B cells. 
 ```{r}
-load("../data/schelker/single_cell_schelker.rda")
-mat = cbind(pData(single_cell_schelker), t(exprs(single_cell_schelker))) %>% as_tibble() 
+mat = cbind(pData(single_cell_schelker$eset), t(exprs(single_cell_schelker$eset))) %>% as_tibble() 
 mat = mat %>% filter(source != "pbmc")
 ```
 
 
-## Show B cell and DC marker across the t-SNE plot
-```{r, fig.cap="B cell and D cell clusters in the single cell dataset. ", echo=FALSE}
+First, we suspected that the effect might be due to misannotations in the single cell dataset. 
+Here, we show the B cells and DCs in the t-SNE plot of the single cell dataset. 
+```{r, fig.cap="B cell and DC clusters in the single cell dataset. ", echo=FALSE}
 mat %>% 
-  mutate(cell_type = ifelse(!cell_type %in% c("Dendritic cells", "B cells"), "other", cell_type)) %>% 
+  mutate(cell_type = ifelse(!cell_type %in% c("Dendritic cell", "B cell"), "other", cell_type)) %>% 
   ggplot(aes(x=tsneX1, y=tsneX2, colour=cell_type)) +
            geom_point(size=1) + 
            theme(legend.position="right") +
@@ -39,8 +20,9 @@ mat %>%
            ylab("tSNE-2") +
            labs(color="cell type")
 ```
+We observe that both clusters are distinct and non-overlapping. 
 
-### Marker gene expression:
+Next, we look for the expression of typical marker genes of DCs and B cells. 
 ```{r, fig.width=5, fig.height=4, echo=FALSE, message=FALSE}
 foreach(gene = c("MS4A1", "CD19", "ITGAM", "ITGAX", "CLEC4C", "IL3RA", "TCL1A"),
         cell_type = c("B cell", "B cell", "myleoid", "myleoid", "plasmacytoid DCs", "plasmacytoid DCs", "??")) %do% {
@@ -54,10 +36,6 @@ foreach(gene = c("MS4A1", "CD19", "ITGAM", "ITGAX", "CLEC4C", "IL3RA", "TCL1A"),
 **Conclusion**: The B cell and DC cluster separate well, the marker genes do not overlap. 
 The DC cluster are plasmacytoid DCs, mDCs are somewhere hidden in the Macrophage/Monocyte cluster
 and cannot be distinguished. 
-
-```{r, cache=TRUE, include=FALSE}
-load("../results/cache/sensitivity_analysis_dataset.rda")
-```
 
 
 ## Check expression of markers in "detection limit" simulation dataset. 
@@ -180,11 +158,11 @@ set.seed(42)
 dc_expression = foreach(i=1:10,
         .combine = bind_cols,
         .final = as.matrix) %do% {
-          cell_n = make_cell_fraction_vector("Dendritic cells", k=500, background=NULL)
+          cell_n = make_cell_fraction_vector("Dendritic cell", k=500, background=NULL)
           cell_frac = cell_n/sum(cell_n)
-          make_random_bulk(single_cell_schelker, cell_frac, n_cells=500)
+          make_random_bulk(single_cell_schelker$eset, cell_frac, n_cells=500)
         }
-rownames(dc_expression) = rownames(exprs(single_cell_schelker))
+rownames(dc_expression) = rownames(exprs(single_cell_schelker$eset))
 
 use_methods = c("epic", "quantiseq", "cibersort")
 # use_methods = immunedeconv::deconvolution_methods
@@ -212,6 +190,8 @@ res_all = bind_rows(res_before, res_after) %>%
   gather(sample, predicted_fraction, -cell_type, -method, -dataset) %>% 
   mutate(dataset = factor(dataset, levels=c("before", "after")))
 
+res_spillover$rm_marker_genes = res_all
+
 ```
 
 ```{r, fig.width=12, fig.cap="Predicted", echo=FALSE, message=FALSE, fig.cap="Predictions on 10 simulated DC samples before and after removal of the five genes. ", warning=FALSE}
@@ -223,20 +203,4 @@ res_all %>%
   stat_compare_means(paired = TRUE, method = "t.test")
 
 
-```
-
-```{r, fig.width=5.5, fig.height=3}
-res_all %>% 
-  filter(cell_type == "B cell") %>% 
-  mutate(dataset = if_else(dataset == "before", "no", "yes")) %>% 
-  ggplot(aes(x=dataset, y=predicted_fraction, colour=dataset)) +
-    geom_quasirandom() + 
-    stat_summary(fun.y=mean, geom="crossbar", fun.ymin=mean, fun.ymax=mean, width=.5, color="black") + 
-    facet_wrap(~method, drop = TRUE, scales = "free") + 
-    stat_compare_means(paired = TRUE, method = "t.test", label="p.signif") + 
-    theme(legend.position = "none") + 
-    ylim(0, .5) + 
-    ggtitle("spillover with and without signature genes removed.") + 
-    xlab("signature genes removed") + 
-    ylab("predicted fraction")
 ```

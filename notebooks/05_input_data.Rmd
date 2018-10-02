@@ -27,6 +27,8 @@ library(readxl)
 library(stringr)
 # bioconductor
 library(Biobase)
+library(org.Hs.eg.db)
+library(GO.db)
 # other packages
 library(cowplot)
 library(pheatmap)
@@ -39,6 +41,8 @@ library(testit)
 library(knitr)
 library(circlize)
 library(gridGraphics)
+library(BioQC)
+library(ggbeeswarm)
 
 devtools::load_all("../immunedeconv")
 source("../lib/make_cell_fraction_vector.R")
@@ -58,6 +62,8 @@ color_scales = sapply(excel_sheets(color_file), function(sheet) {
   colors
 })
 
+select = dplyr::select
+rename = dplyr::rename
 ```
 
 

@@ -38,6 +38,8 @@ plot_cor_table = function(data, dataset="none") {
            pearson = if_else(pearson < 0, 0, pearson)) %>%
     mutate(macrophage_only = if_else(is.na(macrophage_only), "no", macrophage_only)) %>%
     mutate(pearson_text = if_else(macrophage_only == "yes", paste0(pearson_text, "*"), pearson_text)) %>%
+    mutate(pearson_text = if_else(is.na(pearson), "n/a", pearson_text), 
+           pearson = if_else(is.na(pearson), 0, pearson)) %>% 
     inner_join(method_names) %>%
     ggplot(aes(x=column, y=method_name)) +
       geom_tile(aes(fill=pearson)) +
@@ -90,6 +92,7 @@ validation$all_datasets = validation$all_results %>%
   mutate(category = "All datasets", column=cell_type)
 
 validation$all_datasets_all_cells = validation$all_results %>%
+  filter(!(cell_type == "T cell" & dataset != "hoek")) %>%  # otherwise t cells are counted twice!
   group_by(method) %>%
   do(make_cor(.$estimate, .$true_fraction)) %>%
   mutate(cell_type = ALL_CELLS, category = "All datasets") %>%
@@ -174,11 +177,12 @@ p_sens_spec = bind_rows(tmp_sens, tmp_spec) %>%
   group_by(method, cell_type, category) %>%
   summarise(estimate = mean(estimate)) %>%
   mutate(estimate_text = as.character(round(estimate, 2))) %>%
+  mutate(estimate = if_else(estimate > .3, .3, estimate)) %>% # clip estimate for better color coding. 
   inner_join(method_names) %>%
   ggplot(aes(x=cell_type, y=method_name)) +
     geom_tile(aes(fill=estimate)) +
     geom_text(aes(label=estimate_text), size=HEATMAP_FONT_SIZE) +
-    scale_fill_distiller(type="div", palette = "RdYlGn", direction=-1, values=c(0, .02, .1, 1)) +
+    scale_fill_distiller(type="div", palette = "RdYlGn", direction=-1, values=c(0, .02, .3, 1)) +
     scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
     theme_benchmark() +
     theme(axis.text.x.top=element_text(angle = 90, vjust = .5, hjust=0),
@@ -369,8 +373,8 @@ x = lapply(methods, function(method) {
                    annotationTrackHeight = uh(5, "mm")
                    )
 
-      text(0, 0, tmp_method_names[[method]], cex = 3)
-      text(0, -0.2, as.character(round(filter(noise_ratio, method == !!method) %>% pull(noise_ratio), 2)), cex=2.8)
+      text(0, 0, tmp_method_names[[method]], cex = 2.5)
+      text(0, -0.2, as.character(round(filter(noise_ratio, method == !!method) %>% pull(noise_ratio), 2)), cex=2.2)
 })
 
 grid.echo()
@@ -388,15 +392,35 @@ p = tmp_barplot_data %>%
   ggplot(aes(x=`cell type`, y=value, fill=`cell type`)) +
   geom_bar(stat='identity') +
   scale_fill_manual(values=color_scales$immune_cells) +
-  theme(legend.position = "right")
+  theme(legend.position = "top", legend.justification = "center")
 p
 
-migration_legend = get_legend(p)
+migration_legend = cowplot::get_legend(p)
 ```
 
-```{r fig.width = 13, fig.height=7, echo=FALSE, message=FALSE, fig.cap="Migration chart figure for paper. "}
+```{r}
+# Plot differences with removed marker genes
+rmgenes_plot = res_spillover$rm_marker_genes %>% 
+  inner_join(method_names) %>%
+  filter(cell_type == "B cell") %>% 
+  mutate(dataset = if_else(dataset == "before", "no", "yes")) %>% 
+  ggplot(aes(x=dataset, y=predicted_fraction, colour=dataset)) +
+    geom_quasirandom() + 
+    stat_summary(fun.y=mean, geom="crossbar", fun.ymin=mean, fun.ymax=mean, width=.5, color="black") + 
+    facet_wrap(~method_name, drop = TRUE) + 
+    stat_compare_means(paired = TRUE, method = "t.test", label="p.signif") + 
+    theme(legend.position = "none") + 
+    xlab("signature genes removed") + 
+    ylab("predicted fraction") + 
+    scale_color_brewer(type="qual", palette=2, direction = -1) + 
+    ylim(0, .75)
+
+```
+
+```{r fig.width = 8, fig.height=9, echo=FALSE, message=FALSE, fig.cap="Migration chart figure for paper. "}
 # combine legend and plot
-plot_grid(migration_plot, migration_legend, nrow=1, rel_widths = c(.9, .15))
+plot_grid(migration_plot, migration_legend, rmgenes_plot, 
+          nrow=3, rel_heights = c(0.7, .15, .4), align = "v", labels = c("A", "", "B"), axis="t")
 
 ggsave("../results/figures/spillover_migration_chart.pdf")
 ggsave("../results/figures/spillover_migration_chart.png", dpi=1200)

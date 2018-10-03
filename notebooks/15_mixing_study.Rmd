@@ -162,7 +162,7 @@ results_with_gold_standard %>%
   stat_smooth(aes(color=method), method="lm") +
   scale_color_manual(values=color_scales$methods, na.value="grey") +
   scale_x_continuous(breaks=c(.2, .3)) +
-  stat_cor() 
+  stat_cor()
 ```
 
 
@@ -189,24 +189,30 @@ write_tsv(correlations_tab, "../results/tables/mixing_study_correlations.tsv", n
 correlations %>%
   ggplot(aes(x=method, y=pearson, color=macrophage_only)) +
     geom_crossbar(aes(ymin=pearson, ymax=pearson)) +
-    geom_hline(yintercept = 0) + 
+    geom_hline(yintercept = 0) +
     geom_errorbar(aes(ymin=conf_int_lower, ymax=conf_int_upper), width=.2) +
     facet_wrap(~cell_type, nrow=2, labeller = label_wrap_gen()) +
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
           legend.position="top",
           strip.text.x = element_text(size=9)) +
     scale_fill_manual(values=color_scales$methods, na.value="grey") +
-    scale_color_manual(values=c("yes"="grey", "no"="black")) + 
-    coord_flip() + 
-    theme_bw() + 
-    theme(legend.position = "top") 
+    scale_color_manual(values=c("yes"="grey", "no"="black")) +
+    coord_flip() +
+    theme_bw() +
+    theme(legend.position = "top")
 ```
 
 
-### Deviation from slope (x=y) for all absolute methods
-If the absolute devoncolution was perfect, the slope would equal 1 ($x \mapsto y$ ).
-The figure shows the deviation from the 1, i.e. values > 0 indicate the method over-estimates the fraction
-of these cells; values < 0 indicate the method under-estiamtes the fraction of these cells.
+### Absolute deviation
+Next, we were interested in the absolute deviation of the values for methods
+that compute absolute scores. We assess the absolute deviation using two
+measures:
+
+* by fitting a linear model to the values and denoting the slope. If the
+  absolute quantification was perfect, the slope would equal 1. Values
+  < 1 indicate an underprediction and values > 1 an overprediction of the
+  respective cell type.
+* by calculating the root mean square error (RMSE)
 
 Note that only EPIC and quanTIseq provide scores that can be interpreted as a cell fraction.
 xCell and CIBERSORT abs. scale the output score to be 'absolute':
@@ -218,12 +224,19 @@ xCell and CIBERSORT abs. scale the output score to be 'absolute':
 > compared across cell types (i.e., relative differences between cell types are maintained) ([cibersort
 > FAQ](https://cibersort.stanford.edu/))
 
-Confidence intervals are two-sided 95% confidence intervales derived using `confint` and `lm`.
+
+*Also note that these values are not necessarily
+accurate for quanTIseq and EPIC, which account for the different mRNA contents
+of different cell types.* As single cell data is already normalized on
+a per-cell level, the scaling factors are most likely not appropriate with the
+simulated data. This is why we use the validation datasets to generate
+the deviation plots in the main paper.
+
 ```{r mixing_abs, echo=FALSE, cache=TRUE}
 slope = results_with_gold_standard %>%
   filter(method %in% abs_methods) %>%
   group_by(macrophage_only, cell_type, method) %>%
-  do(get_slope(.)) 
+  do(get_slope(.))
 
 res_mixing_study$slope = slope
 
@@ -231,13 +244,13 @@ cell_type_method_mat = crossing(config$abs_methods_mixing, show_cell_types)
 colnames(cell_type_method_mat) = c("method", "cell_type")
 ```
 
-```{r, fig.width=12, fig.height=4, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Comparison of absolute methods. The bars indicate the log2(slope). Values < 0 indicate an under-prediction of the cell type, values > 0 an over-prediction respectively. "}
+```{r, fig.width=12, fig.height=4, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Absolute deviation of the predictions represented as the slope of a linear model. Confidence intervals are computed using `confint` on the result of `lm`."}
 slope %>%
   right_join(cell_type_method_mat) %>%
   # na -> 0 workaround, otherwise text label does not show
   ggplot(aes(x=cell_type, y=ifelse(is.na(slope), 1, slope), alpha=macrophage_only)) +
     geom_crossbar(aes(colour=method, ymin=slope, ymax=slope), stat="identity") +
-    geom_text(aes(label=ifelse(is.na(slope), "n/a", NA)), angle=0) + 
+    geom_text(aes(label=ifelse(is.na(slope), "n/a", NA)), angle=0) +
     geom_errorbar(aes(ymin=ci_lower, ymax=ci_upper), width=.2) +
     facet_wrap(~method, nrow=1, labeller = label_wrap_gen()) +
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
@@ -245,32 +258,32 @@ slope %>%
           strip.text.x = element_text(size=9)) +
     scale_fill_manual(values=color_scales$methods, na.value="grey") +
     scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
-    geom_hline(yintercept=1, col="grey") +  
-    coord_flip() + 
+    geom_hline(yintercept=1, col="grey") +
+    coord_flip() +
     ylab("slope of linear fit")
 ```
 
-```{r abs_rmse, fig.width=12, fig.height=4, echo=FALSE, fig.cap="Comparison of absolute methods. The values show the RMSE"}
+```{r abs-rmse, fig.width=12, fig.height=4, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Absolute deviation of the predictions represented as RMSE."}
 rmse = results_with_gold_standard %>%
-  filter(method %in% abs_methods) %>% 
+  filter(method %in% abs_methods) %>%
   mutate(square_error = (estimate-true_fraction)^2) %>%
   group_by(method, cell_type, macrophage_only) %>%
   summarise(rmse = sqrt(mean(square_error)))
 
 res_mixing_study$rmse = rmse
-    
-rmse %>% 
+
+rmse %>%
  right_join(cell_type_method_mat) %>%
  ggplot(aes(x=cell_type, y=ifelse(is.na(rmse), 0, rmse), alpha=macrophage_only)) +
     geom_bar(aes(fill=method), stat="identity") +
-    geom_text(aes(label=ifelse(is.na(rmse), "n/a", NA)), angle=0, y=0.05) + 
+    geom_text(aes(label=ifelse(is.na(rmse), "n/a", NA)), angle=0, y=0.05) +
     facet_wrap(~method, nrow=1, labeller = label_wrap_gen()) +
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
           legend.position="top",
           strip.text.x = element_text(size=9)) +
     scale_fill_manual(values=color_scales$methods, na.value="grey") +
     scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
-    coord_flip() + 
-    geom_hline(yintercept=0, col="grey") + 
+    coord_flip() +
+    geom_hline(yintercept=0, col="grey") +
     ylab("RMSE")
 ```

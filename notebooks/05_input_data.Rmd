@@ -268,7 +268,7 @@ with(schelker_ovarian, {
 
 ```
 
-```{r echo=FALSE}
+```{r echo=FALSE, results="asis"}
 dt_caption("Flow cytometry estimates of Schelker et al. ")
 schelker_ovarian$ref %>% DT::datatable()
 ```

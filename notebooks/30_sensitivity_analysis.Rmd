@@ -3,8 +3,8 @@
 res_sensitivity = new.env()
 ```
 
-How many cells of a certain type do we need for a method to detect immune cell infiltration? (=Detection limit)
-How many cells of a certain type are detected, although we know they are not there? (=false positives)
+How many cells of a certain type do we need for a method to detect immune cell infiltration (=Detection limit)?
+How many cells of a certain type are detected, although we know they are not there (=false positives)?
 
 We again use the single cell dataset to simulate samples that consist of background cells
 (i.e. non-immune cells: fibroblasts, endothelial cells cancer cells) and add an increasing amount
@@ -37,13 +37,13 @@ if(!file.exists(sensitivity_analysis_file)) {
   set.seed(42)
   res = foreach(input_cell_type = show_cell_types,
                 .final = function(x) setNames(x, show_cell_types)) %dopar% {
-                  
+
                     expr_mat = lapply(n_immune_cells, function(k) {
                       cell_n = make_cell_fraction_vector(input_cell_type, k)
                       cell_frac = cell_n/sum(cell_n)
                       make_random_bulk(eset=single_cell_schelker$eset, cell_fractions = cell_frac, n_cells = sum(cell_n))
                     }) %>% bind_cols() %>% as.matrix()
-               
+
                     rownames(expr_mat) = rownames(single_cell_schelker$eset %>% exprs())
                     expr_mat
     }
@@ -66,7 +66,7 @@ res = foreach(input_cell_type = show_cell_types,
     deconvolute(expr_mat, method, indications=timer_indications)
   }
 
-sensitivity_analysis_res = res  
+sensitivity_analysis_res = res
 ```
 
 ```{r sens_process_data, cache=TRUE, echo=FALSE, message=FALSE}
@@ -113,6 +113,9 @@ all_results2 %>%
     scale_color_manual(values = color_scales$immune_cells)
 ```
 
+The following about false positives and the detection limit are directly
+derived from the data shown in the plot above.
+
 ## Detection Limit
 
 ```{r, warning=FALSE, message=FALSE, cache=TRUE, echo=FALSE}
@@ -154,7 +157,7 @@ res_sensitivity$all_results = all_results3
 res_sensitivity$sensitivity = sensitivity_plot
 ```
 
-```{r sens_table, echo=FALSE, message=FALSE}
+```{r sens_table, echo=FALSE, message=FALSE, warning=FALSE}
 sensitivity_plot %>%
   mutate(min_frac = ifelse(is.infinite(min_frac), 100, min_frac)) %>%
   mutate(min_frac = min_frac / 100) %>%
@@ -162,11 +165,11 @@ sensitivity_plot %>%
   write_tsv("../results/tables/detection_limit.tsv", na="")
 ```
 
-```{r sens-plot, fig.width=4, fig.height=4, echo=FALSE, fig.cap="Sensitivity of the methods per cell type. The bars indicate the minimal percentage of infiltration at which the method first reliably detects the cell type. Opaque bars indicate that the methods does not provide an estimate for the cell type."}
-sensitivity_plot %>% 
-  mutate(min_frac = ifelse(min_frac >100, 100, min_frac)) %>% 
+```{r sens-plot, fig.width=4, fig.height=4, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Detection limit of the methods per cell type. The values indicate the minimal percentage of infiltration at which the method first reliably detects the cell type."}
+sensitivity_plot %>%
+  mutate(min_frac = ifelse(min_frac >100, 100, min_frac)) %>%
   mutate(min_frac_text = round(min_frac/100, 2)) %>%
-  filter(method != "mcp_counter") %>% 
+  filter(method != "mcp_counter") %>%
   ggplot(aes(x=input_cell_type, y=method)) +
     geom_tile(aes(fill=min_frac)) +
     geom_text(aes(label=min_frac_text), size=2.7) +
@@ -179,7 +182,7 @@ sensitivity_plot %>%
     scale_x_discrete(position = "top", drop=FALSE) +
     xlab(NULL) +
     ylab(NULL) +
-    theme_title()  + 
+    theme_title()  +
     ggtitle("Detection limit")
 
 ```
@@ -219,7 +222,7 @@ specificity_data %>%
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
           legend.position="top",
           strip.text.x = element_text(size=9)) +
-    scale_color_manual(values=color_scales$methods, na.value="grey") + 
+    scale_color_manual(values=color_scales$methods, na.value="grey") +
     coord_flip()
 ```
 

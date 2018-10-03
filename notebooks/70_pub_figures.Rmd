@@ -35,8 +35,8 @@ plot_cor_table = function(data, dataset="none") {
            pearson = if_else(pearson < 0, 0, pearson)) %>%
     mutate(macrophage_only = if_else(is.na(macrophage_only), "no", macrophage_only)) %>%
     mutate(pearson_text = if_else(macrophage_only == "yes", paste0(pearson_text, "*"), pearson_text)) %>%
-    mutate(pearson_text = if_else(is.na(pearson), "n/a", pearson_text), 
-           pearson = if_else(is.na(pearson), 0, pearson)) %>% 
+    mutate(pearson_text = if_else(is.na(pearson), "n/a", pearson_text),
+           pearson = if_else(is.na(pearson), 0, pearson)) %>%
     inner_join(method_names) %>%
     ggplot(aes(x=column, y=method_name)) +
       geom_tile(aes(fill=pearson)) +
@@ -84,7 +84,7 @@ use_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte", "NK cell",
 validation = new.env()
 validation$all_results = res_validation$all_results %>% filter(cell_type %in% use_cell_types)
 validation$all_datasets = validation$all_results %>%
-  group_by(method, cell_type) %>% 
+  group_by(method, cell_type) %>%
   do(make_cor(.$estimate, .$true_fraction)) %>%
   mutate(category = "All datasets", column=cell_type)
 
@@ -96,29 +96,29 @@ validation$all_datasets_all_cells = validation$all_results %>%
   mutate(column = cell_type)
 
 validation$hoek = validation$all_results %>%
-  filter(dataset == 'hoek') %>% 
-  group_by(method, cell_type) %>% 
+  filter(dataset == 'hoek') %>%
+  group_by(method, cell_type) %>%
   do(make_cor(.$estimate, .$true_fraction)) %>%
   mutate(category = validation_datasets$hoek) %>%
   mutate(column = cell_type)
 
 validation$hoek_all_cells = validation$all_results %>%
-  filter(dataset == 'hoek') %>% 
-  group_by(method) %>% 
+  filter(dataset == 'hoek') %>%
+  group_by(method) %>%
   do(make_cor(.$estimate, .$true_fraction)) %>%
   mutate(cell_type = ALL_CELLS, category = validation_datasets$hoek) %>%
   mutate(column = cell_type)
 
 validation$racle_all_cells = validation$all_results %>%
-  filter(dataset == 'racle') %>% 
-  group_by(method) %>% 
+  filter(dataset == 'racle') %>%
+  group_by(method) %>%
   do(make_cor(.$estimate, .$true_fraction)) %>%
   mutate(cell_type = ALL_CELLS, category = validation_datasets$racle) %>%
   mutate(column = cell_type)
 
 validation$schelker_all_cells = validation$all_results %>%
-  filter(dataset == 'schelker_ovarian') %>% 
-  group_by(method) %>% 
+  filter(dataset == 'schelker_ovarian') %>%
+  group_by(method) %>%
   do(make_cor(.$estimate, .$true_fraction)) %>%
   mutate(cell_type = ALL_CELLS, category = validation_datasets$schelker) %>%
   mutate(column = cell_type)
@@ -129,7 +129,7 @@ validation$schelker_all_cells = validation$all_results %>%
 
 ```{r, fig.height=3.5, include=FALSE}
 # make the correlation plots
-p_noise = plot_cor_table(noise) 
+p_noise = plot_cor_table(noise)
 p_mixing = plot_cor_table(mixing)
 
 p_validation_all_datasets = bind_rows(validation$all_datasets, validation$all_datasets_all_cells) %>%
@@ -141,7 +141,7 @@ p_validation_hoek = bind_rows(validation$hoek, validation$hoek_all_cells) %>%
     geom_vline(xintercept = 1.5)
 
 p_validation_schelker = validation$schelker_all_cells %>%
-  plot_cor_table() 
+  plot_cor_table()
 
 p_validation_racle = validation$racle_all_cells %>%
   plot_cor_table()
@@ -149,7 +149,7 @@ p_validation_racle = validation$racle_all_cells %>%
 print(p_noise)
 print(p_mixing)
 print(p_validation_all_datasets)
-print(p_validation_hoek) 
+print(p_validation_hoek)
 print(p_validation_racle)
 print(p_validation_schelker)
 ```
@@ -174,7 +174,7 @@ p_sens_spec = bind_rows(tmp_sens, tmp_spec) %>%
   group_by(method, cell_type, category) %>%
   summarise(estimate = mean(estimate)) %>%
   mutate(estimate_text = as.character(round(estimate, 2))) %>%
-  mutate(estimate = if_else(estimate > .3, .3, estimate)) %>% # clip estimate for better color coding. 
+  mutate(estimate = if_else(estimate > .3, .3, estimate)) %>% # clip estimate for better color coding.
   inner_join(method_names) %>%
   ggplot(aes(x=cell_type, y=method_name)) +
     geom_tile(aes(fill=estimate)) +
@@ -186,11 +186,11 @@ p_sens_spec = bind_rows(tmp_sens, tmp_spec) %>%
             legend.position="none",
             strip.text.x = element_text(size=11)) +
     scale_x_discrete(position = "top", drop=FALSE) +
-    facet_wrap(~category, nrow=2) + 
+    facet_wrap(~category, nrow=2) +
     xlab(NULL) +
     ylab(NULL) +
-    theme_title() 
-    
+    theme_title()
+
 
 print(p_sens_spec)
 ```
@@ -198,16 +198,18 @@ print(p_sens_spec)
 
 ```{r, fig.height=3.5, fig.width=8, include=FALSE}
 # Absolute deviation plot
-tmp_cell_types = res_validation$slope %>% pull(cell_type) %>% unique() 
+tmp_cell_types = res_validation$slope %>% pull(cell_type) %>% unique()
 tmp_methods = config$abs_methods_final
 tmp_n_samples = res_validation$slope %>% select(cell_type, n) %>% distinct()
-tmp_matrix = crossing(tmp_cell_types, tmp_methods) 
+tmp_matrix = crossing(tmp_cell_types, tmp_methods)
 colnames(tmp_matrix) = c("cell_type", "method")
-p_abs_deviation = res_validation$slope %>% 
-  select(-n) %>% 
+p_abs_deviation = res_validation$slope %>%
+  select(-n) %>%
+  # remove neutrophils, as only three samples
+  filter(cell_type != "Neutrophil") %>%
   right_join(tmp_matrix) %>%
   inner_join(method_names) %>%
-  left_join(tmp_n_samples) %>% 
+  left_join(tmp_n_samples) %>%
   mutate(cell_type_name = sprintf("%s [n=%i]", cell_type, n)) %>%
    # na -> 0 workaround, otherwise text label does not show
    ggplot(aes(x=cell_type_name, y=ifelse(is.na(slope), 1, slope))) +
@@ -221,7 +223,7 @@ p_abs_deviation = res_validation$slope %>%
             legend.position="none",
             strip.text.x = element_text(size=9)) +
       # scale_fill_manual(values=color_scales$methods) +
-      scale_alpha_manual(values=c("yes"=.3, "no"=1.)) + 
+      scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
       xlab(NULL) +
       ylab("slope of linear model") +
       coord_flip() +
@@ -246,7 +248,7 @@ p_abs_rmse = res_validation$rmse %>%
             legend.position="none",
             strip.text.x = element_blank()) +
     scale_x_discrete(position = "top", drop=FALSE) +
-    facet_wrap(~method_name, nrow=2) + 
+    facet_wrap(~method_name, nrow=2) +
     xlab(NULL) +
     ylab(NULL) +
     theme_title()
@@ -269,16 +271,16 @@ MB2 = .7
 p2_noise = p_noise + theme(plot.margin = margin(t=MT1, b=MB1, unit="cm"))
 p2_mixing = p_mixing + theme(axis.text.y=element_blank(), plot.margin = margin(t=MT1, l=0.2, b=MB1, unit="cm"),
                              axis.ticks.y=element_blank())
-p2_validation_all_datasets = p_validation_all_datasets + theme(axis.text.y=element_blank(), 
+p2_validation_all_datasets = p_validation_all_datasets + theme(axis.text.y=element_blank(),
                                                                plot.margin = margin(t=MT1, l=.2, b=MB1, unit="cm"),
                                                                axis.ticks.y=element_blank())
-p2_validation_hoek = p_validation_hoek + theme(axis.text.y=element_blank(), 
+p2_validation_hoek = p_validation_hoek + theme(axis.text.y=element_blank(),
                                                                plot.margin = margin(t=MT1, l=-.1, b=MB1, unit="cm"),
                                                                axis.ticks.y=element_blank())
-p2_validation_racle = p_validation_racle + theme(axis.text.y=element_blank(), 
+p2_validation_racle = p_validation_racle + theme(axis.text.y=element_blank(),
                                                                plot.margin = margin(t=MT1, l=-.1, b=MB1, unit="cm"),
                                                                axis.ticks.y=element_blank())
-p2_validation_schelker = p_validation_schelker + theme(axis.text.y=element_blank(), 
+p2_validation_schelker = p_validation_schelker + theme(axis.text.y=element_blank(),
                                                                plot.margin = margin(t=MT1, l=-.1, b=MB1, unit="cm"),
                                                                axis.ticks.y=element_blank())
 
@@ -293,7 +295,7 @@ plots_left = align_plots(p2_noise, p2_sens_spec, align="v", axis="l")
 plots_right = align_plots(p2_validation_schelker, p2_abs_rmse, align="v", axis="r")
 
 # first row
-plot_heatmap = plot_grid(plots_left[[1]], p2_mixing, p2_validation_all_datasets, 
+plot_heatmap = plot_grid(plots_left[[1]], p2_mixing, p2_validation_all_datasets,
                          p2_validation_hoek, p2_validation_racle, plots_right[[1]],
           align = "h", nrow = 1,
           axis="tb",
@@ -329,19 +331,8 @@ methods = sort(methods[methods != "cibersort_abs"])
 tmp_method_names = as.list(method_names %>% pull(method_name))
 names(tmp_method_names) = method_names$method
 
-# migration = res_spillover$all_results %>%
-#   filter(dataset == "immune_reference") %>%
-#   # exclude neutrophils as not measured by most methods
-#   filter(true_cell_type != "Neutrophil") %>%
-#   # aggregate macro/mono into a single category
-#   mutate(true_cell_type = ifelse(true_cell_type %in% c("Macrophage M1", "Macrophage M2", "Monocyte"), "Macrophage/Monocyte", true_cell_type)) %>%
-#   mutate(true_cell_type = ifelse(true_cell_type == "T cell regulatory (Tregs)", "T cell CD4+", true_cell_type)) %>%
-#   group_by(method, cell_type, true_cell_type) %>%
-#   summarise(estimate = mean(estimate)) %>%
-#   ungroup()
-
 migration = res_spillover$all_results %>%
-  filter(dataset == "artificial_bulk") %>% 
+  filter(dataset == "artificial_bulk") %>%
   group_by(method, cell_type, true_cell_type) %>%
   summarise(estimate = mean(estimate)) %>%
   ungroup()
@@ -398,28 +389,28 @@ p
 migration_legend = cowplot::get_legend(p)
 ```
 
-```{r}
+```{r, include=FALSE}
 # Plot differences with removed marker genes
-rmgenes_plot = res_spillover$rm_marker_genes %>% 
+rmgenes_plot = res_spillover$rm_marker_genes %>%
   inner_join(method_names) %>%
-  filter(cell_type == "B cell") %>% 
-  mutate(dataset = if_else(dataset == "before", "no", "yes")) %>% 
+  filter(cell_type == "B cell") %>%
+  mutate(dataset = if_else(dataset == "before", "no", "yes")) %>%
   ggplot(aes(x=dataset, y=predicted_fraction, colour=dataset)) +
-    geom_quasirandom() + 
-    stat_summary(fun.y=mean, geom="crossbar", fun.ymin=mean, fun.ymax=mean, width=.5, color="black") + 
-    facet_wrap(~method_name, drop = TRUE) + 
-    stat_compare_means(paired = TRUE, method = "t.test", label="p.signif") + 
-    theme(legend.position = "none") + 
-    xlab("signature genes removed") + 
-    ylab("predicted fraction") + 
-    scale_color_brewer(type="qual", palette=2, direction = -1) + 
+    geom_quasirandom() +
+    stat_summary(fun.y=mean, geom="crossbar", fun.ymin=mean, fun.ymax=mean, width=.5, color="black") +
+    facet_wrap(~method_name, drop = TRUE) +
+    stat_compare_means(paired = TRUE, method = "t.test", label="p.signif") +
+    theme(legend.position = "none") +
+    xlab("signature genes removed") +
+    ylab("predicted fraction") +
+    scale_color_brewer(type="qual", palette=2, direction = -1) +
     ylim(0, .75)
 
 ```
 
 ```{r fig.width = 8, fig.height=9, echo=FALSE, message=FALSE, fig.cap="Migration chart figure for paper. "}
 # combine legend and plot
-plot_grid(migration_plot, migration_legend, rmgenes_plot, 
+plot_grid(migration_plot, migration_legend, rmgenes_plot,
           nrow=3, rel_heights = c(0.7, .15, .4), align = "v", labels = c("A", "", "B"), axis="t")
 
 ggsave("../results/figures/spillover_migration_chart.pdf")

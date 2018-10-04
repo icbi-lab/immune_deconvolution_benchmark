@@ -130,7 +130,7 @@ goBioQCres <- cbind(goBioQClistAnno,
 Below we display the terms that, under moderate stringency of filtering (Benjamini-Hochberg FDR<0.01), shows significant enrichment in either direction.
 
 ```{r, echo=FALSE}
-subset(goBioQCres, FDR<0.01) %>% arrange(BioQC.Qvalue) %>% DT::datatable()
+subset(goBioQCres, FDR<0.01) %>% arrange(BioQC.Qvalue) %>% DT::datatable(options = list("scrollX"="500px")) %>% DT::formatSignif(columns=c("BioQC.twosided.pvalue", "BioQC.Qvalue", "FDR", "Bonferroni"), digits = 2)
 ```
 
 Interstingly, there are many terms that are highly significantly over- or underrepresented in simulated versus genuine bulk RNA-seq samples. We currently have no explanation for that.
@@ -152,7 +152,7 @@ isImmune <- with(goBioQCres,
                                     grepl("macrophage\\b", TERM, ignore.case=TRUE) |
                                     grepl("dendritic cell\\b", TERM, ignore.case=TRUE))
 immuneRes <- goBioQCres %>% filter(isImmune)
-immuneRes %>% arrange(FDR) %>% DT::datatable()
+immuneRes %>% arrange(FDR) %>% DT::datatable(options = list(scrollX="500px")) %>% DT::formatSignif(columns=c("BioQC.twosided.pvalue", "BioQC.Qvalue", "FDR", "Bonferroni"))
 ```
 
 

@@ -206,16 +206,16 @@ colnames(tmp_matrix) = c("cell_type", "method")
 p_abs_deviation = res_validation$slope %>%
   select(-n) %>%
   # remove neutrophils, as only three samples
-  filter(cell_type != "Neutrophil") %>%
   right_join(tmp_matrix) %>%
   inner_join(method_names) %>%
   left_join(tmp_n_samples) %>%
+  filter(cell_type != "Neutrophil") %>%
   mutate(cell_type_name = sprintf("%s [n=%i]", cell_type, n)) %>%
    # na -> 0 workaround, otherwise text label does not show
    ggplot(aes(x=cell_type_name, y=ifelse(is.na(slope), 1, slope))) +
+      geom_hline(yintercept=1, col="grey") +
       geom_crossbar(aes(ymin=slope, ymax=slope), colour="black") +
       geom_errorbar(aes(ymin=ci_lower, ymax=ci_upper), width=.2, color="black") +
-      geom_hline(yintercept=1, col="grey") +
       geom_text(aes(label=ifelse(is.na(slope), "n/a", NA))) +
       facet_wrap(~method_name, nrow=2, labeller = label_wrap_gen()) +
       theme_benchmark() +
@@ -238,6 +238,7 @@ p_abs_rmse = res_validation$rmse %>%
   inner_join(method_names) %>%
   mutate(rmse_text = as.character(round(rmse, 2))) %>%
   mutate(column="RMSE") %>%
+  filter(cell_type != "Neutrophil") %>% 
   ggplot(aes(x=column, y=cell_type)) +
     geom_tile(aes(fill=rmse)) +
     geom_text(aes(label=rmse_text), size=3) +

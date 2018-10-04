@@ -225,6 +225,7 @@ all_results_ref %>%
     geom_point(aes(color=cell_type, shape=dataset)) +
     scale_color_manual(values=color_scales$validation) +
     facet_grid(method~cell_type, scales = "free_y") +
+    geom_abline(slope = 1, intercept = 0, color="grey") + 
     theme_bw() +
     theme(legend.position = "top",
           strip.text.x = element_text(size=9)) +

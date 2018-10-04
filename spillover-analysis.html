@@ -148,9 +148,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="2.7" data-path="input-data.html"><a href="input-data.html#data-sanity-checks"><i class="fa fa-check"></i><b>2.7</b> Data sanity checks</a></li>
 </ul></li>
 <li class="chapter" data-level="3" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html"><i class="fa fa-check"></i><b>3</b> Validitiy of single cell RNA-seq as reference</a><ul>
-<li class="chapter" data-level="3.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#compare-simululated-to-genuine-bulk-samples"><i class="fa fa-check"></i><b>3.1</b> Compare simululated to genuine bulk samples</a><ul>
-<li class="chapter" data-level="3.1.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#log-ratio"><i class="fa fa-check"></i><b>3.1.1</b> Log ratio</a></li>
-</ul></li>
+<li class="chapter" data-level="3.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#compare-simululated-to-genuine-bulk-samples"><i class="fa fa-check"></i><b>3.1</b> Compare simululated to genuine bulk samples</a></li>
 <li class="chapter" data-level="3.2" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#enrichment-analysis-test-for-systematic-bias"><i class="fa fa-check"></i><b>3.2</b> Enrichment analysis: Test for systematic Bias</a><ul>
 <li class="chapter" data-level="3.2.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#immune-relevant-genes-are-consistent-between-sc-and-bulk-data."><i class="fa fa-check"></i><b>3.2.1</b> Immune-relevant genes are consistent between sc and bulk data.</a></li>
 </ul></li>
@@ -164,7 +162,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="4.4" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#results"><i class="fa fa-check"></i><b>4.4</b> Results</a><ul>
 <li class="chapter" data-level="4.4.1" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#correlation-plots"><i class="fa fa-check"></i><b>4.4.1</b> Correlation plots</a></li>
 <li class="chapter" data-level="4.4.2" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#calculate-correlations-for-each-method-and-cell-type"><i class="fa fa-check"></i><b>4.4.2</b> Calculate correlations for each method and cell type</a></li>
-<li class="chapter" data-level="4.4.3" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#deviation-from-slope-xy-for-all-absolute-methods"><i class="fa fa-check"></i><b>4.4.3</b> Deviation from slope (x=y) for all absolute methods</a></li>
+<li class="chapter" data-level="4.4.3" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#absolute-deviation"><i class="fa fa-check"></i><b>4.4.3</b> Absolute deviation</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html"><i class="fa fa-check"></i><b>5</b> Validation with real data</a><ul>
@@ -183,7 +181,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="7.3" data-path="spillover-analysis.html"><a href="spillover-analysis.html#summary-figure-migration-charts"><i class="fa fa-check"></i><b>7.3</b> Summary figure: migration charts</a></li>
 <li class="chapter" data-level="7.4" data-path="spillover-analysis.html"><a href="spillover-analysis.html#investigate-marker-genes"><i class="fa fa-check"></i><b>7.4</b> Investigate marker genes</a></li>
 <li class="chapter" data-level="7.5" data-path="spillover-analysis.html"><a href="spillover-analysis.html#check-expression-of-markers-in-detection-limit-simulation-dataset."><i class="fa fa-check"></i><b>7.5</b> Check expression of markers in “detection limit” simulation dataset.</a><ul>
-<li class="chapter" data-level="7.5.1" data-path="spillover-analysis.html"><a href="spillover-analysis.html#derive-marker-genes-from-quantiseqepic-signature-matrices."><i class="fa fa-check"></i><b>7.5.1</b> Derive marker genes from quanTIseq/EPIC signature matrices.</a></li>
+<li class="chapter" data-level="7.5.1" data-path="spillover-analysis.html"><a href="spillover-analysis.html#expression-of-marker-genes-in-the-cell-populations"><i class="fa fa-check"></i><b>7.5.1</b> Expression of marker genes in the cell populations</a></li>
 </ul></li>
 <li class="chapter" data-level="7.6" data-path="spillover-analysis.html"><a href="spillover-analysis.html#deconvolution-results-before-and-after"><i class="fa fa-check"></i><b>7.6</b> Deconvolution results before and after</a></li>
 </ul></li>
@@ -221,8 +219,8 @@ known as “spillover”.</p>
 <li><em>artificial bulk with background</em>: simulated bulk RNA seq profiles from single cells with ~80% other cells (cancer, fibroblasts, …)</li>
 </ul>
 <p>We test the following cell types:</p>
-<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb33-1" data-line-number="1">show_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>,</a>
-<a class="sourceLine" id="cb33-2" data-line-number="2">                    <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1">show_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>,</a>
+<a class="sourceLine" id="cb21-2" data-line-number="2">                    <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</a></code></pre></div>
 <div id="complete-spillover-matrix" class="section level2">
 <h2><span class="header-section-number">7.1</span> Complete Spillover Matrix</h2>
 <div class="figure"><span id="fig:unnamed-chunk-56"></span>
@@ -249,18 +247,22 @@ Figure 7.2: Signal ratios for each cell type and dataset.
 <h2><span class="header-section-number">7.3</span> Summary figure: migration charts</h2>
 <p>Download this figure as high quality <a href="figures/spillover_migration_all.pdf">pdf</a></p>
 <div class="figure"><span id="fig:unnamed-chunk-60"></span>
-<img src="_main_files/figure-html/unnamed-chunk-60-1.png" alt="migration charts for all three dataset. The value in the middle of the chart indicates the 'noise ratio', i.e. the sum of all false positive predictions." width="960" />
+<img src="_main_files/figure-html/unnamed-chunk-60-1.png" alt="migration charts for all three dataset. The 'flow' indicates which cell types have been predicted instead of the truly abundant cell type. The value in the middle of the chart indicates the 'noise ratio', i.e. the sum of all false positive predictions." width="960" />
 <p class="caption">
-Figure 7.3: migration charts for all three dataset. The value in the middle of the chart indicates the ‘noise ratio’, i.e. the sum of all false positive predictions.
+Figure 7.3: migration charts for all three dataset. The ‘flow’ indicates which cell types have been predicted instead of the truly abundant cell type. The value in the middle of the chart indicates the ‘noise ratio’, i.e. the sum of all false positive predictions.
 </p>
 </div>
 
 </div>
 <div id="investigate-marker-genes" class="section level2">
 <h2><span class="header-section-number">7.4</span> Investigate marker genes</h2>
-<p>We asked which marker genes drive the spillover from Dendritic cells to B cells.</p>
-<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb34-1" data-line-number="1">mat =<span class="st"> </span><span class="kw">cbind</span>(<span class="kw">pData</span>(single_cell_schelker<span class="op">$</span>eset), <span class="kw">t</span>(<span class="kw">exprs</span>(single_cell_schelker<span class="op">$</span>eset))) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as_tibble</span>() </a>
-<a class="sourceLine" id="cb34-2" data-line-number="2">mat =<span class="st"> </span>mat <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(source <span class="op">!=</span><span class="st"> &quot;pbmc&quot;</span>)</a></code></pre></div>
+<p>Spillover appears to primarily happen between CD8+ and CD4+ T cells and from
+DCs to monocytes/macrophages and B cells. We were particularly concerned by the
+spillover between DCs and B cells as we could not validate it in the ‘immune
+cell reference’ dataset. In this section, we demonstrate that the single cell
+populations of DCs and B cells are both distinct and well-defined and, next,
+identify a handful of marker genes that are specific for both plasmacytoid DCs
+and B cells and drive the spillover.</p>
 First, we suspected that the effect might be due to misannotations in the single cell dataset.
 Here, we show the B cells and DCs in the t-SNE plot of the single cell dataset.
 <div class="figure"><span id="fig:unnamed-chunk-62"></span>
@@ -297,17 +299,20 @@ and cannot be distinguished.</p>
 </div>
 <div id="check-expression-of-markers-in-detection-limit-simulation-dataset." class="section level2">
 <h2><span class="header-section-number">7.5</span> Check expression of markers in “detection limit” simulation dataset.</h2>
-<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb42-1" data-line-number="1">markers =<span class="st"> </span><span class="kw">list</span>(</a>
-<a class="sourceLine" id="cb42-2" data-line-number="2">  <span class="st">&quot;B cell&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;MS4A1&quot;</span>, <span class="co">#=CD20</span></a>
-<a class="sourceLine" id="cb42-3" data-line-number="3">               <span class="st">&quot;CD19&quot;</span>, <span class="st">&quot;CD22&quot;</span></a>
-<a class="sourceLine" id="cb42-4" data-line-number="4">  ), </a>
-<a class="sourceLine" id="cb42-5" data-line-number="5">  <span class="st">&quot;myleoid&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;ITGAM&quot;</span>, <span class="st">&quot;ITGAX&quot;</span>), <span class="co">#=CD11B,CD11C</span></a>
-<a class="sourceLine" id="cb42-6" data-line-number="6">  <span class="st">&quot;MHC class II&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;HLA-DRB1&quot;</span>, <span class="st">&quot;HLA-DRA&quot;</span>),</a>
-<a class="sourceLine" id="cb42-7" data-line-number="7">  <span class="st">&quot;plasmacytoid DC&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;CLEC4C&quot;</span>, <span class="st">&quot;IL3RA&quot;</span>))</a></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb29-1" data-line-number="1">markers =<span class="st"> </span><span class="kw">list</span>(</a>
+<a class="sourceLine" id="cb29-2" data-line-number="2">  <span class="st">&quot;B cell&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;MS4A1&quot;</span>, <span class="co">#=CD20</span></a>
+<a class="sourceLine" id="cb29-3" data-line-number="3">               <span class="st">&quot;CD19&quot;</span>, <span class="st">&quot;CD22&quot;</span></a>
+<a class="sourceLine" id="cb29-4" data-line-number="4">  ),</a>
+<a class="sourceLine" id="cb29-5" data-line-number="5">  <span class="st">&quot;myleoid&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;ITGAM&quot;</span>, <span class="st">&quot;ITGAX&quot;</span>), <span class="co">#=CD11B,CD11C</span></a>
+<a class="sourceLine" id="cb29-6" data-line-number="6">  <span class="st">&quot;MHC class II&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;HLA-DRB1&quot;</span>, <span class="st">&quot;HLA-DRA&quot;</span>),</a>
+<a class="sourceLine" id="cb29-7" data-line-number="7">  <span class="st">&quot;plasmacytoid DC&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;CLEC4C&quot;</span>, <span class="st">&quot;IL3RA&quot;</span>))</a></code></pre></div>
+We check the abundance of the marker genes in the simulated samples of the
+dataset we used for assessing the false positive predictions and the detection
+limit.
 <div class="figure"><span id="fig:unnamed-chunk-68"></span>
-<img src="_main_files/figure-html/unnamed-chunk-68-1.png" alt="Correlation of marker genes with increase of the amount of a certain cell type. Along x-axis: cell type used for simulation. Along y-axis: groups of marker genes. " width="1152" />
+<img src="_main_files/figure-html/unnamed-chunk-68-1.png" alt="Correlation of marker genes with increase of the amount of a certain cell type. Along x-axis: cell type used for simulation. Along y-axis: marker genes. " width="1152" />
 <p class="caption">
-Figure 7.5: Correlation of marker genes with increase of the amount of a certain cell type. Along x-axis: cell type used for simulation. Along y-axis: groups of marker genes.
+Figure 7.5: Correlation of marker genes with increase of the amount of a certain cell type. Along x-axis: cell type used for simulation. Along y-axis: marker genes.
 </p>
 </div>
 <div class="figure"><span id="fig:unnamed-chunk-69"></span>
@@ -316,28 +321,48 @@ Figure 7.5: Correlation of marker genes with increase of the amount of a certain
 Figure 7.6: Even though the number of dendritic cells does correlate with MS4A1, a B cell marker, the absolute expression is really low. This effect can be driven by few misclassified cells but cannot explain the spillover effects we observe.
 </p>
 </div>
-<div id="derive-marker-genes-from-quantiseqepic-signature-matrices." class="section level3">
-<h3><span class="header-section-number">7.5.1</span> Derive marker genes from quanTIseq/EPIC signature matrices.</h3>
-<p>We use gini-index (Zhang et al. (2017), BMC genomics) to filter for highly discriminating genes
-within the matrix. We select all genes with a gini index &gt; 0.7. We assign all selected genes as marker gene
-to the cell type in which it is expressed the most.
-In the end, we receive a list of signature genes for each cell type.</p>
-<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb43-1" data-line-number="1">til10 =<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;../immunedeconv/inst/extdata/quantiseq/TIL10_signature.txt&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.data.frame</span>() <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb43-2" data-line-number="2"><span class="st">  </span><span class="kw">column_to_rownames</span>(<span class="st">&quot;ID&quot;</span>)</a></code></pre></div>
-<p>The same procedure is applied to EPIC and CIBERSORT.</p>
-<p>See figures:
-* <a href="figures/marker_gene_expression_epic.pdf">EPIC</a>
-* <a href="figures/marker_gene_expression_quantiseq.pdf">quanTIseq</a>
-* <a href="figures/marker_gene_expression_cibersort.pdf">CIBERSORT</a></p>
+<div id="expression-of-marker-genes-in-the-cell-populations" class="section level3">
+<h3><span class="header-section-number">7.5.1</span> Expression of marker genes in the cell populations</h3>
+<p>For EPIC, quanTIseq and CIBERSORT, we retreive a list of all genes included in
+the signature matrices.</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb30-1" data-line-number="1"><span class="co"># quanTIseq</span></a>
+<a class="sourceLine" id="cb30-2" data-line-number="2">til10 =<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;../immunedeconv/inst/extdata/quantiseq/TIL10_signature.txt&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.data.frame</span>() <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb30-3" data-line-number="3"><span class="st">  </span><span class="kw">column_to_rownames</span>(<span class="st">&quot;ID&quot;</span>)</a>
+<a class="sourceLine" id="cb30-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb30-5" data-line-number="5"><span class="co"># EPIC</span></a>
+<a class="sourceLine" id="cb30-6" data-line-number="6">tref =<span class="st"> </span>EPIC<span class="op">::</span>TRef<span class="op">$</span>refProfiles[EPIC<span class="op">::</span>TRef<span class="op">$</span>sigGenes,]</a>
+<a class="sourceLine" id="cb30-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb30-8" data-line-number="8"><span class="co"># CIBERSORT</span></a>
+<a class="sourceLine" id="cb30-9" data-line-number="9">lm22 =<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;../lib/CIBERSORT/LM22.txt&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.data.frame</span>() <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">column_to_rownames</span>(<span class="st">&quot;Gene symbol&quot;</span>)</a></code></pre></div>
+<p>For each marker gene, we show the expression in all cell type populations in
+the single cell dataset. We sort the list by the product of the mean expression
+in B cells and Dendritic cells to obtain a ranked list of genes
+that are enriched in both B cells and DCs. i</p>
+<p>The plots are very large, that’s why we don’t include them directly.
+You can view the plots in full quality as PDF under the following links:</p>
+<ul>
+<li><a href="figures/marker_gene_expression_epic.pdf">EPIC</a></li>
+<li><a href="figures/marker_gene_expression_quantiseq.pdf">quanTIseq</a></li>
+<li><a href="figures/marker_gene_expression_cibersort.pdf">CIBERSORT</a></li>
+</ul>
 <p>The figures show the expression of marker genes across cell types. Along x-axis: cell types used for simulation. Along y-axis: signature genes for the cell types derived from the signature matrices of the deconvolution methods.</p>
 </div>
 </div>
 <div id="deconvolution-results-before-and-after" class="section level2">
 <h2><span class="header-section-number">7.6</span> Deconvolution results before and after</h2>
-<div class="figure"><span id="fig:unnamed-chunk-75"></span>
-<img src="_main_files/figure-html/unnamed-chunk-75-1.png" alt="Predictions on 10 simulated DC samples before and after removal of the five genes. " width="1152" />
+<p>We checked the most promising candidate genes on
+<a href="https://www.genecards.org">genecards.org</a>, and took note of those that
+were indeed annotated as being specific for both B cells and plasmacytoid
+dendritic cells in the LifeMap Discovery database.</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb31-1" data-line-number="1">B_pDC_genes =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;TCL1A&quot;</span>, <span class="st">&quot;TCF4&quot;</span>, <span class="st">&quot;CD37&quot;</span>, <span class="st">&quot;SPIB&quot;</span>, <span class="st">&quot;BCL11A&quot;</span>, <span class="st">&quot;IRF8&quot;</span>)</a></code></pre></div>
+<p>To assess the effects on deconvolution, we generate
+10 simulated dendritic cell samples, run the deconvolution once
+with default options and once with the marker genes removed, and
+check the ‘spillover’ to B cells.</p>
+<div class="figure"><span id="fig:unnamed-chunk-74"></span>
+<img src="_main_files/figure-html/unnamed-chunk-74-1.png" alt="Predictions on 10 simulated DC samples before and after removal of the six genes. " width="1152" />
 <p class="caption">
-Figure 7.7: Predictions on 10 simulated DC samples before and after removal of the five genes.
+Figure 7.7: Predictions on 10 simulated DC samples before and after removal of the six genes.
 </p>
 </div>
 

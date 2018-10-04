@@ -148,9 +148,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="2.7" data-path="input-data.html"><a href="input-data.html#data-sanity-checks"><i class="fa fa-check"></i><b>2.7</b> Data sanity checks</a></li>
 </ul></li>
 <li class="chapter" data-level="3" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html"><i class="fa fa-check"></i><b>3</b> Validitiy of single cell RNA-seq as reference</a><ul>
-<li class="chapter" data-level="3.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#compare-simululated-to-genuine-bulk-samples"><i class="fa fa-check"></i><b>3.1</b> Compare simululated to genuine bulk samples</a><ul>
-<li class="chapter" data-level="3.1.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#log-ratio"><i class="fa fa-check"></i><b>3.1.1</b> Log ratio</a></li>
-</ul></li>
+<li class="chapter" data-level="3.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#compare-simululated-to-genuine-bulk-samples"><i class="fa fa-check"></i><b>3.1</b> Compare simululated to genuine bulk samples</a></li>
 <li class="chapter" data-level="3.2" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#enrichment-analysis-test-for-systematic-bias"><i class="fa fa-check"></i><b>3.2</b> Enrichment analysis: Test for systematic Bias</a><ul>
 <li class="chapter" data-level="3.2.1" data-path="validitiy-of-single-cell-rna-seq-as-reference.html"><a href="validitiy-of-single-cell-rna-seq-as-reference.html#immune-relevant-genes-are-consistent-between-sc-and-bulk-data."><i class="fa fa-check"></i><b>3.2.1</b> Immune-relevant genes are consistent between sc and bulk data.</a></li>
 </ul></li>
@@ -164,7 +162,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="4.4" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#results"><i class="fa fa-check"></i><b>4.4</b> Results</a><ul>
 <li class="chapter" data-level="4.4.1" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#correlation-plots"><i class="fa fa-check"></i><b>4.4.1</b> Correlation plots</a></li>
 <li class="chapter" data-level="4.4.2" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#calculate-correlations-for-each-method-and-cell-type"><i class="fa fa-check"></i><b>4.4.2</b> Calculate correlations for each method and cell type</a></li>
-<li class="chapter" data-level="4.4.3" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#deviation-from-slope-xy-for-all-absolute-methods"><i class="fa fa-check"></i><b>4.4.3</b> Deviation from slope (x=y) for all absolute methods</a></li>
+<li class="chapter" data-level="4.4.3" data-path="simulation-benchmark.html"><a href="simulation-benchmark.html#absolute-deviation"><i class="fa fa-check"></i><b>4.4.3</b> Absolute deviation</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html"><i class="fa fa-check"></i><b>5</b> Validation with real data</a><ul>
@@ -183,7 +181,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="7.3" data-path="spillover-analysis.html"><a href="spillover-analysis.html#summary-figure-migration-charts"><i class="fa fa-check"></i><b>7.3</b> Summary figure: migration charts</a></li>
 <li class="chapter" data-level="7.4" data-path="spillover-analysis.html"><a href="spillover-analysis.html#investigate-marker-genes"><i class="fa fa-check"></i><b>7.4</b> Investigate marker genes</a></li>
 <li class="chapter" data-level="7.5" data-path="spillover-analysis.html"><a href="spillover-analysis.html#check-expression-of-markers-in-detection-limit-simulation-dataset."><i class="fa fa-check"></i><b>7.5</b> Check expression of markers in “detection limit” simulation dataset.</a><ul>
-<li class="chapter" data-level="7.5.1" data-path="spillover-analysis.html"><a href="spillover-analysis.html#derive-marker-genes-from-quantiseqepic-signature-matrices."><i class="fa fa-check"></i><b>7.5.1</b> Derive marker genes from quanTIseq/EPIC signature matrices.</a></li>
+<li class="chapter" data-level="7.5.1" data-path="spillover-analysis.html"><a href="spillover-analysis.html#expression-of-marker-genes-in-the-cell-populations"><i class="fa fa-check"></i><b>7.5.1</b> Expression of marker genes in the cell populations</a></li>
 </ul></li>
 <li class="chapter" data-level="7.6" data-path="spillover-analysis.html"><a href="spillover-analysis.html#deconvolution-results-before-and-after"><i class="fa fa-check"></i><b>7.6</b> Deconvolution results before and after</a></li>
 </ul></li>
@@ -211,8 +209,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="detection-limit-and-false-positive-predictions" class="section level1">
 <h1><span class="header-section-number">6</span> Detection limit and false positive predictions</h1>
-<p>How many cells of a certain type do we need for a method to detect immune cell infiltration? (=Detection limit)
-How many cells of a certain type are detected, although we know they are not there? (=false positives)</p>
+<p>How many cells of a certain type do we need for a method to detect immune cell infiltration (=Detection limit)?
+How many cells of a certain type are detected, although we know they are not there (=false positives)?</p>
 <p>We again use the single cell dataset to simulate samples that consist of background cells
 (i.e. non-immune cells: fibroblasts, endothelial cells cancer cells) and add an increasing amount
 of immune cells of a certain type.</p>
@@ -221,8 +219,8 @@ be significantly different from zero. We define false positives as the predicted
 at zero inflitration level.</p>
 <p>For each amount of immune cells, we generate 5 random samples to compute a confidence interval.</p>
 <p>We use the following cell types:</p>
-<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb31-1" data-line-number="1">show_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>,</a>
-<a class="sourceLine" id="cb31-2" data-line-number="2">                    <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1">show_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>,</a>
+<a class="sourceLine" id="cb20-2" data-line-number="2">                    <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</a></code></pre></div>
 <div id="predictions-with-increasing-immune-cell-content" class="section level2">
 <h2><span class="header-section-number">6.1</span> Predictions with increasing immune cell content</h2>
 <div class="figure"><span id="fig:unnamed-chunk-50"></span>
@@ -231,14 +229,15 @@ at zero inflitration level.</p>
 Figure 6.1: We add an increasing amount of each cell type independently to the 1,800 background cells. The figure shows the predictions for each cell type and method at increasing infiltration levels.
 </p>
 </div>
+<p>The following about false positives and the detection limit are directly
+derived from the data shown in the plot above.</p>
 </div>
 <div id="detection-limit" class="section level2">
 <h2><span class="header-section-number">6.2</span> Detection Limit</h2>
-<pre><code>## Warning: Removed 2 rows containing missing values (geom_text).</code></pre>
 <div class="figure"><span id="fig:sens-plot"></span>
-<img src="_main_files/figure-html/sens-plot-1.png" alt="Sensitivity of the methods per cell type. The bars indicate the minimal percentage of infiltration at which the method first reliably detects the cell type. Opaque bars indicate that the methods does not provide an estimate for the cell type." width="384" />
+<img src="_main_files/figure-html/sens-plot-1.png" alt="Detection limit of the methods per cell type. The values indicate the minimal percentage of infiltration at which the method first reliably detects the cell type." width="384" />
 <p class="caption">
-Figure 6.2: Sensitivity of the methods per cell type. The bars indicate the minimal percentage of infiltration at which the method first reliably detects the cell type. Opaque bars indicate that the methods does not provide an estimate for the cell type.
+Figure 6.2: Detection limit of the methods per cell type. The values indicate the minimal percentage of infiltration at which the method first reliably detects the cell type.
 </p>
 </div>
 </div>

@@ -24,8 +24,8 @@ HEATMAP_FONT_SIZE = 2.7
 ```{r, define_cor_table, include=FALSE}
 #' plot correlations as a table colored by the absolute value.
 plot_cor_table = function(data, dataset="none") {
-  if(!("macrophage_only" %in% names(data))) {
-    data %<>% mutate(macrophage_only = "no")
+  if(!("asterisk" %in% names(data))) {
+    data %<>% mutate(asterisk = "no")
   }
   if(!("category" %in% names(data))) {
     data %<>% mutate(category = dataset)
@@ -33,8 +33,8 @@ plot_cor_table = function(data, dataset="none") {
   data %>%
     mutate(pearson_text = if_else(pearson < 0, "< 0", as.character(round(pearson, 2))),
            pearson = if_else(pearson < 0, 0, pearson)) %>%
-    mutate(macrophage_only = if_else(is.na(macrophage_only), "no", macrophage_only)) %>%
-    mutate(pearson_text = if_else(macrophage_only == "yes", paste0(pearson_text, "*"), pearson_text)) %>%
+    mutate(asterisk = if_else(is.na(asterisk), "no", asterisk)) %>%
+    mutate(pearson_text = if_else(asterisk == "yes", paste0(pearson_text, "*"), pearson_text)) %>%
     mutate(pearson_text = if_else(is.na(pearson), "n/a", pearson_text),
            pearson = if_else(is.na(pearson), 0, pearson)) %>%
     inner_join(method_names) %>%
@@ -72,6 +72,7 @@ noise = noise_sc
 
 # Simulation Benchmark
 mixing =  res_mixing_study$correlations %>%
+    mutate(asterisk = if_else(cell_type == "Macrophage/Monocyte" & method %in% c("mcp_counter", "epic", "timer"), "yes", "no")) %>%
     rename(column=cell_type) %>%
     mutate(category="Simulated dataset")
 
@@ -89,6 +90,7 @@ validation$all_results = res_validation$all_results %>% filter(cell_type %in% us
 validation$all_datasets = validation$all_results %>%
   group_by(method, cell_type) %>%
   do(make_cor(.$estimate, .$true_fraction)) %>%
+  mutate(asterisk = if_else(cell_type == "Monocyte" & method == "mcp_counter", "yes", "no")) %>%
   mutate(category = "All datasets", column=cell_type)
 
 validation$all_datasets_all_cells = validation$all_results %>%
@@ -101,6 +103,7 @@ validation$hoek = validation$all_results %>%
   filter(dataset == 'hoek') %>%
   group_by(method, cell_type) %>%
   do(make_cor(.$estimate, .$true_fraction)) %>%
+  mutate(asterisk = if_else(cell_type == "Monocyte" & method == "mcp_counter", "yes", "no")) %>%
   mutate(category = validation_datasets$hoek) %>%
   mutate(column = cell_type)
 

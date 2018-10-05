@@ -218,8 +218,8 @@ for our simulation benchmark. We use the following three validation datasets (se
 <a class="sourceLine" id="cb15-5" data-line-number="5">)</a></code></pre></div>
 <p>We use the following cell types, which are available in (some of) the datasets</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1">use_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;T cell&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>,</a>
-<a class="sourceLine" id="cb16-2" data-line-number="2">                   <span class="st">&quot;Macrophage/Monocyte&quot;</span>, <span class="st">&quot;B cell&quot;</span>,</a>
-<a class="sourceLine" id="cb16-3" data-line-number="3">                   <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;Neutrophil&quot;</span>)</a></code></pre></div>
+<a class="sourceLine" id="cb16-2" data-line-number="2">                   <span class="st">&quot;Monocyte&quot;</span>, <span class="st">&quot;B cell&quot;</span>,</a>
+<a class="sourceLine" id="cb16-3" data-line-number="3">                   <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;NK cell&quot;</span>)</a></code></pre></div>
 <p>Here, we combine the predictions with the ‘gold standard’ reference data.</p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1">all_results_ref =<span class="st"> </span><span class="kw">inner_join</span>(all_results, all_refs,</a>
 <a class="sourceLine" id="cb17-2" data-line-number="2">                             <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&quot;sample&quot;</span> =<span class="st"> &quot;sample&quot;</span>,</a>

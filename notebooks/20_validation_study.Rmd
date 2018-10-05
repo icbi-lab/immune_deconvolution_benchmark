@@ -16,8 +16,8 @@ datasets = list(
 We use the following cell types, which are available in (some of) the datasets
 ```{r}
 use_cell_types = c("T cell", "T cell CD8+", "T cell CD4+",
-                   "Macrophage/Monocyte", "B cell",
-                   "Dendritic cell", "NK cell", "Neutrophil")
+                   "Monocyte", "B cell",
+                   "Dendritic cell", "NK cell")
 ```
 
 ```{r, echo=FALSE, cache=TRUE, message=FALSE, echo=FALSE, warning=FALSE, results='hide'}

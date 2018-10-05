@@ -10,10 +10,10 @@ theme_set(theme_cowplot(font_size=11)) # reduce default font siz
 
 ```{r define_names, include=FALSE}
 # Define names
-method_names = data.frame(
+method_names = tibble(
   method = config$deconvolution_methods,
-  method_name = names(config$deconvolution_methods)
-)
+  method_name = factor(names(config$deconvolution_methods), levels=sort(names(config$deconvolution_methods), decreasing = TRUE))
+) %>% arrange(method_name)
 
 validation_datasets = list("hoek"="Hoek (PBMC, n=8)", racle="Racle (melanoma, n=4)", schelker="Schelker (ovarian, n=3)")
 
@@ -80,16 +80,18 @@ mixing =  res_mixing_study$correlations %>%
 ```{r validation_benchmark, include=FALSE}
 # Validation Benchmark
 ALL_CELLS = "All cells"
-use_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte", "NK cell", "T cell CD4+", "T cell CD8+", "T cell")
+use_cell_types = c("B cell", "Dendritic cell", "Monocyte", "NK cell", "T cell CD4+", "T cell CD8+", "T cell")
+  
 validation = new.env()
-validation$all_results = res_validation$all_results %>% filter(cell_type %in% use_cell_types)
+validation$all_results = res_validation$all_results %>% filter(cell_type %in% use_cell_types) %>%
+  filter(!(cell_type == "T cell" & dataset != "hoek"))  # otherwise t cells are counted twice!
+  
 validation$all_datasets = validation$all_results %>%
   group_by(method, cell_type) %>%
   do(make_cor(.$estimate, .$true_fraction)) %>%
   mutate(category = "All datasets", column=cell_type)
 
 validation$all_datasets_all_cells = validation$all_results %>%
-  filter(!(cell_type == "T cell" & dataset != "hoek")) %>%  # otherwise t cells are counted twice!
   group_by(method) %>%
   do(make_cor(.$estimate, .$true_fraction)) %>%
   mutate(cell_type = ALL_CELLS, category = "All datasets") %>%
@@ -212,7 +214,8 @@ p_abs_deviation = res_validation$slope %>%
   filter(cell_type != "Neutrophil") %>%
   mutate(cell_type_name = sprintf("%s [n=%i]", cell_type, n)) %>%
    # na -> 0 workaround, otherwise text label does not show
-   ggplot(aes(x=cell_type_name, y=ifelse(is.na(slope), 1, slope))) +
+   ggplot(aes(x=factor(cell_type_name, levels=unique(cell_type_name) %>% sort(decreasing = TRUE)),
+                       y=ifelse(is.na(slope), 1, slope))) +
       geom_hline(yintercept=1, col="grey") +
       geom_crossbar(aes(ymin=slope, ymax=slope), colour="black") +
       geom_errorbar(aes(ymin=ci_lower, ymax=ci_upper), width=.2, color="black") +
@@ -239,7 +242,7 @@ p_abs_rmse = res_validation$rmse %>%
   mutate(rmse_text = as.character(round(rmse, 2))) %>%
   mutate(column="RMSE") %>%
   filter(cell_type != "Neutrophil") %>% 
-  ggplot(aes(x=column, y=cell_type)) +
+  ggplot(aes(x=column, y=factor(cell_type, levels=unique(cell_type) %>% sort(decreasing = TRUE)))) +
     geom_tile(aes(fill=rmse)) +
     geom_text(aes(label=rmse_text), size=3) +
     scale_fill_distiller(type="div", palette = "RdYlGn", direction=-1, na.value="white") +

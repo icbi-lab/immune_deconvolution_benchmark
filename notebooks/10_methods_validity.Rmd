@@ -7,7 +7,7 @@ estimates of the methods's performances.
 We conduct the following analyses:
 
 * Compare simulated bulk samples with a corresponding genuine bulk sample.
-* Check if immune-realted genes are subject to a systematic bias.
+* Check if immune-related genes are subject to a systematic bias.
 * Compare the predicted fractions of all methods on bulk vs. simulated samples.
 * Compare simulated bulk samples with a reference immune cell sample of the same cell type.
 

@@ -151,6 +151,7 @@ gold_standard = pData(bulk_eset) %>%
 ```{r, cache=TRUE}
 results_with_gold_standard = inner_join(all_results_tidy, gold_standard,
                                         by=c("sample", "cell_type"))
+res_mixing_study$all_results = results_with_gold_standard
 ```
 
 ### Correlation plots

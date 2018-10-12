@@ -6,14 +6,29 @@ save(res_mixing_study, res_validation,
      file="../results/cache/results_for_figures.rda")
 load("../results/cache/results_for_figures.rda")
 theme_set(theme_cowplot(font_size=11)) # reduce default font siz
+
+#### Figure dimensions
+# (BioMed Central standard dimensions)
+# full width page: 170mm
+# full page height: 225mm (for figure and legend)
+WIDTH = 170
 ```
 
 ```{r define_names, include=FALSE}
 # Define names
+tmp_names = names(config$deconvolution_methods)
+tmp_names[tmp_names == "CIBERSORT (abs.)"] = "CIBERSORT abs"
 method_names = tibble(
   method = config$deconvolution_methods,
-  method_name = factor(names(config$deconvolution_methods), levels=sort(names(config$deconvolution_methods), decreasing = TRUE))
+  method_name = factor(tmp_names, levels=sort(tmp_names, decreasing = FALSE))
 ) %>% arrange(method_name)
+
+cell_type_names = tibble(
+  cell_type      = c("B cell", "Cancer associated fibroblast", "Dendritic cell", "Endothelial cell", "Macrophage/Monocyte", 
+                     "NK cell", "T cell CD4+", "T cell CD4+ (non-regulatory)", "T cell CD8+", "T cell regulatory (Tregs)"),
+  cell_type_name = c("B",      "CAF",                          "DC",             "Endothelial",      "Macro/Mono",
+                     "NK",      "T CD4+",      "T CD4+ n.reg.",                "T CD8+",      "T reg")
+)
 
 validation_datasets = list("hoek"="Hoek (PBMC, n=8)", racle="Racle (melanoma, n=4)", schelker="Schelker (ovarian, n=3)")
 
@@ -76,6 +91,39 @@ mixing =  res_mixing_study$correlations %>%
     rename(column=cell_type) %>%
     mutate(category="Simulated dataset")
 
+```
+
+
+```{r, mixing-corr, fig.width=7, fig.height=6, message=FALSE}
+fun_breaks = function(limits) {
+  breaks = signif(max(limits) * c(0.25, 0.75),1)
+  names(breaks) = attr(breaks, "labels")
+  breaks
+}
+corr_annot = res_mixing_study$correlations %>% 
+  select(method, cell_type, pearson) %>% 
+  mutate(pearson = round(pearson, 2)) %>% 
+  inner_join(method_names) %>%
+  inner_join(cell_type_names) %>%
+  distinct()
+res_mixing_study$all_results %>% 
+  inner_join(method_names) %>%
+  inner_join(cell_type_names) %>%
+  ggplot(aes(x=true_fraction, y=estimate)) +
+    geom_point(size=.2) +
+    geom_text(data=corr_annot, mapping=aes(label=paste0("r=", pearson), x=-Inf, y=-Inf), hjust=-0.1, vjust=-8, size=2.4) + 
+    facet_grid(method_name ~ cell_type_name, scales="free") +
+    stat_smooth(aes(color=method), method="lm", size=.4) +
+    scale_color_manual(values=color_scales$methods, na.value="grey") +
+    scale_x_continuous(breaks=c(.2)) +
+    scale_y_continuous(breaks=fun_breaks) +
+    theme(legend.position = "none", strip.text=element_text(size=6), 
+          panel.spacing = unit(1, "mm"), axis.text = element_text(size=8)) +
+    ylab("estimated fraction") + 
+    xlab("true fraction") + 
+    panel_border()
+
+ggsave("../results/figures/correlations_mixing.pdf", width=WIDTH, height=140, units = "mm")
 ```
 
 ```{r validation_benchmark, include=FALSE}

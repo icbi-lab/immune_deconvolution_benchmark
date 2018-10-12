@@ -37,7 +37,6 @@ rule book:
     "results/figures/schelker_single_cell_tsne.pdf",
     "results/figures/spillover_migration_chart.pdf",
     "results/figures/spillover_migration_all.pdf",
-    "results/figures/summary.pdf",
     "results/tables/mixing_study_correlations.tsv",
     "results/tables/detection_limit.tsv",
     "results/tables/false_positives.tsv",

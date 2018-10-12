@@ -72,25 +72,32 @@ plot_cor_table = function(data, dataset="none") {
 
 ```
 
+```{r, method-validity-f1a, fig.width=7, fig.height=2, message=FALSE, warning=FALSE}
+fun_breaks3 = function(limits) {
+  breaks = signif(max(limits) * c(0.25, 0.75),1)
+  names(breaks) = attr(breaks, "labels")
+  breaks
+}
 
-```{r correlation_plots, include=FALSE}
-# Prepare data for correlation plots
+tmp_cor = res_methods_validity$all_results_mapped %>% 
+  group_by(method) %>% 
+  do(make_cor(.$bulk, .$simulated)) %>% 
+  mutate(pearson=round(pearson, 2)) %>%
+  inner_join(method_names)
 
-# Noise benchmark
-noise_sc = res_methods_validity$all_results %>%
-  group_by(method) %>%
-  do(make_cor(.$bulk, .$mean)) %>%
-  mutate(column="stability single cell/bulk", category=validation_datasets$schelker)
-
-noise = noise_sc
-
-
-# Simulation Benchmark
-mixing =  res_mixing_study$correlations %>%
-    mutate(asterisk = if_else(cell_type == "Macrophage/Monocyte" & method %in% c("mcp_counter", "epic", "timer"), "yes", "no")) %>%
-    rename(column=cell_type) %>%
-    mutate(category="Simulated dataset")
-
+res_methods_validity$all_results_mapped %>% 
+  inner_join(cell_type_names) %>% 
+  inner_join(method_names) %>% 
+  ggplot(aes(x=bulk, y=simulated)) + 
+  geom_point(aes(colour=cell_type_name), size=.5) + 
+  facet_wrap(~method_name, scales="free", nrow=1) + 
+  theme(legend.position = "top") + 
+  geom_text(data=tmp_cor, mapping=aes(label=paste0("r=", pearson), x=0, y=0), hjust=0, vjust=-8, size=2.4) + 
+  panel_border() + 
+  scale_x_continuous(breaks=fun_breaks3) + 
+  scale_y_continuous(breaks=fun_breaks3) + 
+  theme(strip.text=element_text(size=6), 
+        panel.spacing = unit(2, "mm"), axis.text = element_text(size=8))
 ```
 
 
@@ -106,7 +113,7 @@ corr_annot = res_mixing_study$correlations %>%
   inner_join(method_names) %>%
   inner_join(cell_type_names) %>%
   distinct()
-res_mixing_study$all_results %>% 
+plot_mixing = res_mixing_study$all_results %>% 
   inner_join(method_names) %>%
   inner_join(cell_type_names) %>%
   ggplot(aes(x=true_fraction, y=estimate)) +
@@ -118,12 +125,13 @@ res_mixing_study$all_results %>%
     scale_x_continuous(breaks=c(.2)) +
     scale_y_continuous(breaks=fun_breaks) +
     theme(legend.position = "none", strip.text=element_text(size=6), 
-          panel.spacing = unit(1, "mm"), axis.text = element_text(size=8)) +
+          panel.spacing = unit(.5, "mm"), axis.text = element_text(size=8)) +
     ylab("estimated fraction") + 
     xlab("true fraction") + 
     panel_border()
 
 ggsave("../results/figures/correlations_mixing.pdf", width=WIDTH, height=140, units = "mm")
+ggsave("../results/figures/correlations_mixing.png", width=WIDTH, height=140, units = "mm", dpi=600)
 ```
 
 ```{r validation_benchmark, include=FALSE}
@@ -181,10 +189,6 @@ validation$schelker_all_cells = validation$all_results %>%
 
 
 ```{r, fig.height=3.5, include=FALSE}
-# make the correlation plots
-p_noise = plot_cor_table(noise)
-p_mixing = plot_cor_table(mixing)
-
 p_validation_all_datasets = bind_rows(validation$all_datasets, validation$all_datasets_all_cells) %>%
   plot_cor_table() +
     geom_vline(xintercept = 1.5)
@@ -199,8 +203,6 @@ p_validation_schelker = validation$schelker_all_cells %>%
 p_validation_racle = validation$racle_all_cells %>%
   plot_cor_table()
 
-print(p_noise)
-print(p_mixing)
 print(p_validation_all_datasets)
 print(p_validation_hoek)
 print(p_validation_racle)
@@ -208,112 +210,9 @@ print(p_validation_schelker)
 ```
 
 
-```{r sens-spec-plot-pubready, include=FALSE}
-# Specificity heatmap
-tmp_sens = res_sensitivity$sensitivity %>%
-  filter(method != "mcp_counter") %>%
-  mutate(min_frac=ifelse(is.infinite(min_frac), 100, min_frac)) %>%
-  mutate(min_frac = min_frac/100) %>%
-  mutate(min_frac_text = as.character(round(min_frac, 2))) %>%
-  na.omit() %>%
-  mutate(category="Detection limit", cell_type=input_cell_type) %>%
-  rename(estimate=min_frac, estimate_text=min_frac_text)
 
-tmp_spec = res_sensitivity$specificity %>% mutate(category="False positives")
-
-# summarise by mean.
-p_sens_spec = bind_rows(tmp_sens, tmp_spec) %>%
-  filter(method != "mcp_counter") %>%
-  group_by(method, cell_type, category) %>%
-  summarise(estimate = mean(estimate)) %>%
-  mutate(estimate_text = as.character(round(estimate, 2))) %>%
-  mutate(estimate = if_else(estimate > .3, .3, estimate)) %>% # clip estimate for better color coding.
-  inner_join(method_names) %>%
-  ggplot(aes(x=cell_type, y=method_name)) +
-    geom_tile(aes(fill=estimate)) +
-    geom_text(aes(label=estimate_text), size=HEATMAP_FONT_SIZE) +
-    scale_fill_distiller(type="div", palette = "RdYlGn", direction=-1, values=c(0, .02, .3, 1)) +
-    scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
-    theme_benchmark() +
-    theme(axis.text.x.top=element_text(angle = 90, vjust = .5, hjust=0),
-            legend.position="none",
-            strip.text.x = element_text(size=11)) +
-    scale_x_discrete(position = "top", drop=FALSE) +
-    facet_wrap(~category, nrow=2) +
-    xlab(NULL) +
-    ylab(NULL) +
-    theme_title()
-
-
-print(p_sens_spec)
-```
-
-
-```{r, fig.height=3.5, fig.width=8, include=FALSE}
-# Absolute deviation plot
-tmp_cell_types = res_validation$slope %>% pull(cell_type) %>% unique()
-tmp_methods = config$abs_methods_final
-tmp_n_samples = res_validation$slope %>% select(cell_type, n) %>% distinct()
-tmp_matrix = crossing(tmp_cell_types, tmp_methods)
-colnames(tmp_matrix) = c("cell_type", "method")
-p_abs_deviation = res_validation$slope %>%
-  select(-n) %>%
-  # remove neutrophils, as only three samples
-  right_join(tmp_matrix) %>%
-  inner_join(method_names) %>%
-  left_join(tmp_n_samples) %>%
-  filter(cell_type != "Neutrophil") %>%
-  mutate(cell_type_name = sprintf("%s [n=%i]", cell_type, n)) %>%
-   # na -> 0 workaround, otherwise text label does not show
-   ggplot(aes(x=factor(cell_type_name, levels=unique(cell_type_name) %>% sort(decreasing = TRUE)),
-                       y=ifelse(is.na(slope), 1, slope))) +
-      geom_hline(yintercept=1, col="grey") +
-      geom_crossbar(aes(ymin=slope, ymax=slope), colour="black") +
-      geom_errorbar(aes(ymin=ci_lower, ymax=ci_upper), width=.2, color="black") +
-      geom_text(aes(label=ifelse(is.na(slope), "n/a", NA))) +
-      facet_wrap(~method_name, nrow=2, labeller = label_wrap_gen()) +
-      theme_benchmark() +
-      theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
-            legend.position="none",
-            strip.text.x = element_text(size=9)) +
-      # scale_fill_manual(values=color_scales$methods) +
-      scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
-      xlab(NULL) +
-      ylab("slope of linear model") +
-      coord_flip() +
-      theme_title(hjust=0)
-
-print(p_abs_deviation)
-```
-
-```{r rmse_plot, fig.height=6, fig.width=3, include=FALSE}
-p_abs_rmse = res_validation$rmse %>%
-  right_join(tmp_matrix) %>%
-  inner_join(method_names) %>%
-  mutate(rmse_text = as.character(round(rmse, 2))) %>%
-  mutate(column="RMSE") %>%
-  filter(cell_type != "Neutrophil") %>% 
-  ggplot(aes(x=column, y=factor(cell_type, levels=unique(cell_type) %>% sort(decreasing = TRUE)))) +
-    geom_tile(aes(fill=rmse)) +
-    geom_text(aes(label=rmse_text), size=3) +
-    scale_fill_distiller(type="div", palette = "RdYlGn", direction=-1, na.value="white") +
-    scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
-    theme_benchmark() +
-    theme(axis.text.x.top=element_text(angle = 90, vjust = .5, hjust=0),
-            legend.position="none",
-            strip.text.x = element_blank()) +
-    scale_x_discrete(position = "top", drop=FALSE) +
-    facet_wrap(~method_name, nrow=2) +
-    xlab(NULL) +
-    ylab(NULL) +
-    theme_title()
-
-print(p_abs_rmse)
-```
-
-
-## Benchmark results, detection limit, false positives and absolute deviation
-```{r, fig.height=9, fig.width=10, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Benchmark results main figure. "}
+## Benchmark results
+```{r, fig.height=3, fig.width=7, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Benchmark results main figure. "}
 # combine heatmaps
 
 ## margins
@@ -323,12 +222,8 @@ MT2 = .2
 MB2 = .7
 
 ## fine-tune formatting
-p2_noise = p_noise + theme(plot.margin = margin(t=MT1, b=MB1, unit="cm"))
-p2_mixing = p_mixing + theme(axis.text.y=element_blank(), plot.margin = margin(t=MT1, l=0.2, b=MB1, unit="cm"),
-                             axis.ticks.y=element_blank())
-p2_validation_all_datasets = p_validation_all_datasets + theme(axis.text.y=element_blank(),
-                                                               plot.margin = margin(t=MT1, l=.2, b=MB1, unit="cm"),
-                                                               axis.ticks.y=element_blank())
+p2_validation_all_datasets = p_validation_all_datasets  +
+  theme(plot.margin = margin(t=MT1, b=MB1, unit="cm"))
 p2_validation_hoek = p_validation_hoek + theme(axis.text.y=element_blank(),
                                                                plot.margin = margin(t=MT1, l=-.1, b=MB1, unit="cm"),
                                                                axis.ticks.y=element_blank())
@@ -340,42 +235,63 @@ p2_validation_schelker = p_validation_schelker + theme(axis.text.y=element_blank
                                                                axis.ticks.y=element_blank())
 
 
-p2_sens_spec = p_sens_spec + theme(plot.margin = margin(r=3, unit="cm"))
-p2_abs_deviation = p_abs_deviation
-p2_abs_rmse = p_abs_rmse + theme(axis.text.y=element_blank(), axis.ticks = element_blank(),
-                             plot.margin = margin(l=-.2, unit="cm"))
-
-# align plots
-plots_left = align_plots(p2_noise, p2_sens_spec, align="v", axis="l")
-plots_right = align_plots(p2_validation_schelker, p2_abs_rmse, align="v", axis="r")
-
-# first row
-plot_heatmap = plot_grid(plots_left[[1]], p2_mixing, p2_validation_all_datasets,
-                         p2_validation_hoek, p2_validation_racle, plots_right[[1]],
+plot_grid(p2_validation_all_datasets, p2_validation_hoek, p2_validation_racle, p2_validation_schelker, 
           align = "h", nrow = 1,
           axis="tb",
           hjust = -.1,
           label_size = 12,
-          rel_widths = c(.4, .75, .6, .45, .13, .13), labels = c("A Noise", "B Simulation Benchmark", "C Validation Benchmark"))
+          rel_widths = c(.6, .45, .13, .13))
 
-# second row
-plot_second_row = plot_grid(plots_left[[2]], p2_abs_deviation, plots_right[[2]],
-                           align = "h", ncol = 3,
-                           axis = "t",
-                           rel_widths = c(.4, .4, 0.04), labels = c("D", "E"))
-
-# combine all
-plot_grid(plot_heatmap,
-          plot_second_row,
-          ncol=1,
-          rel_heights = c(.45, .6),
-          align="h",
-          axis="l")
-
-ggsave("../results/figures/summary.pdf")
-ggsave("../results/figures/summary.png", dpi=1200)
+# ggsave("../results/figures/summary.pdf")
+# ggsave("../results/figures/summary.png", dpi=1200)
 ```
 
+
+## detection limit / false positive figure
+```{r detection-limit-fp, fig.width=6.9, fig.height=6.5, message=FALSE}
+data = res_sensitivity$all_results %>% 
+  filter(cell_type == input_cell_type) %>%
+  mutate(frac_immune_cells = as.numeric(frac_immune_cells)/100) %>%
+  filter(frac_immune_cells < .4) %>% 
+  inner_join(method_names) %>%
+  inner_join(cell_type_names) 
+
+data_detection_limit = res_sensitivity$sensitivity %>%
+  rename(cell_type = input_cell_type) %>% 
+  inner_join(method_names) %>%
+  inner_join(cell_type_names) %>%
+  mutate(min_frac = as.numeric(min_frac)/100)
+
+data_false_positives = res_sensitivity$specificity %>% 
+  group_by(method, cell_type) %>% 
+  summarise(fp_prediction = mean(estimate)) %>% 
+  inner_join(method_names) %>% 
+  inner_join(cell_type_names)
+
+fun_breaks2 = function(limits) {
+  breaks = signif(max(limits) * c(0, 0.5),1)
+  names(breaks) = attr(breaks, "labels")
+  breaks
+}
+
+data %>%
+  ggplot(aes(x=frac_immune_cells, y=mean)) + 
+    geom_ribbon(aes(ymin=mean-ci, ymax=mean+ci), alpha=.2) + 
+    geom_point(size=.2, shape=4) + 
+    # geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) + 
+    panel_border() + 
+    facet_grid(method_name ~ cell_type_name, scales = "free_y") + 
+    scale_x_continuous(breaks=c(.1, .3)) +
+    scale_y_continuous(breaks=fun_breaks2) +
+    geom_vline(data=data_detection_limit, mapping=aes(xintercept=min_frac, colour="detection limit")) + 
+    geom_hline(data=data_false_positives, mapping=aes(yintercept=fp_prediction, colour="false positive fraction")) + 
+    ylab("average estimate") + 
+    xlab("fraction of spike-in cells") + 
+    theme(legend.position = "top", strip.text=element_text(size=6), 
+          panel.spacing = unit(1, "mm"), axis.text = element_text(size=8)) 
+
+
+```
 
 ## Migration charts for Spillover analysis
 ```{r, fig.width = 16, fig.height=10, include=FALSE}

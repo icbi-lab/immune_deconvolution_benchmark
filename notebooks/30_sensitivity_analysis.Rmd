@@ -23,6 +23,8 @@ show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
 ```
 
 ```{r, echo=FALSE}
+# watch out when changing order! we rely on the order to execute
+# the samples in batches. 
 n_immune_cells = rep(c(seq(0, 50, 5)
                      , seq(60, 100, 10)
                      , seq(150, 500, 50)
@@ -60,11 +62,20 @@ res = foreach(input_cell_type = show_cell_types,
               .final = function(x) setNames(x, show_cell_types)) %:%
   foreach(method = config$deconvolution_methods,
           .final = function(x) setNames(x, config$deconvolution_methods)) %dopar% {
-    expr_mat = sensitivity_analysis_dataset[[input_cell_type]]
-    # use SKCM, although samples will also contain ovarian cancer acsites cells.
-    timer_indications = rep("SKCM", ncol(expr_mat))
-    deconvolute(expr_mat, method, indications=timer_indications)
-  }
+            expr_mat = sensitivity_analysis_dataset[[input_cell_type]]
+            # use SKCM, although samples will also contain ovarian cancer acsites cells.
+            timer_indications = rep("SKCM", ncol(expr_mat))
+            # TIMER and xCell predictions depend on the batch, not only on the samplese.
+            # Therefore we run TIMER in five independent batches to get a better estimate of the
+            # confidence interval
+            n_batches = 5
+            batch_length = length(unique(n_immune_cells))
+            batch_res = lapply(1:n_batches, function(i) {
+              ind = ((i-1)*batch_length + 1):(i*batch_length)
+              deconvolute(expr_mat[,ind], method, indications=timer_indications[ind]) 
+            })
+            Reduce(full_join, batch_res) 
+          }
 
 sensitivity_analysis_res = res
 ```
@@ -208,14 +219,14 @@ sens_spec_table %>%
 ```{r sens_spec_data, fig.height=6, fig.width=6, echo=FALSE}
 specificity_data = all_results %>%
   select(-sample) %>%
-  filter(frac_immune_cells == 0) %>%
-  filter(method != "mcp_counter")
+  filter(frac_immune_cells == 0) 
 
 res_sensitivity$specificity = specificity_data
 ```
 
 ```{r, sens-spec-plot, fig.height=3, fig.width=12, echo=FALSE, fig.cap="Predicted amount of a certain cell type while it is actually absent."}
 specificity_data %>%
+  filter(method != "mcp_counter") %>% 
   ggplot(aes(x=cell_type, y=estimate)) +
     geom_boxplot(position="dodge") +
     facet_wrap(~method, nrow=1) +

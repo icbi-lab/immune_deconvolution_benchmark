@@ -186,8 +186,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="7.6" data-path="spillover-analysis.html"><a href="spillover-analysis.html#deconvolution-results-before-and-after"><i class="fa fa-check"></i><b>7.6</b> Deconvolution results before and after</a></li>
 </ul></li>
 <li class="chapter" data-level="8" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html"><i class="fa fa-check"></i><b>8</b> Creating publication ready figures</a><ul>
-<li class="chapter" data-level="8.1" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#benchmark-results-detection-limit-false-positives-and-absolute-deviation"><i class="fa fa-check"></i><b>8.1</b> Benchmark results, detection limit, false positives and absolute deviation</a></li>
-<li class="chapter" data-level="8.2" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#migration-charts-for-spillover-analysis"><i class="fa fa-check"></i><b>8.2</b> Migration charts for Spillover analysis</a></li>
+<li class="chapter" data-level="8.1" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#benchmark-results"><i class="fa fa-check"></i><b>8.1</b> Benchmark results</a></li>
+<li class="chapter" data-level="8.2" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#detection-limit-false-positive-figure"><i class="fa fa-check"></i><b>8.2</b> detection limit / false positive figure</a></li>
+<li class="chapter" data-level="8.3" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#migration-charts-for-spillover-analysis"><i class="fa fa-check"></i><b>8.3</b> Migration charts for Spillover analysis</a></li>
 </ul></li>
 <li class="chapter" data-level="9" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i><b>9</b> References</a></li>
 </ul>
@@ -219,12 +220,12 @@ be significantly different from zero. We define false positives as the predicted
 at zero inflitration level.</p>
 <p>For each amount of immune cells, we generate 5 random samples to compute a confidence interval.</p>
 <p>We use the following cell types:</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1">show_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>,</a>
-<a class="sourceLine" id="cb20-2" data-line-number="2">                    <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" data-line-number="1">show_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>,</a>
+<a class="sourceLine" id="cb23-2" data-line-number="2">                    <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</a></code></pre></div>
 <div id="predictions-with-increasing-immune-cell-content" class="section level2">
 <h2><span class="header-section-number">6.1</span> Predictions with increasing immune cell content</h2>
-<div class="figure"><span id="fig:unnamed-chunk-50"></span>
-<img src="_main_files/figure-html/unnamed-chunk-50-1.png" alt="We add an increasing amount of each cell type independently to the 1,800 background cells. The figure shows the predictions for each cell type and method at increasing infiltration levels. " width="2400" />
+<div class="figure"><span id="fig:unnamed-chunk-51"></span>
+<img src="_main_files/figure-html/unnamed-chunk-51-1.png" alt="We add an increasing amount of each cell type independently to the 1,800 background cells. The figure shows the predictions for each cell type and method at increasing infiltration levels. " width="2400" />
 <p class="caption">
 Figure 6.1: We add an increasing amount of each cell type independently to the 1,800 background cells. The figure shows the predictions for each cell type and method at increasing infiltration levels.
 </p>

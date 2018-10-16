@@ -1,6 +1,6 @@
 config = new.env()
 
-registerDoMC(min(detectCores(), 8))
+registerDoMC(min(detectCores(), 16))
 
 # path to CIBERSORT script and matrix.
 config$cibersort_binary = "../lib/CIBERSORT/CIBERSORT.R"

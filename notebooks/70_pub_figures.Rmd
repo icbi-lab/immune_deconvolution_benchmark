@@ -287,8 +287,10 @@ data %>%
     # geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) + 
     panel_border() + 
     facet_grid(method_name ~ cell_type_name, scales = "free_y") + 
-    scale_x_continuous(breaks=c(.1, .3)) +
+    scale_x_continuous(breaks=c(.0, .3)) +
     scale_y_continuous(breaks=fun_breaks2) +
+    geom_hline(mapping=aes(yintercept=0, colour="zero"), linetype="dashed", show.legend=FALSE) + 
+    geom_vline(mapping=aes(xintercept = 0, color="zero"), linetype="dashed", show.legend=FALSE) + 
     geom_vline(data=data_detection_limit, mapping=aes(xintercept=min_frac, colour="detection limit"), show.legend = FALSE) + 
     geom_hline(data=data_false_positives, mapping=aes(yintercept=fp_prediction, colour="false positive fraction")) + 
     geom_hline(yintercept = 0, mapping = aes(colour="detection limit"), alpha=0) + # fake line to fix legend
@@ -296,7 +298,7 @@ data %>%
     xlab("fraction of spike-in cells") + 
     theme(legend.position = "top", strip.text=element_text(size=6), 
           panel.spacing = unit(1, "mm"), axis.text = element_text(size=8)) + 
-    scale_color_manual(values=c("red", "blue"), guide=guide_legend("performance measure", override.aes = list(alpha=1)))
+    scale_color_manual(values=c("zero"="grey", "detection limit"="red", "false positive fraction"="blue"), guide=guide_legend("performance measure", override.aes = list(alpha=1)))  
 
 ggsave("../results/figures/detection_limit_fp.pdf", width = WIDTH, height=170, units = "mm")
 ggsave("../results/figures/detection_limit_fp.png", width = WIDTH, height=170, units = "mm", dpi=600)

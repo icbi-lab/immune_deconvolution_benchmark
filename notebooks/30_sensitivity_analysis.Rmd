@@ -25,11 +25,12 @@ show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
 ```{r, echo=FALSE}
 # watch out when changing order! we rely on the order to execute
 # the samples in batches. 
+N_BATCH = 5
 n_immune_cells = rep(c(seq(0, 50, 5)
                      , seq(60, 100, 10)
                      , seq(150, 500, 50)
                      , seq(600, 1000, 100)
-                     ), 5)
+                     ), N_BATCH)
 ```
 
 
@@ -58,23 +59,30 @@ if(!file.exists(sensitivity_analysis_file)) {
 ```
 
 ```{r sens_deconvolute, fig.height=18, fig.width=25, cache=TRUE, echo=FALSE}
-res = foreach(input_cell_type = show_cell_types,
-              .final = function(x) setNames(x, show_cell_types)) %:%
-  foreach(method = config$deconvolution_methods,
-          .final = function(x) setNames(x, config$deconvolution_methods)) %dopar% {
-            expr_mat = sensitivity_analysis_dataset[[input_cell_type]]
+tmp_cell_types = names(sensitivity_analysis_dataset)
+expr_mat = do.call(cbind, sensitivity_analysis_dataset)
+input_cell_types = unlist(lapply(tmp_cell_types, function(cell_type) {
+  rep(cell_type, length(n_immune_cells))
+}))
+colnames(expr_mat) = unlist(lapply(tmp_cell_types, function(cell_type) {
+  paste0(cell_type, "_", seq(1, length(n_immune_cells)))
+}))
+res = foreach(
+  method = config$deconvolution_methods,
+  .final = function(x)
+    setNames(x, config$deconvolution_methods)
+) %:%
+  foreach(i = 1:N_BATCH,
+          .combine = full_join) %dopar% {
+            batch_length = length(unique(n_immune_cells))   # number of samplese per batch
+            n_samples = length(n_immune_cells)              # number of samples per cell type
+            ind = ((i - 1) * batch_length + 1):(i * batch_length) # indices for first cell type
+            ind_ct = lapply(seq(0, length(tmp_cell_types) - 1), function(k) {
+              (k * n_samples) + ind
+            }) %>% unlist()                                 # indices for all cell types
             # use SKCM, although samples will also contain ovarian cancer acsites cells.
             timer_indications = rep("SKCM", ncol(expr_mat))
-            # TIMER and xCell predictions depend on the batch, not only on the samplese.
-            # Therefore we run TIMER in five independent batches to get a better estimate of the
-            # confidence interval
-            n_batches = 5
-            batch_length = length(unique(n_immune_cells))
-            batch_res = lapply(1:n_batches, function(i) {
-              ind = ((i-1)*batch_length + 1):(i*batch_length)
-              deconvolute(expr_mat[,ind], method, indications=timer_indications[ind]) 
-            })
-            Reduce(full_join, batch_res) 
+            deconvolute(expr_mat[,ind_ct], method, indications = timer_indications[ind_ct])
           }
 
 sensitivity_analysis_res = res
@@ -82,25 +90,24 @@ sensitivity_analysis_res = res
 
 ```{r sens_process_data, cache=TRUE, echo=FALSE, message=FALSE}
 # post process the deconvolution results
-all_results = foreach(input_cell_type = show_cell_types,
-        .combine=bind_rows) %:%
-  foreach(method = config$deconvolution_methods,
-          .combine=bind_rows) %do% {
-    tmp_res = sensitivity_analysis_res[[input_cell_type]][[method]] %>%
-                map_result_to_celltypes(show_cell_types, method) %>%
-                na.omit()
-
-    n_cell_df = tibble(sample=colnames(tmp_res),
-                       n_immune_cells = n_immune_cells,
-                       n_background_cells = sum(cell_types$n_background_cells))
-
-
-    tmp_res %>%
-      as_tibble(rownames = "cell_type") %>%
-      gather(sample, estimate, -cell_type) %>%
-      mutate(method=method, input_cell_type=input_cell_type) %>%
-      inner_join(n_cell_df, by="sample")
-} %>%
+all_results = foreach(method = config$deconvolution_methods,
+                      .combine=bind_rows) %do% {
+                        tmp_res = sensitivity_analysis_res[[method]] %>%
+                          map_result_to_celltypes(show_cell_types, method) %>%
+                          na.omit()
+                        
+                        cell_type_sample_id = str_split_fixed(colnames(tmp_res), "_", 2)
+                        n_cell_df = tibble(sample=colnames(tmp_res),
+                                           input_cell_type = cell_type_sample_id[,1],
+                                           n_immune_cells = n_immune_cells[as.numeric(cell_type_sample_id[,2])],
+                                           n_background_cells = sum(cell_types$n_background_cells))
+                        
+                        tmp_res %>%
+                          as_tibble(rownames = "cell_type") %>%
+                          gather(sample, estimate, -cell_type) %>%
+                          mutate(method=method) %>%
+                          inner_join(n_cell_df, by="sample")
+                      } %>%
   mutate(frac_immune_cells = as.factor(round(n_immune_cells/sum(cell_types$n_background_cells) * 100, 2)))
 
 all_results2 = all_results %>%
@@ -108,13 +115,14 @@ all_results2 = all_results %>%
   group_by_at(vars(-estimate)) %>%
   summarise_all(funs(mean, sd, n=length)) %>%
   mutate(ci=qt(0.975,df=n-1)*sd/sqrt(n)) %>%
+  mutate(frac_immune_cells_numeric = as.numeric(as.character(frac_immune_cells))) %>% 
   ungroup()
 ```
 
 ## Predictions with increasing immune cell content
-```{r, fig.height=18, fig.width=25, echo=FALSE, fig.cap="We add an increasing amount of each cell type independently to the 1,800 background cells. The figure shows the predictions for each cell type and method at increasing infiltration levels. "}
+```{r, fig.height=18, fig.width=32, echo=FALSE, fig.cap="We add an increasing amount of each cell type independently to the 1,800 background cells. The figure shows the predictions for each cell type and method at increasing infiltration levels. "}
 all_results2 %>%
-  ggplot(aes(x=frac_immune_cells, y=mean, colour=cell_type)) +
+  ggplot(aes(x=frac_immune_cells_numeric, y=mean, colour=cell_type)) +
   #   geom_line() +
     geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) +
     theme_bw() +

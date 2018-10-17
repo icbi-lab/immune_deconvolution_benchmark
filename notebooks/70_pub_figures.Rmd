@@ -26,7 +26,7 @@ method_names = tibble(
 cell_type_names = tibble(
   cell_type      = c("B cell", "Cancer associated fibroblast", "Dendritic cell", "Endothelial cell", "Macrophage/Monocyte", 
                      "NK cell", "T cell CD4+", "T cell CD4+ (non-regulatory)", "T cell CD8+", "T cell regulatory (Tregs)", 
-                     "Mono", "T cell"),
+                     "Monocyte", "T cell"),
   cell_type_name = c("B",      "CAF",                          "DC",             "Endothelial",      "Macro/Mono",
                      "NK",      "T CD4+",      "T CD4+ n.reg.",                "T CD8+",      "T reg", 
                      "Mono", "T")
@@ -243,7 +243,7 @@ plot_validation = plot_grid(p2_validation_all_datasets, p2_validation_hoek, p2_v
           axis="tb",
           hjust = -.1,
           label_size = 12,
-          rel_widths = c(.69, .45, .11, .11))
+          rel_widths = c(.69, .41, .11, .11))
 
 plot_grid(plot_mixing, plot_validation, align="h", ncol=1, axis="lr", labels = "AUTO", rel_heights = c(.7, .33))
 

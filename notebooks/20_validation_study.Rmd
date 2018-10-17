@@ -117,11 +117,9 @@ colnames(cell_type_method_mat) = c("method", "cell_type")
 res_validation$slope = slope
 ```
 
-Next, we assess the absolute deviation of the methods. Like in the previous
-section, we use two measures:
+Both EPIC and quanTIseq provide scores that can be interpreted as absolute cell fractions. Both methods account for the different mRNA contents of the different cell types by applying a scaling factor. As the expression values of the single cells we use for the simulation have already been normalized, these scaling factors are not appropriate. While this has no effect on the correlations discussed in the previous section, it is crucial for deriving correct absolute values. For this reason, assessing the absolute quantification performance is fair on the validation datasets only, which provide geniune bulk RNA-seq data.
 
- * The slope of a linear model fitted to the data.
- * The root mean square error.
+We use two measures to assess the absolute deviation: (1) the slope of a linear model fitted to the estimated versus known fractions and (2) the root mean square error (RMSE). The slope quickly allows to evaluate whether a method over- or under-predicts a certain cell type while RMSE gives insight about the true deviations. 
 
 ```{r, fig.width=9, fig.height=4, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Comparison of absolute methods. Values indicate the slope of a linear model fitted to predictions vs. true fractions. Values < 1 indicate an under-prediction of the cell type, values > 1 an over-prediction respectively. The error bars have been computed using `confint` on the result of `lm`. "}
 slope %>%

@@ -2,15 +2,8 @@
 title: "A quantitative comparison of cell type deconvolution methods for immuno-oncology"
 subtitle: "Supplementary Material"
 author:
-  - Gregor Sturm (1,2,*)
-  - Francesca Finotello (3)
-  - Florent Petitprez (4,5)
-  - Jitao David Zhang (6)
-  - Jan Baumbach (1)
-  - Wolf H. Fridman (4)
-  - Markus List (7)
-  - Tatsiana Aneichyk (2)
-date: 
+  - "Gregor Sturm (1,2,*), Francesca Finotello (3), Florent Petitprez (4,5), Jitao David Zhang (6), Jan Baumbach (1),  Wolf H. Fridman (4), Markus List (7), Tatsiana Aneichyk (2)"
+date: |
   `r Sys.Date()`
 description: Systematic Evaluation of state-of-the-art Immune deconvolution methods.
 bibliography: bibliography.bib
@@ -18,16 +11,6 @@ biblio-style: apalike
 link-citations: yes
 colorlinks: yes
 ---
-
-(1) Chair of Experimental Bioinformatics, TUM School of Life Sciences Weihenstephan, Technical University of Munich, Maximus-von-Imhof-Forum 3, 85354 Freising, Germany
-(2) Pieris Pharmaceuticals GmbH, Lise-Meitner-Straße 30, 85354 Freising, Germany
-(3) Biocenter, Division for Bioinformatics, Medical University of Innsbruck, 6020 Innsbruck, Austria
-(4) Cordeliers Research Centre, UMRS_1138, INSERM, University Paris-Descartes, Sorbonne University, 75006 Paris, France
-(5) Ligue Nationale contre le Cancer, Programme Cartes d’Identité des Tumeurs, 75013 Paris, France
-(6) Roche Pharma Research and Early Development, Pharmaceutical Sciences, Roche Innovation Center Basel, F. Hoffmann-La Roche Ltd, Grenzacherstrasse 124, 4070 Basel, Switzerland
-(7) Big Data in BioMedicine, Chair of Experimental Bioinformatics, TUM School of Life Sciences Weihenstephan, Technical University of Munich, Maximus-von-Imhof-Forum 3, 85354 Freising, Germany
-
-* corresponding author
 
 
 # Introduction
@@ -38,4 +21,14 @@ and serves as an open-source pipeline to reproduce our results.
 The source code and instructions how to run the benchmark are available from GitHub:
 [grst/immune_deconvolution_benchmark](https://github.com/grst/immune_deconvolution_benchmark)
 
+## Author's affiliations
+(1) Chair of Experimental Bioinformatics, TUM School of Life Sciences Weihenstephan, Technical University of Munich, Maximus-von-Imhof-Forum 3, 85354 Freising, Germany
+(2) Pieris Pharmaceuticals GmbH, Lise-Meitner-Straße 30, 85354 Freising, Germany
+(3) Biocenter, Division for Bioinformatics, Medical University of Innsbruck, 6020 Innsbruck, Austria
+(4) Cordeliers Research Centre, UMRS_1138, INSERM, University Paris-Descartes, Sorbonne University, 75006 Paris, France
+(5) Ligue Nationale contre le Cancer, Programme Cartes d’Identité des Tumeurs, 75013 Paris, France
+(6) Roche Pharma Research and Early Development, Pharmaceutical Sciences, Roche Innovation Center Basel, F. Hoffmann-La Roche Ltd, Grenzacherstrasse 124, 4070 Basel, Switzerland
+(7) Big Data in BioMedicine, Chair of Experimental Bioinformatics, TUM School of Life Sciences Weihenstephan, Technical University of Munich, Maximus-von-Imhof-Forum 3, 85354 Freising, Germany
+
+* corresponding author
 

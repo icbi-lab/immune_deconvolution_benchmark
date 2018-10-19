@@ -120,7 +120,7 @@ all_results2 = all_results %>%
 ```
 
 ## Predictions with increasing immune cell content
-```{r, fig.height=18, fig.width=32, echo=FALSE, fig.cap="We add an increasing amount of each cell type independently to the 1,800 background cells. The figure shows the predictions for each cell type and method at increasing infiltration levels. Tip: right-click, 'open in new tab' to enlarge!}
+```{r, fig.height=18, fig.width=32, echo=FALSE, fig.cap="We add an increasing amount of each cell type independently to the 1,800 background cells. The figure shows the predictions for each cell type and method at increasing infiltration levels. Tip: right-click, 'open in new tab' to enlarge!"}
 all_results2 %>%
   ggplot(aes(x=frac_immune_cells_numeric, y=mean, colour=cell_type)) +
   #   geom_line() +
@@ -205,7 +205,7 @@ res_sensitivity$specificity = specificity_data
 ```
 
 
-```{r, warning=FALSE, message=FALSE, fig.width=10, fig.height=10, fig.cap="Detection limit and false positive predictions. The plots show the average estimate of each method for five simulated bulk RNA-seq datasets randomly sampled from ~1,800 non-immune cells and an increasing fraction of a specific immune cell type. The grey ribbon indicates the standard deviation. The red line refers to the detection limit, i.e. the minimal fraction of an immune cell type needed for a method to reliably detect its abundance as significantly different from zero (p-value < 0.05, two-sided t-test). The blue line refers to the false-positive prediction rate, i.e. the average estimate of a method with no immune cells present. "}
+```{r, warning=FALSE, message=FALSE, echo=FALSE, warning=FALSE, fig.width=10, fig.height=10, fig.cap="Detection limit and false positive predictions. The plots show the average estimate of each method for five simulated bulk RNA-seq datasets randomly sampled from ~1,800 non-immune cells and an increasing fraction of a specific immune cell type. The grey ribbon indicates the standard deviation. The red line refers to the detection limit, i.e. the minimal fraction of an immune cell type needed for a method to reliably detect its abundance as significantly different from zero (p-value < 0.05, two-sided t-test). The blue line refers to the false-positive prediction rate, i.e. the average estimate of a method with no immune cells present. "}
 data = res_sensitivity$all_results %>% 
   filter(cell_type == input_cell_type) %>%
   mutate(frac_immune_cells = as.numeric(frac_immune_cells)/100) %>%

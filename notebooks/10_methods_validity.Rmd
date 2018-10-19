@@ -195,7 +195,7 @@ all_results %>%
 ```
 
 The same, but only with the cell types we look at: 
-```{r corr-only-cell-types}
+```{r corr-only-cell-types, include=FALSE}
 show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
                     "NK cell", "T cell CD4+", "T cell CD4+ (non-regulatory)",
                     "T cell regulatory (Tregs)", "T cell CD8+",

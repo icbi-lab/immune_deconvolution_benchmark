@@ -58,7 +58,7 @@ if(!file.exists(sensitivity_analysis_file)) {
 }
 ```
 
-```{r sens_deconvolute, fig.height=18, fig.width=25, cache=TRUE, echo=FALSE}
+```{r sens_deconvolute, fig.height=18, fig.width=25, cache=TRUE, echo=FALSE, message=FALSE}
 tmp_cell_types = names(sensitivity_analysis_dataset)
 expr_mat = do.call(cbind, sensitivity_analysis_dataset)
 input_cell_types = unlist(lapply(tmp_cell_types, function(cell_type) {
@@ -120,7 +120,7 @@ all_results2 = all_results %>%
 ```
 
 ## Predictions with increasing immune cell content
-```{r, fig.height=18, fig.width=32, echo=FALSE, fig.cap="We add an increasing amount of each cell type independently to the 1,800 background cells. The figure shows the predictions for each cell type and method at increasing infiltration levels. "}
+```{r, fig.height=18, fig.width=32, echo=FALSE, fig.cap="We add an increasing amount of each cell type independently to the 1,800 background cells. The figure shows the predictions for each cell type and method at increasing infiltration levels. Tip: right-click, 'open in new tab' to enlarge!}
 all_results2 %>%
   ggplot(aes(x=frac_immune_cells_numeric, y=mean, colour=cell_type)) +
   #   geom_line() +
@@ -132,12 +132,10 @@ all_results2 %>%
     scale_color_manual(values = color_scales$immune_cells)
 ```
 
-The following about false positives and the detection limit are directly
-derived from the data shown in the plot above.
 
-## Detection Limit
+## Detection Limit and False positives
 
-```{r, warning=FALSE, message=FALSE, cache=TRUE, echo=FALSE}
+```{r prepare-data-detection-limit-fp, warning=FALSE, message=FALSE, cache=TRUE, echo=FALSE}
 # add fallback values, if none of the fractions exceed the specified value
 results_inf_fallback = all_results2 %>%
   select(cell_type, method, input_cell_type) %>%
@@ -176,6 +174,7 @@ res_sensitivity$all_results = all_results3
 res_sensitivity$sensitivity = sensitivity_plot
 ```
 
+
 ```{r sens_table, echo=FALSE, message=FALSE, warning=FALSE}
 sensitivity_plot %>%
   mutate(min_frac = ifelse(is.infinite(min_frac), 100, min_frac)) %>%
@@ -184,33 +183,6 @@ sensitivity_plot %>%
   write_tsv("../results/tables/detection_limit.tsv", na="")
 ```
 
-```{r sens-plot, fig.width=4, fig.height=4, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Detection limit of the methods per cell type. The values indicate the minimal percentage of infiltration at which the method first reliably detects the cell type."}
-sensitivity_plot %>%
-  mutate(min_frac = ifelse(min_frac >100, 100, min_frac)) %>%
-  mutate(min_frac_text = round(min_frac/100, 2)) %>%
-  filter(method != "mcp_counter") %>%
-  ggplot(aes(x=input_cell_type, y=method)) +
-    geom_tile(aes(fill=min_frac)) +
-    geom_text(aes(label=min_frac_text), size=2.7) +
-    scale_fill_distiller(type="div", palette = "RdYlGn", direction=-1, values=c(0, .02, .1, 1)) +
-    scale_alpha_manual(values=c("yes"=.3, "no"=1.)) +
-    theme_benchmark() +
-    theme(axis.text.x.top=element_text(angle = 90, vjust = .5, hjust=0),
-            legend.position="none",
-            strip.text.x = element_text(size=11)) +
-    scale_x_discrete(position = "top", drop=FALSE) +
-    xlab(NULL) +
-    ylab(NULL) +
-    theme_title()  +
-    ggtitle("Detection limit")
-
-```
-
-
-## False-positive predictions
-
-Predicted amount of cells when there are none.
-This analysis is based on all of the data above where only background cells are present, i.e. fraction of immune cells = 0.
 
 ```{r sens_spec_table, echo=FALSE, message=FALSE}
 sens_spec_table = all_results %>%
@@ -232,7 +204,50 @@ specificity_data = all_results %>%
 res_sensitivity$specificity = specificity_data
 ```
 
-```{r, sens-spec-plot, fig.height=3, fig.width=12, echo=FALSE, fig.cap="Predicted amount of a certain cell type while it is actually absent."}
+
+```{r, warning=FALSE, message=FALSE, fig.width=10, fig.height=10, fig.cap="Detection limit and false positive predictions. The plots show the average estimate of each method for five simulated bulk RNA-seq datasets randomly sampled from ~1,800 non-immune cells and an increasing fraction of a specific immune cell type. The grey ribbon indicates the standard deviation. The red line refers to the detection limit, i.e. the minimal fraction of an immune cell type needed for a method to reliably detect its abundance as significantly different from zero (p-value < 0.05, two-sided t-test). The blue line refers to the false-positive prediction rate, i.e. the average estimate of a method with no immune cells present. "}
+data = res_sensitivity$all_results %>% 
+  filter(cell_type == input_cell_type) %>%
+  mutate(frac_immune_cells = as.numeric(frac_immune_cells)/100) %>%
+  filter(frac_immune_cells < .4) 
+
+data_detection_limit = res_sensitivity$sensitivity %>%
+  rename(cell_type = input_cell_type) %>% 
+  mutate(min_frac = as.numeric(min_frac)/100)
+
+data_false_positives = res_sensitivity$specificity %>% 
+  group_by(method, cell_type) %>% 
+  summarise(fp_prediction = mean(estimate)) 
+
+fun_breaks2 = function(limits) {
+  breaks = signif(max(limits) * c(0, 0.5),1)
+  names(breaks) = attr(breaks, "labels")
+  breaks
+}
+
+data %>%
+  ggplot(aes(x=frac_immune_cells, y=mean)) + 
+    geom_ribbon(aes(ymin=mean-ci, ymax=mean+ci), alpha=.2) + 
+    geom_point(size=.2, shape=4) + 
+    # geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) + 
+    panel_border() + 
+    facet_grid(method ~ cell_type, scales = "free_y") + 
+    scale_x_continuous(breaks=c(.0, .3)) +
+    scale_y_continuous(breaks=fun_breaks2) +
+    geom_hline(mapping=aes(yintercept=0, colour="zero"), linetype="dashed", show.legend=FALSE) + 
+    geom_vline(mapping=aes(xintercept = 0, color="zero"), linetype="dashed", show.legend=FALSE) + 
+    geom_vline(data=data_detection_limit, mapping=aes(xintercept=min_frac, colour="detection limit"), show.legend = FALSE) + 
+    geom_hline(data=data_false_positives, mapping=aes(yintercept=fp_prediction, colour="false positive fraction")) + 
+    geom_hline(yintercept = 0, mapping = aes(colour="detection limit"), alpha=0) + # fake line to fix legend
+    ylab("average estimate") + 
+    xlab("fraction of spike-in cells") + 
+    theme(legend.position = "top", strip.text=element_text(size=8), 
+          panel.spacing = unit(1, "mm"), axis.text = element_text(size=10)) + 
+    scale_color_manual(values=c("zero"="grey", "detection limit"="red", "false positive fraction"="blue"), guide=guide_legend("performance measure", override.aes = list(alpha=1)))  
+```
+
+
+```{r, sens-spec-plot, fig.height=3, fig.width=12, echo=FALSE, fig.cap="Predicted amount of a certain cell type while it is actually absent. This analysis is based on all of the data above where only background cells are present, i.e. fraction of immune cells = 0."}
 specificity_data %>%
   filter(method != "mcp_counter") %>% 
   ggplot(aes(x=cell_type, y=estimate)) +

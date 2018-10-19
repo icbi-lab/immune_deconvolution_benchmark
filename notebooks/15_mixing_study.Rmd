@@ -31,7 +31,7 @@ cancer_cells = cell_type_table %>%
 cancer_cell_param = MASS::fitdistr(cancer_cells$freq, "normal")
 ```
 
-The cancer fraction is $\sim\mathcal{N}(`r round(cancer_cell_param$estimate[1], 2)`, `r round(cancer_cell_param$estimate[2], 2)`)$.
+The empirical distribution of the cancer fraction is $\sim\mathcal{N}(`r round(cancer_cell_param$estimate[1], 2)`, `r round(cancer_cell_param$estimate[2], 2)`)$.
 
 
 ## Create simulated bulk tissues
@@ -83,11 +83,15 @@ bulk_eset = make_bulk_eset(eset=single_cell_schelker$eset,
 
 
 ## Run the deconvolution
-```{r mixing_deconvolution, cache=TRUE, message=FALSE, echo=FALSE, warning=FALSE, results='hide'}
+We run the methods with `tumor = TRUE` and `scale_mrna = FALSE` where applicable, as 
+the mRNA scaling is inappropriate for already normalized single cells. In any case,
+the mRNA scaling factors have no influence on the correlations between estimated and
+known fractions. 
+```{r mixing_deconvolution, cache=TRUE, message=FALSE, echo=TRUE, warning=FALSE, results='hide'}
 timer_indications = ifelse(is_melanoma, "SKCM", "OV")
 all_results = foreach(method=config$deconvolution_methods,
                       .final = function(x) {setNames(x, config$deconvolution_methods)}) %dopar% {
-  deconvolute(bulk_eset, method, column="gene_symbol", indications = timer_indications, scale_mrna=FALSE)
+  deconvolute(bulk_eset, method, column="gene_symbol", indications = timer_indications, scale_mrna = FALSE, tumor = TRUE)
 }
 ```
 
@@ -97,12 +101,6 @@ all_results = foreach(method=config$deconvolution_methods,
 ```{r, include=FALSE}
 res_mixing_study = new.env()
 abs_methods = config$abs_methods_mixing
-```
-
-The following methods have absolute (EPIC, quanTIseq) or pseudo-absolute (CIBERSORT abs. mode, xCell) scores, and we test how well they perform
-in terms of absolute deviation
-```{r}
-abs_methods
 ```
 
 We perform an evaluation for the following cell types.
@@ -115,13 +113,13 @@ show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
                     "Cancer associated fibroblast", "Endothelial cell")
 ```
 
-The following methods do not have signatures to quantify "Macrophages/Monocytes", but only a Macrophage signature. Unfortunately,
-our single cell dataset does not distinguish between Macrophages and Monocytes. As we are only comparing correlations here, we still
-benchmark the Macrophage signature on the "Macrophage/Monocyte" data, as an increase in both should also lead to an increase in Macrophages only.
-To be fair, we label the results accordingly.
+The following methods do not have signatures to quantify "Macrophages/Monocytes". EPIC and TIMER only provide a Macrophage signature, while MCP-counter only provides a signature "Monocytic lineage", which also includes myeloid dendritic cells. 
+Unfortunately, our single cell dataset does not distinguish between Macrophages and Monocytes. 
+As we are only comparing correlations here, the subsitute signatures should still yield appropriate results, yet, we label the results
+accordingly
 
 ```{r}
-macrophage_signature_only = c("epic", "timer")
+substitute_macrophage_signature = c("epic", "timer", "mcp_counter")
 ```
 
 Here, we map the results back to the "gold standard". We aggregate the results of the different methods
@@ -137,7 +135,7 @@ all_results_tidy = all_results2 %>%
   bind_rows() %>%
   na.omit() %>%
   gather(sample, estimate, -cell_type, -method) %>%
-  mutate(macrophage_only=if_else(method %in% macrophage_signature_only & cell_type == "Macrophage/Monocyte", "yes", "no")) %>%
+  mutate(substitute_macrophage_signature=if_else(method %in% substitute_macrophage_signature & cell_type == "Macrophage/Monocyte", "yes", "no")) %>%
   arrange(method, cell_type, sample)
 
 gold_standard = pData(bulk_eset) %>%
@@ -170,7 +168,7 @@ results_with_gold_standard %>%
 ### Calculate correlations for each method and cell type
 ```{r mixing_correlation_summary, fig.width=8, fig.height=6, echo=FALSE}
 correlations = results_with_gold_standard %>%
-  group_by(cell_type, method, macrophage_only) %>%
+  group_by(cell_type, method, substitute_macrophage_signature) %>%
   do(make_cor(.$estimate, .$true_fraction)) %>%
   ungroup()
 
@@ -188,7 +186,7 @@ write_tsv(correlations_tab, "../results/tables/mixing_study_correlations.tsv", n
 
 ```{r, fig.width=8, fig.height=4, echo=FALSE, fig.cap="Correlations of predicted vs. known fractions on 100 simulated bulk RNA-seq samples, organized by cell type. "}
 correlations %>%
-  ggplot(aes(x=method, y=pearson, color=macrophage_only)) +
+  ggplot(aes(x=method, y=pearson, color=substitute_macrophage_signature)) +
     geom_crossbar(aes(ymin=pearson, ymax=pearson)) +
     geom_hline(yintercept = 0) +
     geom_errorbar(aes(ymin=conf_int_lower, ymax=conf_int_upper), width=.2) +
@@ -205,6 +203,8 @@ correlations %>%
 
 
 ### Absolute deviation
+**treat with caution!**
+
 Next, we were interested in the absolute deviation of the values for methods
 that compute absolute scores. We assess the absolute deviation using two
 measures:
@@ -230,13 +230,13 @@ xCell and CIBERSORT abs. scale the output score to be 'absolute':
 accurate for quanTIseq and EPIC, which account for the different mRNA contents
 of different cell types.* As single cell data is already normalized on
 a per-cell level, the scaling factors are most likely not appropriate with the
-simulated data. This is why we use the validation datasets to generate
-the deviation plots in the main paper.
+simulated data. We generated the same plots on the validation data sets (geniune bulk RNA-seq + FACS), 
+which we expect to be more representative!
 
 ```{r mixing_abs, echo=FALSE, cache=TRUE}
 slope = results_with_gold_standard %>%
   filter(method %in% abs_methods) %>%
-  group_by(macrophage_only, cell_type, method) %>%
+  group_by(substitute_macrophage_signature, cell_type, method) %>%
   do(get_slope(.))
 
 res_mixing_study$slope = slope
@@ -249,7 +249,7 @@ colnames(cell_type_method_mat) = c("method", "cell_type")
 slope %>%
   right_join(cell_type_method_mat) %>%
   # na -> 0 workaround, otherwise text label does not show
-  ggplot(aes(x=cell_type, y=ifelse(is.na(slope), 1, slope), alpha=macrophage_only)) +
+  ggplot(aes(x=cell_type, y=ifelse(is.na(slope), 1, slope), alpha=substitute_macrophage_signature)) +
     geom_crossbar(aes(colour=method, ymin=slope, ymax=slope), stat="identity") +
     geom_text(aes(label=ifelse(is.na(slope), "n/a", NA)), angle=0) +
     geom_errorbar(aes(ymin=ci_lower, ymax=ci_upper), width=.2) +
@@ -268,14 +268,14 @@ slope %>%
 rmse = results_with_gold_standard %>%
   filter(method %in% abs_methods) %>%
   mutate(square_error = (estimate-true_fraction)^2) %>%
-  group_by(method, cell_type, macrophage_only) %>%
+  group_by(method, cell_type, substitute_macrophage_signature) %>%
   summarise(rmse = sqrt(mean(square_error)))
 
 res_mixing_study$rmse = rmse
 
 rmse %>%
  right_join(cell_type_method_mat) %>%
- ggplot(aes(x=cell_type, y=ifelse(is.na(rmse), 0, rmse), alpha=macrophage_only)) +
+ ggplot(aes(x=cell_type, y=ifelse(is.na(rmse), 0, rmse), alpha=substitute_macrophage_signature)) +
     geom_bar(aes(fill=method), stat="identity") +
     geom_text(aes(label=ifelse(is.na(rmse), "n/a", NA)), angle=0, y=0.05) +
     facet_wrap(~method, nrow=1, labeller = label_wrap_gen()) +

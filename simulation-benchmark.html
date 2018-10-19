@@ -5,11 +5,11 @@
 
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)</title>
+  <title>A quantitative comparison of cell type deconvolution methods for immuno-oncology</title>
   <meta name="description" content="Systematic Evaluation of state-of-the-art Immune deconvolution methods.">
   <meta name="generator" content="bookdown 0.7 and GitBook 2.6.7">
 
-  <meta property="og:title" content="Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)" />
+  <meta property="og:title" content="A quantitative comparison of cell type deconvolution methods for immuno-oncology" />
   <meta property="og:type" content="book" />
   
   
@@ -17,16 +17,15 @@
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)" />
+  <meta name="twitter:title" content="A quantitative comparison of cell type deconvolution methods for immuno-oncology" />
   
   <meta name="twitter:description" content="Systematic Evaluation of state-of-the-art Immune deconvolution methods." />
   
 
-<meta name="author" content="manuscript in preparation">
-<meta name="author" content="Gregor Sturm^{1,2}">
-<meta name="author" content="Tatsiana Aneichyk^1">
+<meta name="author" content="Gregor Sturm (1,2,*), Francesca Finotello (3), Florent Petitprez (4,5), Jitao David Zhang (6), Jan Baumbach (1), Wolf H. Fridman (4), Markus List (7), Tatsiana Aneichyk (2)">
 
 
+<meta name="date" content="2018-10-19">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -137,7 +136,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <nav role="navigation">
 
 <ul class="summary">
-<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction</a></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction</a><ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#authors-affiliations"><i class="fa fa-check"></i><b>1.1</b> Author’s affiliations</a></li>
+</ul></li>
 <li class="chapter" data-level="2" data-path="input-data.html"><a href="input-data.html"><i class="fa fa-check"></i><b>2</b> Input data</a><ul>
 <li class="chapter" data-level="2.1" data-path="input-data.html"><a href="input-data.html#cell-type-hierarchy"><i class="fa fa-check"></i><b>2.1</b> cell type hierarchy</a></li>
 <li class="chapter" data-level="2.2" data-path="input-data.html"><a href="input-data.html#single-cell-data-for-simulated-mixtures"><i class="fa fa-check"></i><b>2.2</b> Single cell data for simulated mixtures</a></li>
@@ -166,14 +167,15 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html"><i class="fa fa-check"></i><b>5</b> Validation with real data</a><ul>
-<li class="chapter" data-level="5.1" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#between--and-within-sample-comparisons"><i class="fa fa-check"></i><b>5.1</b> Between- and within-sample comparisons</a></li>
+<li class="chapter" data-level="5.1" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#between--and-within-sample-comparisons"><i class="fa fa-check"></i><b>5.1</b> Between- and within-sample comparisons</a><ul>
+<li class="chapter" data-level="5.1.1" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#absolute-scores"><i class="fa fa-check"></i><b>5.1.1</b> Absolute scores</a></li>
+</ul></li>
 <li class="chapter" data-level="5.2" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#within-sample-comparison"><i class="fa fa-check"></i><b>5.2</b> Within-sample comparison</a></li>
 <li class="chapter" data-level="5.3" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#between-sample-comparisons"><i class="fa fa-check"></i><b>5.3</b> Between-sample comparisons</a></li>
 </ul></li>
 <li class="chapter" data-level="6" data-path="detection-limit-and-false-positive-predictions.html"><a href="detection-limit-and-false-positive-predictions.html"><i class="fa fa-check"></i><b>6</b> Detection limit and false positive predictions</a><ul>
 <li class="chapter" data-level="6.1" data-path="detection-limit-and-false-positive-predictions.html"><a href="detection-limit-and-false-positive-predictions.html#predictions-with-increasing-immune-cell-content"><i class="fa fa-check"></i><b>6.1</b> Predictions with increasing immune cell content</a></li>
-<li class="chapter" data-level="6.2" data-path="detection-limit-and-false-positive-predictions.html"><a href="detection-limit-and-false-positive-predictions.html#detection-limit"><i class="fa fa-check"></i><b>6.2</b> Detection Limit</a></li>
-<li class="chapter" data-level="6.3" data-path="detection-limit-and-false-positive-predictions.html"><a href="detection-limit-and-false-positive-predictions.html#false-positive-predictions"><i class="fa fa-check"></i><b>6.3</b> False-positive predictions</a></li>
+<li class="chapter" data-level="6.2" data-path="detection-limit-and-false-positive-predictions.html"><a href="detection-limit-and-false-positive-predictions.html#detection-limit-and-false-positives"><i class="fa fa-check"></i><b>6.2</b> Detection Limit and False positives</a></li>
 </ul></li>
 <li class="chapter" data-level="7" data-path="spillover-analysis.html"><a href="spillover-analysis.html"><i class="fa fa-check"></i><b>7</b> Spillover Analysis</a><ul>
 <li class="chapter" data-level="7.1" data-path="spillover-analysis.html"><a href="spillover-analysis.html#complete-spillover-matrix"><i class="fa fa-check"></i><b>7.1</b> Complete Spillover Matrix</a></li>
@@ -186,9 +188,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="7.6" data-path="spillover-analysis.html"><a href="spillover-analysis.html#deconvolution-results-before-and-after"><i class="fa fa-check"></i><b>7.6</b> Deconvolution results before and after</a></li>
 </ul></li>
 <li class="chapter" data-level="8" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html"><i class="fa fa-check"></i><b>8</b> Creating publication ready figures</a><ul>
-<li class="chapter" data-level="8.1" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#benchmark-results"><i class="fa fa-check"></i><b>8.1</b> Benchmark results</a></li>
-<li class="chapter" data-level="8.2" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#detection-limit-false-positive-figure"><i class="fa fa-check"></i><b>8.2</b> detection limit / false positive figure</a></li>
-<li class="chapter" data-level="8.3" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#migration-charts-for-spillover-analysis"><i class="fa fa-check"></i><b>8.3</b> Migration charts for Spillover analysis</a></li>
+<li class="chapter" data-level="8.1" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#predictions-on-simulated-vs.genuine-bulk"><i class="fa fa-check"></i><b>8.1</b> Predictions on simulated vs. genuine bulk</a></li>
+<li class="chapter" data-level="8.2" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#benchmark-results"><i class="fa fa-check"></i><b>8.2</b> Benchmark results</a></li>
+<li class="chapter" data-level="8.3" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#detection-limit-false-positive-figure"><i class="fa fa-check"></i><b>8.3</b> detection limit / false positive figure</a></li>
+<li class="chapter" data-level="8.4" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#migration-charts-for-spillover-analysis"><i class="fa fa-check"></i><b>8.4</b> Migration charts for Spillover analysis</a></li>
 </ul></li>
 <li class="chapter" data-level="9" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i><b>9</b> References</a></li>
 </ul>
@@ -200,7 +203,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <div class="body-inner">
         <div class="book-header" role="navigation">
           <h1>
-            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)</a>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">A quantitative comparison of cell type deconvolution methods for immuno-oncology</a>
           </h1>
         </div>
 
@@ -222,8 +225,8 @@ can assess the performance of immune deconvolution tools.</p>
 Figure 4.1: proportion of cell types by tumor sample
 </p>
 </div>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1">cancer_cell_param =<span class="st"> </span>MASS<span class="op">::</span><span class="kw">fitdistr</span>(cancer_cells<span class="op">$</span>freq, <span class="st">&quot;normal&quot;</span>)</a></code></pre></div>
-<p>The cancer fraction is <span class="math inline">\(\sim\mathcal{N}(0.33, 0.3)\)</span>.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">cancer_cell_param =<span class="st"> </span>MASS<span class="op">::</span><span class="kw">fitdistr</span>(cancer_cells<span class="op">$</span>freq, <span class="st">&quot;normal&quot;</span>)</a></code></pre></div>
+<p>The empirical distribution of the cancer fraction is <span class="math inline">\(\sim\mathcal{N}(0.33, 0.3)\)</span>.</p>
 </div>
 <div id="create-simulated-bulk-tissues" class="section level2">
 <h2><span class="header-section-number">4.2</span> Create simulated bulk tissues</h2>
@@ -234,37 +237,42 @@ Figure 4.1: proportion of cell types by tumor sample
 <li>Assign the remaining fraction (=not cancer cells) randomly to the remaining cell types (B cell, T cell CD8+, Melanoma cell, T cell CD4+ (non-regulatory), Macrophage/Monocyte, T cell regulatory (Tregs), Cancer associated fibroblast, Dendritic cell, Endothelial cell, NK cell, PBMC, Ovarian carcinoma cell)</li>
 </ol>
 <p>Here, we generate a simulated bulk RNA-seq ExpressionSet:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="kw">set.seed</span>(<span class="dv">42</span>)</a>
-<a class="sourceLine" id="cb11-2" data-line-number="2">bulk_eset =<span class="st"> </span><span class="kw">make_bulk_eset</span>(<span class="dt">eset=</span>single_cell_schelker<span class="op">$</span>eset,</a>
-<a class="sourceLine" id="cb11-3" data-line-number="3">                           <span class="dt">cell_fractions =</span> cell_fractions,</a>
-<a class="sourceLine" id="cb11-4" data-line-number="4">                           <span class="dt">n_cells=</span><span class="dv">500</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="kw">set.seed</span>(<span class="dv">42</span>)</a>
+<a class="sourceLine" id="cb8-2" data-line-number="2">bulk_eset =<span class="st"> </span><span class="kw">make_bulk_eset</span>(<span class="dt">eset=</span>single_cell_schelker<span class="op">$</span>eset,</a>
+<a class="sourceLine" id="cb8-3" data-line-number="3">                           <span class="dt">cell_fractions =</span> cell_fractions,</a>
+<a class="sourceLine" id="cb8-4" data-line-number="4">                           <span class="dt">n_cells=</span><span class="dv">500</span>)</a></code></pre></div>
 </div>
 <div id="run-the-deconvolution" class="section level2">
 <h2><span class="header-section-number">4.3</span> Run the deconvolution</h2>
+<p>We run the methods with <code>tumor = TRUE</code> and <code>scale_mrna = FALSE</code> where applicable, as
+the mRNA scaling is inappropriate for already normalized single cells. In any case,
+the mRNA scaling factors have no influence on the correlations between estimated and
+known fractions.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">timer_indications =<span class="st"> </span><span class="kw">ifelse</span>(is_melanoma, <span class="st">&quot;SKCM&quot;</span>, <span class="st">&quot;OV&quot;</span>)</a>
+<a class="sourceLine" id="cb9-2" data-line-number="2">all_results =<span class="st"> </span><span class="kw">foreach</span>(<span class="dt">method=</span>config<span class="op">$</span>deconvolution_methods,</a>
+<a class="sourceLine" id="cb9-3" data-line-number="3">                      <span class="dt">.final =</span> <span class="cf">function</span>(x) {<span class="kw">setNames</span>(x, config<span class="op">$</span>deconvolution_methods)}) <span class="op">%dopar%</span><span class="st"> </span>{</a>
+<a class="sourceLine" id="cb9-4" data-line-number="4">  <span class="kw">deconvolute</span>(bulk_eset, method, <span class="dt">column=</span><span class="st">&quot;gene_symbol&quot;</span>, <span class="dt">indications =</span> timer_indications, <span class="dt">scale_mrna =</span> <span class="ot">FALSE</span>, <span class="dt">tumor =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb9-5" data-line-number="5">}</a></code></pre></div>
 </div>
 <div id="results" class="section level2">
 <h2><span class="header-section-number">4.4</span> Results</h2>
-<p>The following methods have absolute (EPIC, quanTIseq) or pseudo-absolute (CIBERSORT abs. mode, xCell) scores, and we test how well they perform
-in terms of absolute deviation</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1">abs_methods</a></code></pre></div>
-<pre><code>## [1] &quot;cibersort_abs&quot; &quot;epic&quot;          &quot;quantiseq&quot;     &quot;xcell&quot;</code></pre>
 <p>We perform an evaluation for the following cell types.
 Note that some cell types are redundant (T cell CD4+ is a super-category of Tregs and non-regulatory CD4+ T cells).
 As some methods provide deconvolution only at the CD4+ level, we compare both categories:</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1">show_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>,</a>
-<a class="sourceLine" id="cb14-2" data-line-number="2">                    <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD4+ (non-regulatory)&quot;</span>,</a>
-<a class="sourceLine" id="cb14-3" data-line-number="3">                    <span class="st">&quot;T cell regulatory (Tregs)&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>,</a>
-<a class="sourceLine" id="cb14-4" data-line-number="4">                    <span class="st">&quot;Cancer associated fibroblast&quot;</span>, <span class="st">&quot;Endothelial cell&quot;</span>)</a></code></pre></div>
-<p>The following methods do not have signatures to quantify “Macrophages/Monocytes”, but only a Macrophage signature. Unfortunately,
-our single cell dataset does not distinguish between Macrophages and Monocytes. As we are only comparing correlations here, we still
-benchmark the Macrophage signature on the “Macrophage/Monocyte” data, as an increase in both should also lead to an increase in Macrophages only.
-To be fair, we label the results accordingly.</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1">macrophage_signature_only =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;epic&quot;</span>, <span class="st">&quot;timer&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1">show_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>,</a>
+<a class="sourceLine" id="cb10-2" data-line-number="2">                    <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD4+ (non-regulatory)&quot;</span>,</a>
+<a class="sourceLine" id="cb10-3" data-line-number="3">                    <span class="st">&quot;T cell regulatory (Tregs)&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>,</a>
+<a class="sourceLine" id="cb10-4" data-line-number="4">                    <span class="st">&quot;Cancer associated fibroblast&quot;</span>, <span class="st">&quot;Endothelial cell&quot;</span>)</a></code></pre></div>
+<p>The following methods do not have signatures to quantify “Macrophages/Monocytes”. EPIC and TIMER only provide a Macrophage signature, while MCP-counter only provides a signature “Monocytic lineage”, which also includes myeloid dendritic cells.
+Unfortunately, our single cell dataset does not distinguish between Macrophages and Monocytes.
+As we are only comparing correlations here, the subsitute signatures should still yield appropriate results, yet, we label the results
+accordingly</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1">substitute_macrophage_signature =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;epic&quot;</span>, <span class="st">&quot;timer&quot;</span>, <span class="st">&quot;mcp_counter&quot;</span>)</a></code></pre></div>
 <p>Here, we map the results back to the “gold standard”. We aggregate the results of the different methods
 into a single table and clean it up for further processing.</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1">results_with_gold_standard =<span class="st"> </span><span class="kw">inner_join</span>(all_results_tidy, gold_standard,</a>
-<a class="sourceLine" id="cb16-2" data-line-number="2">                                        <span class="dt">by=</span><span class="kw">c</span>(<span class="st">&quot;sample&quot;</span>, <span class="st">&quot;cell_type&quot;</span>))</a>
-<a class="sourceLine" id="cb16-3" data-line-number="3">res_mixing_study<span class="op">$</span>all_results =<span class="st"> </span>results_with_gold_standard</a></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1">results_with_gold_standard =<span class="st"> </span><span class="kw">inner_join</span>(all_results_tidy, gold_standard,</a>
+<a class="sourceLine" id="cb12-2" data-line-number="2">                                        <span class="dt">by=</span><span class="kw">c</span>(<span class="st">&quot;sample&quot;</span>, <span class="st">&quot;cell_type&quot;</span>))</a>
+<a class="sourceLine" id="cb12-3" data-line-number="3">res_mixing_study<span class="op">$</span>all_results =<span class="st"> </span>results_with_gold_standard</a></code></pre></div>
 <div id="correlation-plots" class="section level3">
 <h3><span class="header-section-number">4.4.1</span> Correlation plots</h3>
 <div class="figure"><span id="fig:mixing-correlation-plot"></span>
@@ -276,12 +284,12 @@ Figure 4.2: The figure shows the correlation of predicted vs. known fractions o
 </div>
 <div id="calculate-correlations-for-each-method-and-cell-type" class="section level3">
 <h3><span class="header-section-number">4.4.2</span> Calculate correlations for each method and cell type</h3>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1">correlations_tab =<span class="st"> </span>correlations <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(cell_type, method, pearson) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb17-2" data-line-number="2"><span class="st">  </span><span class="kw">spread</span>(cell_type, pearson)</a>
-<a class="sourceLine" id="cb17-3" data-line-number="3"></a>
-<a class="sourceLine" id="cb17-4" data-line-number="4"><span class="kw">write_tsv</span>(correlations_tab, <span class="st">&quot;../results/tables/mixing_study_correlations.tsv&quot;</span>, <span class="dt">na=</span><span class="st">&quot;&quot;</span>)</a></code></pre></div>
-<div class="figure"><span id="fig:unnamed-chunk-33"></span>
-<img src="_main_files/figure-html/unnamed-chunk-33-1.png" alt="Correlations of predicted vs. known fractions on 100 simulated bulk RNA-seq samples, organized by cell type. " width="768" />
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1">correlations_tab =<span class="st"> </span>correlations <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(cell_type, method, pearson) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb13-2" data-line-number="2"><span class="st">  </span><span class="kw">spread</span>(cell_type, pearson)</a>
+<a class="sourceLine" id="cb13-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb13-4" data-line-number="4"><span class="kw">write_tsv</span>(correlations_tab, <span class="st">&quot;../results/tables/mixing_study_correlations.tsv&quot;</span>, <span class="dt">na=</span><span class="st">&quot;&quot;</span>)</a></code></pre></div>
+<div class="figure"><span id="fig:unnamed-chunk-32"></span>
+<img src="_main_files/figure-html/unnamed-chunk-32-1.png" alt="Correlations of predicted vs. known fractions on 100 simulated bulk RNA-seq samples, organized by cell type. " width="768" />
 <p class="caption">
 Figure 4.3: Correlations of predicted vs. known fractions on 100 simulated bulk RNA-seq samples, organized by cell type.
 </p>
@@ -289,6 +297,7 @@ Figure 4.3: Correlations of predicted vs. known fractions on 100 simulated bulk
 </div>
 <div id="absolute-deviation" class="section level3">
 <h3><span class="header-section-number">4.4.3</span> Absolute deviation</h3>
+<p><strong>treat with caution!</strong></p>
 <p>Next, we were interested in the absolute deviation of the values for methods
 that compute absolute scores. We assess the absolute deviation using two
 measures:</p>
@@ -314,10 +323,10 @@ FAQ</a>)</p>
 accurate for quanTIseq and EPIC, which account for the different mRNA contents
 of different cell types.</em> As single cell data is already normalized on
 a per-cell level, the scaling factors are most likely not appropriate with the
-simulated data. This is why we use the validation datasets to generate
-the deviation plots in the main paper.</p>
-<div class="figure"><span id="fig:unnamed-chunk-34"></span>
-<img src="_main_files/figure-html/unnamed-chunk-34-1.png" alt="Absolute deviation of the predictions represented as the slope of a linear model. Confidence intervals are computed using `confint` on the result of `lm`." width="1152" />
+simulated data. We generated the same plots on the validation data sets (geniune bulk RNA-seq + FACS),
+which we expect to be more representative!</p>
+<div class="figure"><span id="fig:unnamed-chunk-33"></span>
+<img src="_main_files/figure-html/unnamed-chunk-33-1.png" alt="Absolute deviation of the predictions represented as the slope of a linear model. Confidence intervals are computed using `confint` on the result of `lm`." width="1152" />
 <p class="caption">
 Figure 4.4: Absolute deviation of the predictions represented as the slope of a linear model. Confidence intervals are computed using <code>confint</code> on the result of <code>lm</code>.
 </p>

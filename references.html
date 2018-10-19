@@ -5,11 +5,11 @@
 
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)</title>
+  <title>A quantitative comparison of cell type deconvolution methods for immuno-oncology</title>
   <meta name="description" content="Systematic Evaluation of state-of-the-art Immune deconvolution methods.">
   <meta name="generator" content="bookdown 0.7 and GitBook 2.6.7">
 
-  <meta property="og:title" content="Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)" />
+  <meta property="og:title" content="A quantitative comparison of cell type deconvolution methods for immuno-oncology" />
   <meta property="og:type" content="book" />
   
   
@@ -17,16 +17,15 @@
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)" />
+  <meta name="twitter:title" content="A quantitative comparison of cell type deconvolution methods for immuno-oncology" />
   
   <meta name="twitter:description" content="Systematic Evaluation of state-of-the-art Immune deconvolution methods." />
   
 
-<meta name="author" content="manuscript in preparation">
-<meta name="author" content="Gregor Sturm^{1,2}">
-<meta name="author" content="Tatsiana Aneichyk^1">
+<meta name="author" content="Gregor Sturm (1,2,*), Francesca Finotello (3), Florent Petitprez (4,5), Jitao David Zhang (6), Jan Baumbach (1), Wolf H. Fridman (4), Markus List (7), Tatsiana Aneichyk (2)">
 
 
+<meta name="date" content="2018-10-19">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -137,7 +136,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <nav role="navigation">
 
 <ul class="summary">
-<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction</a></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction</a><ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#authors-affiliations"><i class="fa fa-check"></i><b>1.1</b> Author’s affiliations</a></li>
+</ul></li>
 <li class="chapter" data-level="2" data-path="input-data.html"><a href="input-data.html"><i class="fa fa-check"></i><b>2</b> Input data</a><ul>
 <li class="chapter" data-level="2.1" data-path="input-data.html"><a href="input-data.html#cell-type-hierarchy"><i class="fa fa-check"></i><b>2.1</b> cell type hierarchy</a></li>
 <li class="chapter" data-level="2.2" data-path="input-data.html"><a href="input-data.html#single-cell-data-for-simulated-mixtures"><i class="fa fa-check"></i><b>2.2</b> Single cell data for simulated mixtures</a></li>
@@ -166,14 +167,15 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html"><i class="fa fa-check"></i><b>5</b> Validation with real data</a><ul>
-<li class="chapter" data-level="5.1" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#between--and-within-sample-comparisons"><i class="fa fa-check"></i><b>5.1</b> Between- and within-sample comparisons</a></li>
+<li class="chapter" data-level="5.1" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#between--and-within-sample-comparisons"><i class="fa fa-check"></i><b>5.1</b> Between- and within-sample comparisons</a><ul>
+<li class="chapter" data-level="5.1.1" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#absolute-scores"><i class="fa fa-check"></i><b>5.1.1</b> Absolute scores</a></li>
+</ul></li>
 <li class="chapter" data-level="5.2" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#within-sample-comparison"><i class="fa fa-check"></i><b>5.2</b> Within-sample comparison</a></li>
 <li class="chapter" data-level="5.3" data-path="validation-with-real-data.html"><a href="validation-with-real-data.html#between-sample-comparisons"><i class="fa fa-check"></i><b>5.3</b> Between-sample comparisons</a></li>
 </ul></li>
 <li class="chapter" data-level="6" data-path="detection-limit-and-false-positive-predictions.html"><a href="detection-limit-and-false-positive-predictions.html"><i class="fa fa-check"></i><b>6</b> Detection limit and false positive predictions</a><ul>
 <li class="chapter" data-level="6.1" data-path="detection-limit-and-false-positive-predictions.html"><a href="detection-limit-and-false-positive-predictions.html#predictions-with-increasing-immune-cell-content"><i class="fa fa-check"></i><b>6.1</b> Predictions with increasing immune cell content</a></li>
-<li class="chapter" data-level="6.2" data-path="detection-limit-and-false-positive-predictions.html"><a href="detection-limit-and-false-positive-predictions.html#detection-limit"><i class="fa fa-check"></i><b>6.2</b> Detection Limit</a></li>
-<li class="chapter" data-level="6.3" data-path="detection-limit-and-false-positive-predictions.html"><a href="detection-limit-and-false-positive-predictions.html#false-positive-predictions"><i class="fa fa-check"></i><b>6.3</b> False-positive predictions</a></li>
+<li class="chapter" data-level="6.2" data-path="detection-limit-and-false-positive-predictions.html"><a href="detection-limit-and-false-positive-predictions.html#detection-limit-and-false-positives"><i class="fa fa-check"></i><b>6.2</b> Detection Limit and False positives</a></li>
 </ul></li>
 <li class="chapter" data-level="7" data-path="spillover-analysis.html"><a href="spillover-analysis.html"><i class="fa fa-check"></i><b>7</b> Spillover Analysis</a><ul>
 <li class="chapter" data-level="7.1" data-path="spillover-analysis.html"><a href="spillover-analysis.html#complete-spillover-matrix"><i class="fa fa-check"></i><b>7.1</b> Complete Spillover Matrix</a></li>
@@ -186,9 +188,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="7.6" data-path="spillover-analysis.html"><a href="spillover-analysis.html#deconvolution-results-before-and-after"><i class="fa fa-check"></i><b>7.6</b> Deconvolution results before and after</a></li>
 </ul></li>
 <li class="chapter" data-level="8" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html"><i class="fa fa-check"></i><b>8</b> Creating publication ready figures</a><ul>
-<li class="chapter" data-level="8.1" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#benchmark-results"><i class="fa fa-check"></i><b>8.1</b> Benchmark results</a></li>
-<li class="chapter" data-level="8.2" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#detection-limit-false-positive-figure"><i class="fa fa-check"></i><b>8.2</b> detection limit / false positive figure</a></li>
-<li class="chapter" data-level="8.3" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#migration-charts-for-spillover-analysis"><i class="fa fa-check"></i><b>8.3</b> Migration charts for Spillover analysis</a></li>
+<li class="chapter" data-level="8.1" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#predictions-on-simulated-vs.genuine-bulk"><i class="fa fa-check"></i><b>8.1</b> Predictions on simulated vs. genuine bulk</a></li>
+<li class="chapter" data-level="8.2" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#benchmark-results"><i class="fa fa-check"></i><b>8.2</b> Benchmark results</a></li>
+<li class="chapter" data-level="8.3" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#detection-limit-false-positive-figure"><i class="fa fa-check"></i><b>8.3</b> detection limit / false positive figure</a></li>
+<li class="chapter" data-level="8.4" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#migration-charts-for-spillover-analysis"><i class="fa fa-check"></i><b>8.4</b> Migration charts for Spillover analysis</a></li>
 </ul></li>
 <li class="chapter" data-level="9" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i><b>9</b> References</a></li>
 </ul>
@@ -200,7 +203,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <div class="body-inner">
         <div class="book-header" role="navigation">
           <h1>
-            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data (supplementary information)</a>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">A quantitative comparison of cell type deconvolution methods for immuno-oncology</a>
           </h1>
         </div>
 

@@ -186,7 +186,7 @@ deconvolute_random = function(gene_expression_matrix) {
 
 Finally, register the new method in the generic `deconvolute()` function.
 ```r
-deconvolute.default = function(gene_expression, method=deconvolution_methods, indications=NULL) {
+deconvolute = function(gene_expression, method=deconvolution_methods, indications=NULL) {
   message(paste0("\n", ">>> Running ", method))
   # run selected method
   res = switch(method,

@@ -30,5 +30,5 @@ The source code and instructions how to run the benchmark are available from Git
 (6) Roche Pharma Research and Early Development, Pharmaceutical Sciences, Roche Innovation Center Basel, F. Hoffmann-La Roche Ltd, Grenzacherstrasse 124, 4070 Basel, Switzerland
 (7) Big Data in BioMedicine, Chair of Experimental Bioinformatics, TUM School of Life Sciences Weihenstephan, Technical University of Munich, Maximus-von-Imhof-Forum 3, 85354 Freising, Germany
 
-* corresponding author
+`*` corresponding author
 

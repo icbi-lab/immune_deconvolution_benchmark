@@ -79,7 +79,7 @@ Next, we calculate the sc-bulk log ratio, by $$log(sc+1)/log(bulk+1)$$,
 
 We observe that the sc-bulk log ratio showes asymmetry: more genes show increased sc-aggregate expression rather than decreased sc-aggregate expression.
 
-```{r scBulkLogRatio, fig.height=3, fig.width=7, echo=FALSE, warning=FALSE, message=FALSE}
+```{r scBulkLogRatio, fig.height=3, fig.width=7, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="log-ratio of single cell agregates to geniune bulk. We observe that the distribution is skewed in direction of the single cells, i.e. more genes have increased gene expression in sc-aggregates rather than decreased."}
 lr <- ggplot(expr_all, aes(x=ScBulkLogRatio)) +
   facet_wrap(~sample) +
   geom_histogram(bins=100) +
@@ -230,7 +230,7 @@ all_results2 = bind_rows(all_results_bulk2, all_results_simulated2) %>%
 res_methods_validity$all_results_mapped = all_results2
 ```
 
-```{r, fig.width=12, fig.height=10, echo=FALSE, fig.cap="Correlation of the methods' predictions on both simulated and genuine bulk RNA-seq samples on the cell types used in the benchmark only. "}
+```{r, fig.width=12, fig.height=10, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Correlation of the methods' predictions on both simulated and genuine bulk RNA-seq samples on the cell types used in the benchmark only. "}
 
 
 all_results2 %>%

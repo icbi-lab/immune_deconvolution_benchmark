@@ -238,19 +238,26 @@ Have a look at the configuration file:
 notebooks/config.R
 ```
 
-There, we can set if our new method should be treated as *absolute* method,
-i.e. if the method predicts a score that can be interpreted as a cell fraction.
-
-We set our `random` method to appear in the absolute score comparison in the
-`mixing benchmark` section, but do not include it in the publication-ready
-figures:
+Here, we can specify where our new random method will be used in 
+the benchmark. We add our random predictor to the set of methods that
+will be benchmarked in terms of *absolute deviations* from the
+real score (not supported by all methods):
 
 ```r
+############## Specify methods used in the benchmark ##################
+
+# these methods will be used in the benchmark. Default: Use all methods
+# provided by the `immundeconv` package. 
+config$deconvolution_methods = immunedeconv::deconvolution_methods
+
 # these methods will be treated as 'absolute' methods in the mixing benchmark
 config$abs_methods_mixing = c("cibersort_abs", "epic", "quantiseq", "xcell", "random")
 
-# these methods will be shown as 'absolute' methods in the publication-ready figures
-config$abs_methods_final = c("quantiseq", "epic")
+# these methods will be shown as 'absolute' methods in the validation benchmark
+config$abs_methods_validation = c("cibersort_abs", "quantiseq", "epic", "random")
+
+# these methods provide scores that support within-sample comparisons
+config$methods_within_sample_comparison = c("cibersort", "cibersort_abs", "quantiseq", "epic")
 ```
 
 ### Run the pipeline

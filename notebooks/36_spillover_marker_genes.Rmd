@@ -121,7 +121,9 @@ til10 = read_tsv("../immunedeconv/inst/extdata/quantiseq/TIL10_signature.txt") %
 tref = EPIC::TRef$refProfiles[EPIC::TRef$sigGenes,]
 
 # CIBERSORT
-lm22 = read_tsv("../lib/CIBERSORT/LM22.txt") %>% as.data.frame() %>% column_to_rownames("Gene symbol")
+if("cibersort" %in% config$deconvolution_methods) {
+  lm22 = read_tsv("../lib/CIBERSORT/LM22.txt") %>% as.data.frame() %>% column_to_rownames("Gene symbol")
+}
 ```
 
 
@@ -131,7 +133,8 @@ in B cells and Dendritic cells to obtain a ranked list of genes
 that are enriched in both B cells and DCs. i
 
 ```{r, include=FALSE, fig.width=10, fig.height=15, warning=FALSE, message=FALSE, fig.cap="Expression across cell types. Along x-axis: cell types used for simulation. Along y-axis: Signature genes from EPIC/quanTIseq for the cell types. "}
-matrices = list(quantiseq=til10, epic=tref, cibersort=lm22)
+matrices = list(quantiseq=til10, epic=tref)
+if(exists("lm22")) matrices$cibersort = lm22
 foreach(method = names(matrices)) %do% {
   markers = rownames(matrices[[method]])
   alldata3 = alldata2 %>% filter(gene %in% markers) %>%
@@ -191,8 +194,8 @@ dc_expression = foreach(i=1:10,
         }
 rownames(dc_expression) = rownames(exprs(single_cell_schelker$eset))
 
-use_methods = c("epic", "quantiseq", "cibersort")
-# use_methods = immunedeconv::deconvolution_methods
+# intersection because CIBERSORT (or other methods) might not be available. 
+use_methods = intersect(c("epic", "quantiseq", "cibersort"), config$deconvolution_methods)
 show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
                     "NK cell", "T cell CD4+", "T cell CD8+")
 timer_indications = rep("OV", ncol(dc_expression))

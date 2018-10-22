@@ -76,11 +76,9 @@ We distinguish between three types of comparisons:
 * scores relative to the total immune cell content: allow to compare within a sample
 * scores in arbitrary units, that only allow to compare between samples.
 
-Here, we assign the methods to their respective group:
-```{r}
-abs_methods = c("cibersort_abs", "quantiseq", "epic")
-within_methods = c("cibersort", "cibersort_abs", "quantiseq", "epic")
-between_methods = c("cibersort_abs", "quantiseq", "epic", "timer", "xcell", "mcp_counter")
+```{r, include=FALSE}
+abs_methods = config$abs_methods_validation
+within_methods = config$methods_within_sample_comparison 
 ```
 
 ## Between- and within-sample comparisons
@@ -220,7 +218,6 @@ Works for all methods except CIBERSORT.
 
 ```{r, fig.width=12, fig.height=12, echo=FALSE, fig.cap="Correlations of known vs. predicted fractions for each cell type independenctly. The 'Tcell' column corresponds to the amount of profiled total T cells or the sum of CD4+ and CD8+ T cells respectively. "}
 all_results_ref %>%
-  # filter(!(cell_type == "T cell" & dataset != "hoek")) %>%
   ggplot(aes(x=true_fraction, y=estimate)) +
     geom_point(aes(color=cell_type, shape=dataset)) +
     scale_color_manual(values=color_scales$validation) +

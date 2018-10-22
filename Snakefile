@@ -111,6 +111,7 @@ rule test_immunedeconv:
     "envs/bookdown.yml"
   shell:
     "cd immunedeconv && "
+    "echo 'not necessary - uses conda env' > .dev_deps_installed && "
     "make test"
 
 

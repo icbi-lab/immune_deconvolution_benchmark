@@ -25,7 +25,7 @@
 <meta name="author" content="Gregor Sturm (1,2,*), Francesca Finotello (3), Florent Petitprez (4,5), Jitao David Zhang (6), Jan Baumbach (1), Wolf H. Fridman (4), Markus List (7), Tatsiana Aneichyk (2)">
 
 
-<meta name="date" content="2018-10-19">
+<meta name="date" content="2018-10-22">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -238,10 +238,6 @@ We distinguish between three types of comparisons:</p>
 <li>scores relative to the total immune cell content: allow to compare within a sample</li>
 <li>scores in arbitrary units, that only allow to compare between samples.</li>
 </ul>
-<p>Here, we assign the methods to their respective group:</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1">abs_methods =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;cibersort_abs&quot;</span>, <span class="st">&quot;quantiseq&quot;</span>, <span class="st">&quot;epic&quot;</span>)</a>
-<a class="sourceLine" id="cb17-2" data-line-number="2">within_methods =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;cibersort&quot;</span>, <span class="st">&quot;cibersort_abs&quot;</span>, <span class="st">&quot;quantiseq&quot;</span>, <span class="st">&quot;epic&quot;</span>)</a>
-<a class="sourceLine" id="cb17-3" data-line-number="3">between_methods =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;cibersort_abs&quot;</span>, <span class="st">&quot;quantiseq&quot;</span>, <span class="st">&quot;epic&quot;</span>, <span class="st">&quot;timer&quot;</span>, <span class="st">&quot;xcell&quot;</span>, <span class="st">&quot;mcp_counter&quot;</span>)</a></code></pre></div>
 <div id="between--and-within-sample-comparisons" class="section level2">
 <h2><span class="header-section-number">5.1</span> Between- and within-sample comparisons</h2>
 <p>Only works for methods providing an absolute score (cibersort_abs, quantiseq, epic).
@@ -302,7 +298,7 @@ Figure 5.6: Correlations of known vs. predicted fractions for each cell type in
 We only use cell types with at least 5 samples to obtain reasonable
 correlation estimates. We also exclude the T-cell supercategory to
 avoid redundancies.</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1">use_cell_types2 =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>, <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1">use_cell_types2 =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>, <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</a></code></pre></div>
 <div class="figure"><span id="fig:unnamed-chunk-46"></span>
 <img src="_main_files/figure-html/unnamed-chunk-46-1.png" alt="Performance on validation datasets by cell type. The last column shows the mean over all cell types. " width="480" />
 <p class="caption">

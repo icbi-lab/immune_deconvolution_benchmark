@@ -48,7 +48,7 @@ expr_all = bind_rows(
 sig_genes = EPIC::TRef$sigGenes
 TIL10 = read_tsv("../immunedeconv/inst/extdata/quantiseq/TIL10_signature.txt")
 sig_genes %<>% c(TIL10$ID)
-if("cibersort" %in% deconvolution_methods) {
+if("cibersort" %in% config$deconvolution_methods) {
   LM22 = read_tsv(immunedeconv::config_env$cibersort_mat)
   sig_genes %<>% c(LM22$`Gene symbol`)
 }
@@ -194,7 +194,7 @@ all_results %>%
     stat_cor()
 ```
 
-The same, but only with the cell types we look at: 
+The same, but only with the cell types we look at:
 ```{r corr-only-cell-types, include=FALSE}
 show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
                     "NK cell", "T cell CD4+", "T cell CD4+ (non-regulatory)",
@@ -202,7 +202,7 @@ show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
                     "Cancer associated fibroblast", "Endothelial cell")
 
 all_results_simulated2 = lapply(names(all_results_simulated), function(method) {
-  all_results_simulated[[method]] %>% 
+  all_results_simulated[[method]] %>%
     select(-method, -source) %>%
     map_result_to_celltypes(show_cell_types, method) %>%
     as_tibble(rownames="cell_type") %>%
@@ -210,7 +210,7 @@ all_results_simulated2 = lapply(names(all_results_simulated), function(method) {
 })
 
 all_results_bulk2 = lapply(names(all_results_bulk), function(method) {
-  all_results_bulk[[method]] %>% 
+  all_results_bulk[[method]] %>%
     select(-method, -source) %>%
     map_result_to_celltypes(show_cell_types, method) %>%
     as_tibble(rownames="cell_type") %>%
@@ -218,8 +218,8 @@ all_results_bulk2 = lapply(names(all_results_bulk), function(method) {
 })
 
 only_cd4 = c("epic", "timer") # methods that do not estimate subtypes of CD4+ T cells
-# -> we don't include them in all methods, because it's a sum of the subtypes 
-# and therefore the corresponding values would be over-represented. 
+# -> we don't include them in all methods, because it's a sum of the subtypes
+# and therefore the corresponding values would be over-represented.
 
 all_results2 = bind_rows(all_results_bulk2, all_results_simulated2) %>%
   # select(cell_type, `7873M`, `7882M`, `7892M`, source, method) %>%
@@ -237,7 +237,7 @@ all_results2 %>%
   ggplot(aes(x = bulk, y=simulated)) +
     geom_point(aes(colour=cell_type)) +
     facet_wrap(~method, scales="free") +
-    stat_cor() + 
+    stat_cor() +
     scale_color_manual(values=color_scales$simulation)
 ```
 

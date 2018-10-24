@@ -75,6 +75,10 @@ plot_cor_table = function(data, dataset="none") {
 ```
 
 
+
+
+
+
 ## Predictions on simulated vs. genuine bulk
 ```{r, method-validity-f1a, fig.width=7, fig.height=2, message=FALSE, warning=FALSE, echo=FALSE, fig.cap="Predictions on simulated vs. genuine bulk"}
 fun_breaks3 = function(limits) {
@@ -304,6 +308,23 @@ data %>%
 
 ggsave("../results/figures/detection_limit_fp.pdf", width = WIDTH, height=170, units = "mm")
 ggsave("../results/figures/detection_limit_fp.png", width = WIDTH, height=170, units = "mm", dpi=600)
+```
+
+```{r summary-table-tsv, include=FALSE}
+summary_table = res_mixing_study$correlations %>%
+  inner_join(cell_type_names) %>%
+  inner_join(method_names) %>%
+  select(cell_type_name, method_name, pearson) %>% 
+  full_join(data_detection_limit) %>%
+  full_join(data_false_positives) %>%
+  mutate(min_frac=round(min_frac, 3), fp_prediction=round(fp_prediction, 3)) %>%
+  mutate(pearson=if_else(pearson < 0, "< 0", as.character(round(pearson, 2)))) %>% 
+  select(`cell type`=cell_type_name, `method`=method_name, correlation=pearson, 
+         `detection limit`=min_frac, `false positives`=fp_prediction)
+
+summary_table %>% 
+  write_tsv("../results/tables/summary_table.tsv")
+
 ```
 
 ## Migration charts for Spillover analysis

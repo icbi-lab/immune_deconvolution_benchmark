@@ -108,21 +108,20 @@ all_results = foreach(method = config$deconvolution_methods,
                           mutate(method=method) %>%
                           inner_join(n_cell_df, by="sample")
                       } %>%
-  mutate(frac_immune_cells = as.factor(round(n_immune_cells/sum(cell_types$n_background_cells) * 100, 2)))
+  mutate(frac_immune_cells = n_immune_cells/sum(cell_types$n_background_cells))
 
-all_results2 = all_results %>%
+all_results_ci = all_results %>%
   select(-sample) %>%
   group_by_at(vars(-estimate)) %>%
   summarise_all(funs(mean, sd, n=length)) %>%
   mutate(ci=qt(0.975,df=n-1)*sd/sqrt(n)) %>%
-  mutate(frac_immune_cells_numeric = as.numeric(as.character(frac_immune_cells))) %>% 
   ungroup()
 ```
 
 ## Predictions with increasing immune cell content
 ```{r, fig.height=18, fig.width=32, echo=FALSE, fig.cap="We add an increasing amount of each cell type independently to the 1,800 background cells. The figure shows the predictions for each cell type and method at increasing infiltration levels. Tip: right-click, 'open in new tab' to enlarge!"}
-all_results2 %>%
-  ggplot(aes(x=frac_immune_cells_numeric, y=mean, colour=cell_type)) +
+all_results_ci %>%
+  ggplot(aes(x=frac_immune_cells, y=mean, colour=cell_type)) +
   #   geom_line() +
     geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) +
     theme_bw() +
@@ -134,90 +133,41 @@ all_results2 %>%
 
 
 ## Detection Limit and False positives
+```{r detection-limit, include=FALSE}
+prediction_at_zero = all_results %>% filter(frac_immune_cells == 0) %>%
+  filter(cell_type == input_cell_type) %>% 
+  select(method, cell_type, background=estimate) %>% 
+  group_by(method, cell_type) %>% 
+  mutate(sample_n = 1:n()) %>% 
+  arrange(method, cell_type)
 
-```{r prepare-data-detection-limit-fp, warning=FALSE, message=FALSE, cache=TRUE, echo=FALSE}
-# add fallback values, if none of the fractions exceed the specified value
-results_inf_fallback = all_results2 %>%
-  select(cell_type, method, input_cell_type) %>%
-  distinct() %>%
-  mutate(mean = if_else(cell_type == input_cell_type, Inf, 0), ci=0, frac_immune_cells = as.factor(Inf))
+t_test = function(x, y) {
+  res = t.test(x, y, paired=FALSE, alternative = "greater")
+  res$p.value
+}
 
-# omit unnecessary columns and append fallback Inf valuees
-all_results3 = all_results2 %>%
-  select(cell_type, method, input_cell_type, mean, ci, frac_immune_cells) %>%
-  bind_rows(results_inf_fallback)
-
-# add the 'reference cell type', i.e. the celltype that *should* be there as an additional column
-ref_cell_type = all_results3 %>%
-  filter(cell_type == input_cell_type) %>%
-  select(input_cell_type, method, frac_immune_cells, ref_mean=mean, ref_ci=ci)
-
-all_combinations = crossing(method=config$deconvolution_methods, input_cell_type=show_cell_types)
-
-# filter and summarise, s.t. we end up having the minimal fraction at which the celltype is distinguishable from the others
-sensitivity_plot = all_results3 %>%
-  filter(cell_type != input_cell_type) %>%
-  select(cell_type, method, input_cell_type, mean, ci, frac_immune_cells) %>%
-  inner_join(ref_cell_type) %>%
-  # at least 0.001 predicted to avoid numerical problems with very small values (-> xCell).
-  # mutate(significantly_enriched = ref_mean-ci > mean+ci & ref_mean > 1e-3) %>%
-  mutate(significantly_enriched = ref_mean-ci > 0 & ref_mean > 1e-4) %>%
-  filter(significantly_enriched) %>%
-  group_by(method, input_cell_type, cell_type) %>%
-  summarise(min_frac = min(as.numeric(as.character(frac_immune_cells)))) %>%
-  group_by(method, input_cell_type) %>%
-  # must exceed *all* other cell types
-  summarise(min_frac = max(as.numeric(as.character(min_frac)))) %>%
-  right_join(all_combinations)
-
-res_sensitivity$all_results = all_results3
-res_sensitivity$sensitivity = sensitivity_plot
+background_data = all_results %>%
+  filter(cell_type == input_cell_type) %>% 
+  select(method, cell_type, estimate, frac_immune_cells) %>% 
+  group_by(method, cell_type, frac_immune_cells) %>% 
+  mutate(sample_n = 1:n()) %>% 
+  arrange(method, cell_type, frac_immune_cells) %>% 
+  inner_join(prediction_at_zero) %>% 
+  group_by(method, cell_type, frac_immune_cells) %>%
+  summarise(n=n(), mean=mean(estimate), sd=sd(estimate), p_value=t_test(estimate, background)) %>%
+  mutate(ci=qt(0.975,df=n-1)*sd/sqrt(n))
 ```
-
-
-```{r sens_table, echo=FALSE, message=FALSE, warning=FALSE}
-sensitivity_plot %>%
-  mutate(min_frac = ifelse(is.infinite(min_frac), 100, min_frac)) %>%
-  mutate(min_frac = min_frac / 100) %>%
-  spread(input_cell_type, min_frac) %>%
-  write_tsv("../results/tables/detection_limit.tsv", na="")
-```
-
-
-```{r sens_spec_table, echo=FALSE, message=FALSE}
-sens_spec_table = all_results %>%
-  filter(frac_immune_cells == 0, cell_type == input_cell_type) %>%
-  select(cell_type, method, estimate) %>%
-  group_by(cell_type, method) %>%
-  summarise(median_estimate=median(estimate)) %>%
-  spread(cell_type, median_estimate)
-
-sens_spec_table %>%
-  write_tsv("../results/tables/false_positives.tsv", na="")
-```
-
-```{r sens_spec_data, fig.height=6, fig.width=6, echo=FALSE}
-specificity_data = all_results %>%
-  select(-sample) %>%
-  filter(frac_immune_cells == 0) 
-
-res_sensitivity$specificity = specificity_data
-```
-
 
 ```{r, warning=FALSE, message=FALSE, echo=FALSE, warning=FALSE, fig.width=10, fig.height=10, fig.cap="Detection limit and false positive predictions. The plots show the average estimate of each method for five simulated bulk RNA-seq datasets randomly sampled from ~1,800 non-immune cells and an increasing fraction of a specific immune cell type. The grey ribbon indicates the standard deviation. The red line refers to the detection limit, i.e. the minimal fraction of an immune cell type needed for a method to reliably detect its abundance as significantly different from zero (p-value < 0.05, two-sided t-test). The blue line refers to the false-positive prediction rate, i.e. the average estimate of a method with no immune cells present. "}
-data = res_sensitivity$all_results %>% 
-  filter(cell_type == input_cell_type) %>%
-  mutate(frac_immune_cells = as.numeric(frac_immune_cells)/100) %>%
-  filter(frac_immune_cells < .4) 
-
-data_detection_limit = res_sensitivity$sensitivity %>%
-  rename(cell_type = input_cell_type) %>% 
-  mutate(min_frac = as.numeric(min_frac)/100)
-
-data_false_positives = res_sensitivity$specificity %>% 
+data_detection_limit = background_data %>% 
   group_by(method, cell_type) %>% 
-  summarise(fp_prediction = mean(estimate)) 
+  # we look for the minimal fraction, at which the prediction is significantly different from the background. 
+  filter(p_value < 0.05) %>% 
+  summarise(min_frac = min(frac_immune_cells))
+
+data_false_positives = prediction_at_zero %>% 
+  group_by(method, cell_type) %>% 
+  summarise(fp_prediction = mean(background)) 
 
 fun_breaks2 = function(limits) {
   breaks = signif(max(limits) * c(0, 0.5),1)
@@ -225,7 +175,7 @@ fun_breaks2 = function(limits) {
   breaks
 }
 
-data %>%
+background_data %>%
   ggplot(aes(x=frac_immune_cells, y=mean)) + 
     geom_ribbon(aes(ymin=mean-ci, ymax=mean+ci), alpha=.2) + 
     geom_point(size=.2, shape=4) + 
@@ -246,11 +196,19 @@ data %>%
     scale_color_manual(values=c("zero"="grey", "detection limit"="red", "false positive fraction"="blue"), guide=guide_legend("performance measure", override.aes = list(alpha=1)))  
 ```
 
+```{r, include=FALSE}
+res_sensitivity$all_results = all_results
+res_sensitivity$background_data = background_data
+res_sensitivity$data_detection_limit = data_detection_limit
+res_sensitivity$data_false_positives = data_false_positives
+
+```
+
 
 ```{r, sens-spec-plot, fig.height=3, fig.width=12, echo=FALSE, fig.cap="Predicted amount of a certain cell type while it is actually absent. This analysis is based on all of the data above where only background cells are present, i.e. fraction of immune cells = 0."}
-specificity_data %>%
+prediction_at_zero %>%
   filter(method != "mcp_counter") %>% 
-  ggplot(aes(x=cell_type, y=estimate)) +
+  ggplot(aes(x=cell_type, y=background)) +
     geom_boxplot(position="dodge") +
     facet_wrap(~method, nrow=1) +
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),

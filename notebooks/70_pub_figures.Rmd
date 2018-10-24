@@ -261,23 +261,16 @@ ggsave("../results/figures/summary.png", height = 210, width = WIDTH, units = "m
 
 ## detection limit / false positive figure
 ```{r detection-limit-fp, fig.width=6.9, fig.height=6.5, message=FALSE, warning=FALSE, echo=FALSE, fig.cap="Detection limit and false positives."}
-data = res_sensitivity$all_results %>% 
-  filter(cell_type == input_cell_type) %>%
-  mutate(frac_immune_cells = as.numeric(frac_immune_cells)/100) %>%
-  filter(frac_immune_cells < .4) %>% 
-  inner_join(method_names) %>%
-  inner_join(cell_type_names) 
-
-data_detection_limit = res_sensitivity$sensitivity %>%
-  rename(cell_type = input_cell_type) %>% 
-  inner_join(method_names) %>%
-  inner_join(cell_type_names) %>%
-  mutate(min_frac = as.numeric(min_frac)/100)
-
-data_false_positives = res_sensitivity$specificity %>% 
-  group_by(method, cell_type) %>% 
-  summarise(fp_prediction = mean(estimate)) %>% 
+data = res_sensitivity$background_data %>% 
   inner_join(method_names) %>% 
+  inner_join(cell_type_names)
+
+data_detection_limit = res_sensitivity$data_detection_limit %>% 
+  inner_join(method_names) %>% 
+  inner_join(cell_type_names)
+
+data_false_positives = res_sensitivity$data_false_positives %>% 
+  inner_join(method_names) %>%
   inner_join(cell_type_names)
 
 fun_breaks2 = function(limits) {
@@ -320,7 +313,8 @@ summary_table = res_mixing_study$correlations %>%
   mutate(min_frac=round(min_frac, 3), fp_prediction=round(fp_prediction, 3)) %>%
   mutate(pearson=if_else(pearson < 0, "< 0", as.character(round(pearson, 2)))) %>% 
   select(`cell type`=cell_type_name, `method`=method_name, correlation=pearson, 
-         `detection limit`=min_frac, `false positives`=fp_prediction)
+         `detection limit`=min_frac, `false positives`=fp_prediction) %>%
+  arrange(`cell type`, `method`)
 
 summary_table %>% 
   write_tsv("../results/tables/summary_table.tsv")

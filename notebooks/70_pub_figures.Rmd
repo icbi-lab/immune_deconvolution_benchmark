@@ -251,7 +251,7 @@ plot_validation = plot_grid(p2_validation_all_datasets, p2_validation_hoek, p2_v
           label_size = 12,
           rel_widths = c(.69, .41, .11, .11))
 
-plot_grid(plot_mixing, plot_validation, align="h", ncol=1, axis="lr", labels = "AUTO", rel_heights = c(.7, .33))
+plot_grid(plot_mixing, plot_validation, align="h", ncol=1, axis="lr", labels = "auto", rel_heights = c(.7, .33))
 
 ggsave("../results/figures/summary.pdf", height = 210, width = WIDTH, units = "mm")
 ggsave("../results/figures/summary.png", height = 210, width = WIDTH, units = "mm", dpi=600)
@@ -267,11 +267,13 @@ data = res_sensitivity$background_data %>%
 
 data_detection_limit = res_sensitivity$data_detection_limit %>% 
   inner_join(method_names) %>% 
-  inner_join(cell_type_names)
+  inner_join(cell_type_names) %>% 
+  ungroup()
 
 data_false_positives = res_sensitivity$data_false_positives %>% 
   inner_join(method_names) %>%
-  inner_join(cell_type_names)
+  inner_join(cell_type_names) %>% 
+  ungroup()
 
 fun_breaks2 = function(limits) {
   breaks = signif(max(limits) * c(0, 0.5),1)
@@ -286,18 +288,19 @@ data %>%
     # geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) + 
     panel_border() + 
     facet_grid(method_name ~ cell_type_name, scales = "free_y") + 
-    scale_x_continuous(breaks=c(.0, .3)) +
+    scale_x_continuous(breaks=c(.0, .2), limits=c(0, 0.25)) +
     scale_y_continuous(breaks=fun_breaks2) +
     geom_hline(mapping=aes(yintercept=0, colour="zero"), linetype="dashed", show.legend=FALSE) + 
     geom_vline(mapping=aes(xintercept = 0, color="zero"), linetype="dashed", show.legend=FALSE) + 
-    geom_vline(data=data_detection_limit, mapping=aes(xintercept=min_frac, colour="detection limit"), show.legend = FALSE) + 
-    geom_hline(data=data_false_positives, mapping=aes(yintercept=fp_prediction, colour="false positive fraction")) + 
+    # geom_abline(mapping=aes(slope=1, intercept=0), color="grey", linetype="solid", show.legend = FALSE) +
+    geom_vline(data=data_detection_limit, mapping=aes(xintercept=min_frac, colour="minimal detection fraction"), show.legend = FALSE) + 
+    geom_hline(data=data_false_positives, mapping=aes(yintercept=fp_prediction, colour="background prediction fraction")) + 
     geom_hline(yintercept = 0, mapping = aes(colour="detection limit"), alpha=0) + # fake line to fix legend
     ylab("average estimate") + 
     xlab("fraction of spike-in cells") + 
     theme(legend.position = "top", strip.text=element_text(size=6), 
           panel.spacing = unit(1, "mm"), axis.text = element_text(size=8)) + 
-    scale_color_manual(values=c("zero"="grey", "detection limit"="red", "false positive fraction"="blue"), guide=guide_legend("performance measure", override.aes = list(alpha=1)))  
+    scale_color_manual(values=c("zero"="grey", "minimal detection fraction"="red", "background prediction fraction"="blue"), guide=guide_legend("performance measure", override.aes = list(alpha=1)))  
 
 ggsave("../results/figures/detection_limit_fp.pdf", width = WIDTH, height=170, units = "mm")
 ggsave("../results/figures/detection_limit_fp.png", width = WIDTH, height=170, units = "mm", dpi=600)
@@ -308,8 +311,8 @@ summary_table = res_mixing_study$correlations %>%
   inner_join(cell_type_names) %>%
   inner_join(method_names) %>%
   select(cell_type_name, method_name, pearson) %>% 
-  full_join(data_detection_limit) %>%
-  full_join(data_false_positives) %>%
+  full_join(select(data_detection_limit, method_name, cell_type_name, min_frac)) %>%
+  full_join(select(data_false_positives, method_name, cell_type_name, fp_prediction)) %>%
   mutate(min_frac=round(min_frac, 3), fp_prediction=round(fp_prediction, 3)) %>%
   mutate(pearson=if_else(pearson < 0, "< 0", as.character(round(pearson, 2)))) %>% 
   select(`cell type`=cell_type_name, `method`=method_name, correlation=pearson, 
@@ -410,7 +413,7 @@ rmgenes_plot = res_spillover$rm_marker_genes %>%
 ```{r fig.width = 8, fig.height=9, echo=FALSE, message=FALSE, fig.cap="Migration chart figure for paper. "}
 # combine legend and plot
 plot_grid(migration_plot, migration_legend, rmgenes_plot,
-          nrow=3, rel_heights = c(0.7, .15, .4), align = "v", labels = c("A", "", "B"), axis="t")
+          nrow=3, rel_heights = c(0.7, .15, .4), align = "v", labels = c("a", "", "b"), axis="t")
 
 ggsave("../results/figures/spillover_migration_chart.pdf", width=WIDTH, height=195, units = "mm")
 ggsave("../results/figures/spillover_migration_chart.png", width=WIDTH, height=195, units = "mm", dpi=600)

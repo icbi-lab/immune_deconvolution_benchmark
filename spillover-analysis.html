@@ -25,7 +25,7 @@
 <meta name="author" content="Gregor Sturm (1,2,*), Francesca Finotello (3), Florent Petitprez (4,5), Jitao David Zhang (6), Jan Baumbach (1), Wolf H. Fridman (4), Markus List (7), Tatsiana Aneichyk (2)">
 
 
-<meta name="date" content="2018-10-22">
+<meta name="date" content="2018-10-30">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -227,8 +227,8 @@ known as “spillover”.</p>
 <a class="sourceLine" id="cb19-2" data-line-number="2">                    <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</a></code></pre></div>
 <div id="complete-spillover-matrix" class="section level2">
 <h2><span class="header-section-number">7.1</span> Complete Spillover Matrix</h2>
-<div class="figure"><span id="fig:unnamed-chunk-56"></span>
-<img src="_main_files/figure-html/unnamed-chunk-56-1.png" alt="This figure shows the spillover for all methods, cell types and datasets" width="2304" />
+<div class="figure"><span id="fig:unnamed-chunk-57"></span>
+<img src="_main_files/figure-html/unnamed-chunk-57-1.png" alt="This figure shows the spillover for all methods, cell types and datasets" width="2304" />
 <p class="caption">
 Figure 7.1: This figure shows the spillover for all methods, cell types and datasets
 </p>
@@ -240,8 +240,8 @@ Figure 7.1: This figure shows the spillover for all methods, cell types and data
 Signal is defined as the predicted fraction of the cell type that is actually present.
 The signal ratio is defined as <span class="math inline">\(\frac{\text{signal}}{\text{signal+noise}}\)</span>. Higher values
 indicate less noise (i.e. predictions of cell types that are not there).</p>
-<div class="figure"><span id="fig:unnamed-chunk-58"></span>
-<img src="_main_files/figure-html/unnamed-chunk-58-1.png" alt="Signal ratios for each cell type and dataset. " width="960" />
+<div class="figure"><span id="fig:unnamed-chunk-59"></span>
+<img src="_main_files/figure-html/unnamed-chunk-59-1.png" alt="Signal ratios for each cell type and dataset. " width="960" />
 <p class="caption">
 Figure 7.2: Signal ratios for each cell type and dataset.
 </p>
@@ -250,8 +250,8 @@ Figure 7.2: Signal ratios for each cell type and dataset.
 <div id="summary-figure-migration-charts" class="section level2">
 <h2><span class="header-section-number">7.3</span> Summary figure: migration charts</h2>
 <p>Download this figure as high quality <a href="figures/spillover_migration_all.pdf">pdf</a></p>
-<div class="figure"><span id="fig:unnamed-chunk-60"></span>
-<img src="_main_files/figure-html/unnamed-chunk-60-1.png" alt="migration charts for all three dataset. The 'flow' indicates which cell types have been predicted instead of the truly abundant cell type. The value in the middle of the chart indicates the 'noise ratio', i.e. the sum of all false positive predictions." width="960" />
+<div class="figure"><span id="fig:unnamed-chunk-61"></span>
+<img src="_main_files/figure-html/unnamed-chunk-61-1.png" alt="migration charts for all three dataset. The 'flow' indicates which cell types have been predicted instead of the truly abundant cell type. The value in the middle of the chart indicates the 'noise ratio', i.e. the sum of all false positive predictions." width="960" />
 <p class="caption">
 Figure 7.3: migration charts for all three dataset. The ‘flow’ indicates which cell types have been predicted instead of the truly abundant cell type. The value in the middle of the chart indicates the ‘noise ratio’, i.e. the sum of all false positive predictions.
 </p>
@@ -267,79 +267,55 @@ cell reference’ dataset. In this section, we demonstrate that the single cell
 populations of DCs and B cells are both distinct and well-defined and, next,
 identify a handful of marker genes that are specific for both plasmacytoid DCs
 and B cells and drive the spillover.</p>
-First, we suspected that the effect might be due to misannotations in the single cell dataset.
-Here, we show the B cells and DCs in the t-SNE plot of the single cell dataset.
-<div class="figure"><span id="fig:unnamed-chunk-62"></span>
-<img src="_main_files/figure-html/unnamed-chunk-62-1.png" alt="B cell and DC clusters in the single cell dataset. " width="672" />
-<p class="caption">
-Figure 7.4: B cell and DC clusters in the single cell dataset.
-</p>
-</div>
+<p>First, we suspected that the effect might be due to misannotations in the single cell dataset.
+Here, we show the B cells and DCs in the t-SNE plot of the single cell dataset.</p>
 <p>We observe that both clusters are distinct and non-overlapping.</p>
 <p>Next, we look for the expression of typical marker genes of DCs and B cells.</p>
-<pre><code>## [[1]]</code></pre>
-<p><img src="_main_files/figure-html/unnamed-chunk-63-1.png" width="480" /></p>
-<pre><code>## 
-## [[2]]</code></pre>
-<p><img src="_main_files/figure-html/unnamed-chunk-63-2.png" width="480" /></p>
-<pre><code>## 
-## [[3]]</code></pre>
-<p><img src="_main_files/figure-html/unnamed-chunk-63-3.png" width="480" /></p>
-<pre><code>## 
-## [[4]]</code></pre>
-<p><img src="_main_files/figure-html/unnamed-chunk-63-4.png" width="480" /></p>
-<pre><code>## 
-## [[5]]</code></pre>
-<p><img src="_main_files/figure-html/unnamed-chunk-63-5.png" width="480" /></p>
-<pre><code>## 
-## [[6]]</code></pre>
-<p><img src="_main_files/figure-html/unnamed-chunk-63-6.png" width="480" /></p>
-<pre><code>## 
-## [[7]]</code></pre>
-<p><img src="_main_files/figure-html/unnamed-chunk-63-7.png" width="480" /></p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1"><span class="kw">plot_grid</span>(<span class="dt">plotlist =</span> <span class="kw">c</span>(<span class="kw">list</span>(p1), plots), <span class="dt">labels =</span> <span class="st">&quot;auto&quot;</span>)</a></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-65-1.png" width="1536" /></p>
 <p><strong>Conclusion</strong>: The B cell and DC cluster separate well, the marker genes do not overlap.
 The DC cluster are plasmacytoid DCs, mDCs are somewhere hidden in the Macrophage/Monocyte cluster
 and cannot be distinguished.</p>
 </div>
 <div id="check-expression-of-markers-in-detection-limit-simulation-dataset." class="section level2">
 <h2><span class="header-section-number">7.5</span> Check expression of markers in “detection limit” simulation dataset.</h2>
-<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb27-1" data-line-number="1">markers =<span class="st"> </span><span class="kw">list</span>(</a>
-<a class="sourceLine" id="cb27-2" data-line-number="2">  <span class="st">&quot;B cell&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;MS4A1&quot;</span>, <span class="co">#=CD20</span></a>
-<a class="sourceLine" id="cb27-3" data-line-number="3">               <span class="st">&quot;CD19&quot;</span>, <span class="st">&quot;CD22&quot;</span></a>
-<a class="sourceLine" id="cb27-4" data-line-number="4">  ),</a>
-<a class="sourceLine" id="cb27-5" data-line-number="5">  <span class="st">&quot;myleoid&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;ITGAM&quot;</span>, <span class="st">&quot;ITGAX&quot;</span>), <span class="co">#=CD11B,CD11C</span></a>
-<a class="sourceLine" id="cb27-6" data-line-number="6">  <span class="st">&quot;MHC class II&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;HLA-DRB1&quot;</span>, <span class="st">&quot;HLA-DRA&quot;</span>),</a>
-<a class="sourceLine" id="cb27-7" data-line-number="7">  <span class="st">&quot;plasmacytoid DC&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;CLEC4C&quot;</span>, <span class="st">&quot;IL3RA&quot;</span>))</a></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1">markers =<span class="st"> </span><span class="kw">list</span>(</a>
+<a class="sourceLine" id="cb21-2" data-line-number="2">  <span class="st">&quot;B cell&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;MS4A1&quot;</span>, <span class="co">#=CD20</span></a>
+<a class="sourceLine" id="cb21-3" data-line-number="3">               <span class="st">&quot;CD19&quot;</span>, <span class="st">&quot;CD22&quot;</span></a>
+<a class="sourceLine" id="cb21-4" data-line-number="4">  ),</a>
+<a class="sourceLine" id="cb21-5" data-line-number="5">  <span class="st">&quot;myleoid&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;ITGAM&quot;</span>, <span class="st">&quot;ITGAX&quot;</span>), <span class="co">#=CD11B,CD11C</span></a>
+<a class="sourceLine" id="cb21-6" data-line-number="6">  <span class="st">&quot;MHC class II&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;HLA-DRB1&quot;</span>, <span class="st">&quot;HLA-DRA&quot;</span>),</a>
+<a class="sourceLine" id="cb21-7" data-line-number="7">  <span class="st">&quot;pDC&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;CLEC4C&quot;</span>, <span class="st">&quot;IL3RA&quot;</span>))</a></code></pre></div>
 We check the abundance of the marker genes in the simulated samples of the
 dataset we used for assessing the false positive predictions and the detection
 limit.
-<div class="figure"><span id="fig:unnamed-chunk-68"></span>
-<img src="_main_files/figure-html/unnamed-chunk-68-1.png" alt="Correlation of marker genes with increase of the amount of a certain cell type. Along x-axis: cell type used for simulation. Along y-axis: marker genes. " width="1152" />
+<div class="figure"><span id="fig:unnamed-chunk-70"></span>
+<img src="_main_files/figure-html/unnamed-chunk-70-1.png" alt="Correlation of marker genes with increase of the amount of a certain cell type. Along x-axis: cell type used for simulation. Along y-axis: marker genes. " width="1152" />
 <p class="caption">
-Figure 7.5: Correlation of marker genes with increase of the amount of a certain cell type. Along x-axis: cell type used for simulation. Along y-axis: marker genes.
+Figure 7.4: Correlation of marker genes with increase of the amount of a certain cell type. Along x-axis: cell type used for simulation. Along y-axis: marker genes.
 </p>
 </div>
-<div class="figure"><span id="fig:unnamed-chunk-69"></span>
-<img src="_main_files/figure-html/unnamed-chunk-69-1.png" alt="Even though the number of dendritic cells does correlate with MS4A1, a B cell marker, the absolute expression is really low. This effect can be driven by few misclassified cells but cannot explain the spillover effects we observe. " width="288" />
+<div class="figure"><span id="fig:unnamed-chunk-71"></span>
+<img src="_main_files/figure-html/unnamed-chunk-71-1.png" alt="Even though the number of dendritic cells does correlate with MS4A1, a B cell marker, the absolute expression is really low. This effect can be driven by few misclassified cells but cannot explain the spillover effects we observe. " width="288" />
 <p class="caption">
-Figure 7.6: Even though the number of dendritic cells does correlate with MS4A1, a B cell marker, the absolute expression is really low. This effect can be driven by few misclassified cells but cannot explain the spillover effects we observe.
+Figure 7.5: Even though the number of dendritic cells does correlate with MS4A1, a B cell marker, the absolute expression is really low. This effect can be driven by few misclassified cells but cannot explain the spillover effects we observe.
 </p>
 </div>
 <div id="expression-of-marker-genes-in-the-cell-populations" class="section level3">
 <h3><span class="header-section-number">7.5.1</span> Expression of marker genes in the cell populations</h3>
 <p>For EPIC, quanTIseq and CIBERSORT, we retreive a list of all genes included in
 the signature matrices.</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" data-line-number="1"><span class="co"># quanTIseq</span></a>
-<a class="sourceLine" id="cb28-2" data-line-number="2">til10 =<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;../immunedeconv/inst/extdata/quantiseq/TIL10_signature.txt&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.data.frame</span>() <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb28-3" data-line-number="3"><span class="st">  </span><span class="kw">column_to_rownames</span>(<span class="st">&quot;ID&quot;</span>)</a>
-<a class="sourceLine" id="cb28-4" data-line-number="4"></a>
-<a class="sourceLine" id="cb28-5" data-line-number="5"><span class="co"># EPIC</span></a>
-<a class="sourceLine" id="cb28-6" data-line-number="6">tref =<span class="st"> </span>EPIC<span class="op">::</span>TRef<span class="op">$</span>refProfiles[EPIC<span class="op">::</span>TRef<span class="op">$</span>sigGenes,]</a>
-<a class="sourceLine" id="cb28-7" data-line-number="7"></a>
-<a class="sourceLine" id="cb28-8" data-line-number="8"><span class="co"># CIBERSORT</span></a>
-<a class="sourceLine" id="cb28-9" data-line-number="9"><span class="cf">if</span>(<span class="st">&quot;cibersort&quot;</span> <span class="op">%in%</span><span class="st"> </span>config<span class="op">$</span>deconvolution_methods) {</a>
-<a class="sourceLine" id="cb28-10" data-line-number="10">  lm22 =<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;../lib/CIBERSORT/LM22.txt&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.data.frame</span>() <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">column_to_rownames</span>(<span class="st">&quot;Gene symbol&quot;</span>)</a>
-<a class="sourceLine" id="cb28-11" data-line-number="11">}</a></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" data-line-number="1"><span class="co"># quanTIseq</span></a>
+<a class="sourceLine" id="cb22-2" data-line-number="2">til10 =<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;../immunedeconv/inst/extdata/quantiseq/TIL10_signature.txt&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.data.frame</span>() <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb22-3" data-line-number="3"><span class="st">  </span><span class="kw">column_to_rownames</span>(<span class="st">&quot;ID&quot;</span>)</a>
+<a class="sourceLine" id="cb22-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb22-5" data-line-number="5"><span class="co"># EPIC</span></a>
+<a class="sourceLine" id="cb22-6" data-line-number="6">tref =<span class="st"> </span>EPIC<span class="op">::</span>TRef<span class="op">$</span>refProfiles[EPIC<span class="op">::</span>TRef<span class="op">$</span>sigGenes,]</a>
+<a class="sourceLine" id="cb22-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb22-8" data-line-number="8"><span class="co"># CIBERSORT</span></a>
+<a class="sourceLine" id="cb22-9" data-line-number="9"><span class="cf">if</span>(<span class="st">&quot;cibersort&quot;</span> <span class="op">%in%</span><span class="st"> </span>config<span class="op">$</span>deconvolution_methods) {</a>
+<a class="sourceLine" id="cb22-10" data-line-number="10">  lm22 =<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;../lib/CIBERSORT/LM22.txt&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.data.frame</span>() <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">column_to_rownames</span>(<span class="st">&quot;Gene symbol&quot;</span>)</a>
+<a class="sourceLine" id="cb22-11" data-line-number="11">}</a></code></pre></div>
 <p>For each marker gene, we show the expression in all cell type populations in
 the single cell dataset. We sort the list by the product of the mean expression
 in B cells and Dendritic cells to obtain a ranked list of genes
@@ -360,15 +336,15 @@ You can view the plots in full quality as PDF under the following links:</p>
 <a href="https://www.genecards.org">genecards.org</a>, and took note of those that
 were indeed annotated as being specific for both B cells and plasmacytoid
 dendritic cells in the LifeMap Discovery database.</p>
-<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb29-1" data-line-number="1">B_pDC_genes =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;TCL1A&quot;</span>, <span class="st">&quot;TCF4&quot;</span>, <span class="st">&quot;CD37&quot;</span>, <span class="st">&quot;SPIB&quot;</span>, <span class="st">&quot;BCL11A&quot;</span>, <span class="st">&quot;IRF8&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" data-line-number="1">B_pDC_genes =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;TCL1A&quot;</span>, <span class="st">&quot;TCF4&quot;</span>, <span class="st">&quot;CD37&quot;</span>, <span class="st">&quot;SPIB&quot;</span>, <span class="st">&quot;BCL11A&quot;</span>, <span class="st">&quot;IRF8&quot;</span>)</a></code></pre></div>
 <p>To assess the effects on deconvolution, we generate
 10 simulated dendritic cell samples, run the deconvolution once
 with default options and once with the marker genes removed, and
 check the ‘spillover’ to B cells.</p>
-<div class="figure"><span id="fig:unnamed-chunk-74"></span>
-<img src="_main_files/figure-html/unnamed-chunk-74-1.png" alt="Predictions on 10 simulated DC samples before and after removal of the six genes. " width="1152" />
+<div class="figure"><span id="fig:unnamed-chunk-76"></span>
+<img src="_main_files/figure-html/unnamed-chunk-76-1.png" alt="Predictions on 10 simulated DC samples before and after removal of the six genes. " width="1152" />
 <p class="caption">
-Figure 7.7: Predictions on 10 simulated DC samples before and after removal of the six genes.
+Figure 7.6: Predictions on 10 simulated DC samples before and after removal of the six genes.
 </p>
 </div>
 

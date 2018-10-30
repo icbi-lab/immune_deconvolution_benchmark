@@ -1,6 +1,6 @@
 # Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data
 
-Sturm, G. and Aneichyk T. *Manuscript in preparation.*
+Sturm, Finotello et al. *Manuscript in preparation.*
 
 The source code in this project can be used to reproduce the results
 described in the paper. Additionally, the pipeline can be easily

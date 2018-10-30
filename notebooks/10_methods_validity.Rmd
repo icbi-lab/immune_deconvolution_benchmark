@@ -130,7 +130,11 @@ goBioQCres <- cbind(goBioQClistAnno,
 Below we display the terms that, under moderate stringency of filtering (Benjamini-Hochberg FDR<0.01), shows significant enrichment in either direction.
 
 ```{r, echo=FALSE}
-subset(goBioQCres, FDR<0.01) %>% arrange(BioQC.Qvalue) %>% DT::datatable(options = list("scrollX"="500px")) %>% DT::formatSignif(columns=c("BioQC.twosided.pvalue", "BioQC.Qvalue", "FDR", "Bonferroni"), digits = 2)
+immuneRes = subset(goBioQCres, FDR<0.01) %>% arrange(BioQC.Qvalue)
+
+immuneRes %>% write_tsv("../results/tables/go_enrichment_bulk_single_cell.tsv")
+
+immuneRes %>% DT::datatable(options = list("scrollX"="500px")) %>% DT::formatSignif(columns=c("BioQC.twosided.pvalue", "BioQC.Qvalue", "FDR", "Bonferroni"), digits = 2)
 ```
 
 Interstingly, there are many terms that are highly significantly over- or underrepresented in simulated versus genuine bulk RNA-seq samples. We currently have no explanation for that.
@@ -151,7 +155,10 @@ isImmune <- with(goBioQCres,
                                     grepl("antigen\\b", TERM, ignore.case=TRUE) |
                                     grepl("macrophage\\b", TERM, ignore.case=TRUE) |
                                     grepl("dendritic cell\\b", TERM, ignore.case=TRUE))
-immuneRes <- goBioQCres %>% filter(isImmune)
+immuneRes <- goBioQCres %>% filter(isImmune) %>% arrange(FDR)
+
+immuneRes %>% write_tsv("../results/tables/go_enrichment_immune_bulk_single_cell.tsv")
+
 immuneRes %>% arrange(FDR) %>% DT::datatable(options = list(scrollX="500px")) %>% DT::formatSignif(columns=c("BioQC.twosided.pvalue", "BioQC.Qvalue", "FDR", "Bonferroni"))
 ```
 
@@ -258,10 +265,14 @@ genuine_bulk_expr_mat = cbind(schelker_ovarian$expr_mat[bulk_genes, ], immune_ce
 ```
 
 ```{r, cache=TRUE, message=FALSE, echo=FALSE}
-xcell_bulk = deconvolute(genuine_bulk_expr_mat, "xcell", indications=timer_indications) %>%
+xcell_bulk = deconvolute(genuine_bulk_expr_mat, "xcell") %>%
+    # map_result_to_celltypes(show_cell_types, "xcell") %>%
+    # as_tibble(rownames="cell_type") %>% 
     mutate(source="bulk")
 
-xcell_simulated = deconvolute(simulated_bulk_expr_mat, "xcell", indications=timer_indications) %>%
+xcell_simulated = deconvolute(simulated_bulk_expr_mat, "xcell") %>%
+    # map_result_to_celltypes(show_cell_types, "xcell") %>%
+    # as_tibble(rownames="cell_type") %>% 
     mutate(source="mean")
 
 xcell_all = bind_rows(xcell_bulk, xcell_simulated) %>%
@@ -272,8 +283,11 @@ xcell_all = bind_rows(xcell_bulk, xcell_simulated) %>%
 
 ```{r, fig.width=8, fig.height=3, echo=FALSE, fig.cap="Correlation of xCell's prediction on both simulated and genuine bulk RNA-seq samples, including additional samples to increase the variance. "}
 xcell_all %>%
-  ggplot(aes(x=bulk, y=mean)) + geom_point(aes(colour=cell_type)) + stat_cor() + guides(color=guide_legend(ncol=2))
-
+  ggplot(aes(x=bulk, y=mean)) +
+  geom_point(aes(colour=cell_type)) +
+  stat_cor() + 
+  guides(color=guide_legend(ncol=2)) # + 
+  # scale_color_manual(values=color_scales$simulation)
 ```
 
 

@@ -16,12 +16,12 @@ mat = mat %>% filter(source != "pbmc")
 First, we suspected that the effect might be due to misannotations in the single cell dataset.
 Here, we show the B cells and DCs in the t-SNE plot of the single cell dataset.
 ```{r, fig.cap="B cell and DC clusters in the single cell dataset. ", echo=FALSE}
-mat %>%
+p1 = mat %>%
   mutate(cell_type = ifelse(!cell_type %in% c("Dendritic cell", "B cell"), "other", cell_type)) %>%
   ggplot(aes(x=tsneX1, y=tsneX2, colour=cell_type)) +
            geom_point(size=1) +
            theme(legend.position="right") +
-#           scale_color_manual(values=color_scales$cell_types) +
+           scale_color_brewer(type="qual", palette=2) +
            guides(colour=guide_legend(ncol = 1, override.aes= list(size=4))) +
            xlab("tSNE-1") +
            ylab("tSNE-2") +
@@ -31,13 +31,19 @@ We observe that both clusters are distinct and non-overlapping.
 
 Next, we look for the expression of typical marker genes of DCs and B cells.
 ```{r, fig.width=5, fig.height=4, echo=FALSE, message=FALSE, warning=FALSE}
-foreach(gene = c("MS4A1", "CD19", "ITGAM", "ITGAX", "CLEC4C", "IL3RA", "TCL1A"),
-        cell_type = c("B cell", "B cell", "myleoid", "myleoid", "plasmacytoid DCs", "plasmacytoid DCs", "??")) %do% {
+plots = foreach(gene = c("MS4A1", "CD19", "ITGAM", "ITGAX", "CLEC4C", "IL3RA", "TCL1A"),
+        cell_type = c("B cell", "B cell", "myleoid", "myleoid", "plasmacytoid DCs", "plasmacytoid DCs", "plasmacytoid/B")) %do% {
           mat %>% ggplot(aes(x=tsneX1, y=tsneX2)) +
             geom_point(aes_string(colour=gene), size=.4) +
-#            scale_colour_distiller(palette="RdBu") +
+            scale_colour_distiller(palette="RdYlBu", trans="log1p") +
             ggtitle(paste(gene, "-", cell_type))
         }
+```
+
+
+```{r, fig.width=16, fig.height=13}
+plot_grid(plotlist = c(list(p1), plots), labels = "auto")
+
 ```
 
 **Conclusion**: The B cell and DC cluster separate well, the marker genes do not overlap.
@@ -79,7 +85,7 @@ markers = list(
   ),
   "myleoid" = c("ITGAM", "ITGAX"), #=CD11B,CD11C
   "MHC class II" = c("HLA-DRB1", "HLA-DRA"),
-  "plasmacytoid DC" = c("CLEC4C", "IL3RA"))
+  "pDC" = c("CLEC4C", "IL3RA"))
 ```
 
 We check the abundance of the marker genes in the simulated samples of the
@@ -94,8 +100,10 @@ alldata2 %>% filter(gene %in% allmarkers) %>%
   inner_join(markers_df) %>%
   ggplot(aes(x=ncell, y=TPM)) +
     geom_point(aes(colour=gene)) +
-    facet_grid(gene~celltype, scales = "free_y") +
-    scale_color_brewer(palette="Set3") + stat_cor()
+    facet_grid(markers_for+gene~celltype, scales = "free_y") +
+    scale_color_brewer(palette="Set3") + stat_cor() + 
+    panel_border() + 
+    scale_x_continuous(breaks = c(250, 750))
 ```
 
 ```{r, echo=FALSE, fig.width=3, fig.height=3, fig.cap="Even though the number of dendritic cells does correlate with MS4A1, a B cell marker, the absolute expression is really low. This effect can be driven by few misclassified cells but cannot explain the spillover effects we observe. "}

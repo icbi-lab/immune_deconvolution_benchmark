@@ -185,7 +185,7 @@ all_results_ref %>%
 ```
 
 Compute the average over all samples:
-```{r, fig.width=8, fig.height=3, echo=FALSE, fig.cap="Correlations of within-sample comparisons. The last column shows the mean over all samples. "}
+```{r, fig.width=8, fig.height=3, echo=FALSE, warning=FALSE, fig.cap="Correlations of within-sample comparisons. The last column shows the mean over all samples. "}
 sample_correlations = all_results_ref %>%
   filter(method %in% within_methods) %>%
   filter(!(cell_type == "T cell" & dataset != "hoek")) %>%
@@ -239,7 +239,7 @@ avoid redundancies.
 use_cell_types2 = c("B cell", "Dendritic cell", "Macrophage/Monocyte", "NK cell", "T cell CD4+", "T cell CD8+")
 ```
 
-```{r, fig.width=5, fig.height=4, echo=FALSE, fig.cap="Performance on validation datasets by cell type. The last column shows the mean over all cell types. "}
+```{r, fig.width=5, fig.height=4, echo=FALSE, warning=FALSE, fig.cap="Performance on validation datasets by cell type. The last column shows the mean over all cell types. "}
 cell_type_correlations = all_results_ref %>%
 #   filter(method %in% between_methods) %>%
   filter(cell_type %in% use_cell_types2) %>%

@@ -166,7 +166,7 @@ results_with_gold_standard %>%
 
 
 ### Calculate correlations for each method and cell type
-```{r mixing_correlation_summary, fig.width=8, fig.height=6, echo=FALSE}
+```{r mixing_correlation_summary, fig.width=8, fig.height=6, echo=FALSE, warning=FALSE}
 correlations = results_with_gold_standard %>%
   group_by(cell_type, method, substitute_macrophage_signature) %>%
   do(make_cor(.$estimate, .$true_fraction)) %>%

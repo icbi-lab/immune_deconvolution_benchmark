@@ -228,7 +228,78 @@ res_all = bind_rows(res_before, res_after) %>%
   gather(sample, predicted_fraction, -cell_type, -method, -dataset) %>%
   mutate(dataset = factor(dataset, levels=c("before", "after")))
 
-res_spillover$rm_marker_genes = res_all
+res_spillover$rm_marker_genes_dc = res_all
+
+```
+
+```{r, fig.width=12, echo=FALSE, message=FALSE, fig.cap="Predictions on 10 simulated DC samples before and after removal of the six genes. ", warning=FALSE}
+res_all %>%
+  ggplot(aes(x=dataset, y=predicted_fraction, colour=dataset)) +
+    geom_quasirandom() +
+    stat_summary(fun.y=mean, geom="crossbar", fun.ymin=mean, fun.ymax=mean, width=.5, color="black") +
+   facet_grid(method~cell_type, drop = TRUE, scales = "free") +
+  stat_compare_means(paired = TRUE, method = "t.test")
+
+
+```
+
+
+
+### The same analysis, but for T CD4 vs. non-immune cells. 
+We suspected, that the same effect might be driving the high level of background predictions 
+we observe in CD4+ T cells. We remove the following genes, which we found to be 
+expressed in both CD4+ T cells and the non-immune background population (cancer, fibroblasts, endothelial).
+
+```{r}
+CD4_nonimmune_genes = c("FHIT", "GNG2", "TSPYL1", "DGKA", "CD79B")
+```
+
+```{r, include=FALSE}
+set.seed(42)
+background_expression = foreach(i=1:10,
+        .combine = bind_cols,
+        .final = as.matrix) %do% {
+          cell_n = cell_types$n_background_cells
+          cell_frac = cell_n/sum(cell_n)
+          make_random_bulk(single_cell_schelker$eset, cell_frac, n_cells=500)
+        }
+rownames(background_expression) = rownames(exprs(single_cell_schelker$eset))
+
+# test if predictions on random samplese are affected 
+# -> they are not, T cell level remains constant. 
+# won't show results.  
+# 
+# bulk_eset = make_bulk_eset(eset=single_cell_schelker$eset,
+#                            cell_fractions = cell_fractions[1:10, ],
+#                            n_cells=500)
+
+# intersection because CIBERSORT (or other methods) might not be available. 
+use_methods = intersect(c("epic", "quantiseq", "cibersort"), config$deconvolution_methods)
+show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
+                    "NK cell", "T cell CD4+", "T cell CD8+")
+timer_indications = rep("OV", ncol(background_expression))
+
+res_before = foreach(method=use_methods,
+                     .combine=bind_rows) %do% {
+                       deconvolute(background_expression, method=method, indications=timer_indications) %>%
+                         map_result_to_celltypes(show_cell_types, method) %>%
+                         as_tibble(rownames = "cell_type") %>%
+                         mutate(method=method, dataset="before")
+                     }
+
+res_after = foreach(method=use_methods,
+                     .combine=bind_rows) %do% {
+                       deconvolute(background_expression, method=method, indications=timer_indications, rmgenes=CD4_nonimmune_genes) %>%
+                         map_result_to_celltypes(show_cell_types, method) %>%
+                         as_tibble(rownames = "cell_type") %>%
+                         mutate(method=method, dataset="after")
+                     }
+
+res_all = bind_rows(res_before, res_after) %>%
+  gather(sample, predicted_fraction, -cell_type, -method, -dataset) %>%
+  mutate(dataset = factor(dataset, levels=c("before", "after")))
+
+res_spillover$rm_marker_genes_cd4 = res_all
 
 ```
 

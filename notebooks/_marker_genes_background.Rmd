@@ -7,6 +7,9 @@ tref = as_tibble(tref, rownames="gene") %>%
 til10 = read_tsv("../immunedeconv/inst/extdata/quantiseq/TIL10_signature.txt") %>% 
   arrange()
 
+lm22 = read_tsv("../lib/CIBERSORT/LM22.txt")
+
+
 samples = sensitivity_analysis_dataset$`T cell CD4+`[,n_immune_cells == 0]
 
 samples_median = apply(samples, 1, median)
@@ -15,9 +18,11 @@ samples_median = apply(samples, 1, median)
 ```{r}
 tref$background = samples_median[tref$gene]
 til10$background = samples_median[til10$ID]
+lm22$background = samples_median[lm22$`Gene symbol`]
 
 View(arrange(tref, CD4_Tcells * -background))
 View(arrange(til10, T.cells.CD4 * -background))
+View(arrange(lm22 %>% select(`Gene symbol`, background, `T cells CD4 naive`, `T cells regulatory (Tregs)`), max(`T cells CD4 naive`, `T cells regulatory (Tregs)`) * -background))
 
 ```
 
@@ -47,7 +52,7 @@ exclude_genes = c("FHIT", "GNG2", "TSPYL1", "DGKA", "CD79B")
 
 samples = sensitivity_analysis_dataset$`T cell CD4+`[,n_immune_cells == 0]
 
-use_methods = intersect(c("epic", "quantiseq"), config$deconvolution_methods)
+use_methods = intersect(c("cibersort_abs", "epic", "quantiseq"), config$deconvolution_methods)
 
 show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
                     "NK cell", "T cell CD4+", "T cell CD8+")

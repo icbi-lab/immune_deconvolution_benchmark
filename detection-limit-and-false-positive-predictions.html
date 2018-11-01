@@ -25,7 +25,7 @@
 <meta name="author" content="Gregor Sturm (1,2,*), Francesca Finotello (3), Florent Petitprez (4,5), Jitao David Zhang (6), Jan Baumbach (1), Wolf H. Fridman (4), Markus List (7), Tatsiana Aneichyk (2)">
 
 
-<meta name="date" content="2018-10-30">
+<meta name="date" content="2018-11-01">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -224,7 +224,8 @@ at zero inflitration level.</p>
 <p>For each amount of immune cells, we generate 5 random samples to compute a confidence interval.</p>
 <p>We use the following cell types:</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1">show_cell_types =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;B cell&quot;</span>, <span class="st">&quot;Dendritic cell&quot;</span>, <span class="st">&quot;Macrophage/Monocyte&quot;</span>,</a>
-<a class="sourceLine" id="cb18-2" data-line-number="2">                    <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>)</a></code></pre></div>
+<a class="sourceLine" id="cb18-2" data-line-number="2">                    <span class="st">&quot;NK cell&quot;</span>, <span class="st">&quot;T cell CD4+&quot;</span>, <span class="st">&quot;T cell CD8+&quot;</span>, </a>
+<a class="sourceLine" id="cb18-3" data-line-number="3">                    <span class="st">&quot;T cell CD4+ (non-regulatory)&quot;</span>, <span class="st">&quot;T cell regulatory (Tregs)&quot;</span>)</a></code></pre></div>
 <div id="predictions-with-increasing-immune-cell-content" class="section level2">
 <h2><span class="header-section-number">6.1</span> Predictions with increasing immune cell content</h2>
 <div class="figure"><span id="fig:unnamed-chunk-50"></span>

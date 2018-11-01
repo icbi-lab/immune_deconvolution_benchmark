@@ -19,7 +19,8 @@ For each amount of immune cells, we generate 5 random samples to compute a confi
 We use the following cell types:
 ```{r}
 show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
-                    "NK cell", "T cell CD4+", "T cell CD8+")
+                    "NK cell", "T cell CD4+", "T cell CD8+", 
+                    "T cell CD4+ (non-regulatory)", "T cell regulatory (Tregs)")
 ```
 
 ```{r, echo=FALSE}

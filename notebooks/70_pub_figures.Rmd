@@ -11,7 +11,8 @@ theme_set(theme_cowplot(font_size=11)) # reduce default font siz
 # (BioMed Central standard dimensions)
 # full width page: 170mm
 # full page height: 225mm (for figure and legend)
-WIDTH = 170
+WIDTH = 183
+HEIGHT = 247
 ```
 
 ```{r define_names, include=FALSE}
@@ -20,19 +21,23 @@ tmp_names = names(config$deconvolution_methods)
 tmp_names[tmp_names == "CIBERSORT (abs.)"] = "CIBERSORT abs"
 method_names = tibble(
   method = config$deconvolution_methods,
-  method_name = factor(tmp_names, levels=sort(tmp_names, decreasing = FALSE))
+  method_name = factor(tmp_names, levels=sort(tmp_names, decreasing = FALSE)),
+  method_abbrev = c("MCP", "EPC", "QTS", "XCL", "CBS", "CBA", "TMR")
 ) %>% arrange(method_name)
 
 cell_type_names = tibble(
-  cell_type      = c("B cell", "Cancer associated fibroblast", "Dendritic cell", "Endothelial cell", "Macrophage/Monocyte", 
-                     "NK cell", "T cell CD4+", "T cell CD4+ (non-regulatory)", "T cell CD8+", "T cell regulatory (Tregs)", 
-                     "Monocyte", "T cell"),
-  cell_type_name = c("B",      "CAF",                          "DC",             "Endothelial",      "Macro/Mono",
-                     "NK",      "T CD4+",      "T CD4+ n.reg.",                "T CD8+",      "T reg", 
-                     "Mono", "T")
+  cell_type      = c("B cell", "Dendritic cell", "Macrophage/Monocyte", 
+                     "NK cell", "T cell CD4+", "T cell CD8+", "T cell CD4+ (non-regulatory)",  "T cell regulatory (Tregs)", 
+                     "Monocyte", "T cell", "Cancer associated fibroblast", "Endothelial cell"),
+  cell_type_name = c("B",      "DC",             "Mac/Mono",
+                     "NK",      "T CD4+",      "T CD8+" ,     "T CD4+ n.r.",                   "T reg", 
+                     "Mono",     "T",      "CAF",                          "Endo")
 )
 
-validation_datasets = list("hoek"="Hoek (PBMC, n=8)", racle="Racle (melanoma, n=4)", schelker="Schelker (ovarian, n=3)")
+validation_datasets = tibble(
+  dataset = c("all", "hoek", "racle", "schelker_ovarian"),
+  dataset_name = c("All datasets\n(n=15)", "Hoek\n(PBMC, n=8)", "Racle\n(melan., n=4)", "Schelker\n(ovarian, n=3)")
+)
 
 HEATMAP_FONT_SIZE = 2.7
 ```
@@ -55,7 +60,7 @@ plot_cor_table = function(data, dataset="none") {
     mutate(pearson_text = if_else(is.na(pearson), "n/a", pearson_text),
            pearson = if_else(is.na(pearson), 0, pearson)) %>%
     inner_join(method_names) %>%
-    ggplot(aes(x=column, y=method_name)) +
+    ggplot(aes(x=column, y=reorder(method_abbrev, -order(method_abbrev)))) +
       geom_tile(aes(fill=pearson)) +
       geom_text(aes(label=pearson_text), size=HEATMAP_FONT_SIZE) +
       scale_fill_distiller(type="div", palette = "RdYlGn", direction=1, values=c(0,1), limits=c(0, 1)) +
@@ -115,31 +120,35 @@ fun_breaks = function(limits) {
   names(breaks) = attr(breaks, "labels")
   breaks
 }
+
 corr_annot = res_mixing_study$correlations %>% 
-  select(method, cell_type, pearson) %>% 
+  select(method, cell_type, pearson, p_signif) %>% 
   mutate(pearson = round(pearson, 2)) %>% 
   inner_join(method_names) %>%
   inner_join(cell_type_names) %>%
+  mutate(cell_type_name_f = factor(cell_type_name, levels=cell_type_names$cell_type_name)) %>% 
   distinct()
+
 plot_mixing = res_mixing_study$all_results %>% 
   inner_join(method_names) %>%
   inner_join(cell_type_names) %>%
+  mutate(cell_type_name_f = factor(cell_type_name, levels=cell_type_names$cell_type_name)) %>% 
   ggplot(aes(x=true_fraction, y=estimate)) +
     geom_point(size=.2) +
-    geom_text(data=corr_annot, mapping=aes(label=paste0("r=", pearson), x=-Inf, y=-Inf), hjust=-0.1, vjust=-8, size=2.4) + 
-    facet_grid(method_name ~ cell_type_name, scales="free") +
-    stat_smooth(aes(color=method), method="lm", size=.4) +
+    geom_text(data=corr_annot, mapping=aes(label=paste0("r=", pearson, ", ", p_signif), x=-Inf, y=-Inf), hjust=-0.1, vjust=-6.8, size=2.4) + 
+    facet_grid(method_abbrev ~ cell_type_name_f, scales="free") +
+    stat_smooth(color="blue", method="lm", size=.4) +
     scale_color_manual(values=color_scales$methods, na.value="grey") +
     scale_x_continuous(breaks=c(.2)) +
     scale_y_continuous(breaks=fun_breaks) +
-    theme(legend.position = "none", strip.text=element_text(size=6), 
+    theme(legend.position = "none", strip.text=element_text(size=8), 
           panel.spacing = unit(.5, "mm"), axis.text = element_text(size=8)) +
     ylab("estimated fraction") + 
     xlab("true fraction") + 
     panel_border()
 
-ggsave("../results/figures/correlations_mixing.pdf", width=WIDTH, height=140, units = "mm")
-ggsave("../results/figures/correlations_mixing.png", width=WIDTH, height=140, units = "mm", dpi=600)
+# ggsave("../results/figures/correlations_mixing.pdf", width=WIDTH, height=140, units = "mm")
+# ggsave("../results/figures/correlations_mixing.png", width=WIDTH, height=140, units = "mm", dpi=600)
 ```
 
 ```{r validation_benchmark, include=FALSE}
@@ -156,66 +165,61 @@ validation$all_datasets = validation$all_results %>%
   group_by(method, cell_type_name, cell_type) %>%
   do(make_cor(.$estimate, .$true_fraction)) %>%
   mutate(asterisk = if_else(cell_type == "Monocyte" & method == "mcp_counter", "yes", "no")) %>%
-  mutate(category = "All datasets", column=cell_type_name)
-
-validation$all_datasets_all_cells = validation$all_results %>%
-  group_by(method) %>%
-  do(make_cor(.$estimate, .$true_fraction)) %>%
-  mutate(cell_type = ALL_CELLS, category = "All datasets") %>%
-  mutate(column = cell_type)
+  mutate(category = validation_datasets[validation_datasets$dataset == 'all', "dataset_name"] %>% pull(), column=cell_type_name)
 
 validation$hoek = validation$all_results %>%
   filter(dataset == 'hoek') %>%
   group_by(method, cell_type_name, cell_type) %>%
   do(make_cor(.$estimate, .$true_fraction)) %>%
   mutate(asterisk = if_else(cell_type == "Monocyte" & method == "mcp_counter", "yes", "no")) %>%
-  mutate(category = validation_datasets$hoek) %>%
+  mutate(category = validation_datasets[validation_datasets$dataset == 'hoek', "dataset_name"] %>% pull()) %>%
   mutate(column = cell_type_name)
-
-validation$hoek_all_cells = validation$all_results %>%
-  filter(dataset == 'hoek') %>%
-  group_by(method) %>%
-  do(make_cor(.$estimate, .$true_fraction)) %>%
-  mutate(cell_type = ALL_CELLS, category = validation_datasets$hoek) %>%
-  mutate(column = cell_type)
-
-validation$racle_all_cells = validation$all_results %>%
-  filter(dataset == 'racle') %>%
-  group_by(method) %>%
-  do(make_cor(.$estimate, .$true_fraction)) %>%
-  mutate(cell_type = ALL_CELLS, category = validation_datasets$racle) %>%
-  mutate(column = cell_type)
-
-validation$schelker_all_cells = validation$all_results %>%
-  filter(dataset == 'schelker_ovarian') %>%
-  group_by(method) %>%
-  do(make_cor(.$estimate, .$true_fraction)) %>%
-  mutate(cell_type = ALL_CELLS, category = validation_datasets$schelker) %>%
-  mutate(column = cell_type)
-
 ```
 
 
+```{r validation-benchmark-all-cells, fig.width=4, fig.height=7, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Comparison of absolute predictions for three validation dataset. "}
+val_results_all = res_validation$all_results %>%
+  mutate(dataset2 = dataset) %>%
+  bind_rows(res_validation$all_results %>% mutate(dataset2 = "all")) %>%
+  filter(!(cell_type == "T cell" & dataset != "hoek")) %>%
+  inner_join(method_names) %>%
+  inner_join(validation_datasets, by=c("dataset2"="dataset"))
+
+corr_annot = val_results_all %>%
+  group_by(dataset2, method) %>% 
+  do(make_cor(.$true_fraction, .$estimate)) %>% 
+  select(method, dataset2, pearson, p_signif) %>% 
+  mutate(pearson = round(pearson, 2)) %>% 
+  inner_join(method_names) %>%
+  inner_join(validation_datasets, by=c("dataset2"="dataset")) %>%  
+  distinct()
+
+p_validation_all_cells = val_results_all %>% 
+  ggplot(aes(x=true_fraction, y=estimate)) +
+    geom_point(aes(color=cell_type), size=.4) +
+    geom_text(data=corr_annot, mapping=aes(label=paste0("r=", pearson, ", ", p_signif), x=-Inf, y=-Inf), hjust=-0.1, vjust=-6.8, size=2.4) + 
+    scale_color_manual(values=color_scales$validation) +
+    facet_grid(method_abbrev~dataset_name, scales = "free_y") +
+    scale_x_continuous(breaks=c(.5)) +
+    scale_y_continuous(breaks=fun_breaks) +
+    theme(legend.position = "top", strip.text=element_text(size=8), 
+          panel.spacing = unit(.5, "mm"), axis.text = element_text(size=8)) +
+    guides(colour = guide_legend(override.aes = list(size=2), nrow=4, title="cell type")) + 
+    ylab("estimated fraction") + 
+    xlab("true fraction") + 
+    panel_border()
+```
+
 
 ```{r, fig.height=3.5, include=FALSE}
-p_validation_all_datasets = bind_rows(validation$all_datasets, validation$all_datasets_all_cells) %>%
-  plot_cor_table() +
-    geom_vline(xintercept = 1.5)
+p_validation_all_datasets = validation$all_datasets %>%
+  plot_cor_table() 
 
-p_validation_hoek = bind_rows(validation$hoek, validation$hoek_all_cells) %>%
-  plot_cor_table() +
-    geom_vline(xintercept = 1.5)
-
-p_validation_schelker = validation$schelker_all_cells %>%
-  plot_cor_table()
-
-p_validation_racle = validation$racle_all_cells %>%
+p_validation_hoek = validation$hoek %>%
   plot_cor_table()
 
 print(p_validation_all_datasets)
 print(p_validation_hoek)
-print(p_validation_racle)
-print(p_validation_schelker)
 ```
 
 
@@ -225,36 +229,45 @@ print(p_validation_schelker)
 # combine heatmaps
 
 ## margins
-MT1 = 1
+MT1 = 0
 MB1 = .5
-MT2 = .2
-MB2 = .7
+MR1 = .3
+ML1 = .5
+
+p2_validation_all_cells = p_validation_all_cells + theme(legend.position = "none")
+p2_validation_all_cells_legend = get_legend(p_validation_all_cells)
+
+plots_left = align_plots(plot_mixing, p2_validation_all_cells, align="v", axis="l")
+
 
 ## fine-tune formatting
 p2_validation_all_datasets = p_validation_all_datasets  +
-  theme(plot.margin = margin(t=MT1, b=MB1, unit="cm"))
-p2_validation_hoek = p_validation_hoek + theme(axis.text.y=element_blank(),
-                                                               plot.margin = margin(t=MT1, l=-.1, b=MB1, unit="cm"),
-                                                               axis.ticks.y=element_blank())
-p2_validation_racle = p_validation_racle + theme(axis.text.y=element_blank(),
-                                                               plot.margin = margin(t=MT1, l=-.1, b=MB1, unit="cm"),
-                                                               axis.ticks.y=element_blank())
-p2_validation_schelker = p_validation_schelker + theme(axis.text.y=element_blank(),
-                                                               plot.margin = margin(t=MT1, l=-.1, b=MB1, unit="cm"),
-                                                               axis.ticks.y=element_blank())
+  theme(plot.margin = margin(t=MT1, b=MB1, r=MR1, unit="cm", l=ML1))
+p2_validation_hoek = p_validation_hoek + theme(plot.margin = margin(t=MT1, b=MB1, r=MR1, l=ML1, unit="cm"))
 
-
-plot_validation = plot_grid(p2_validation_all_datasets, p2_validation_hoek, p2_validation_racle, p2_validation_schelker, 
-          align = "h", nrow = 1,
-          axis="tb",
-          hjust = -.1,
+plot_validation = plot_grid(p2_validation_all_datasets, p2_validation_hoek, 
+          align = "v",
+          nrow = 2,
+          axis="lr",
+          hjust = -.5,
           label_size = 12,
-          rel_widths = c(.69, .41, .11, .11))
+          labels=c("c", "d"),
+          rel_heights = c(.5, .5))
 
-plot_grid(plot_mixing, plot_validation, align="h", ncol=1, axis="lr", labels = "auto", rel_heights = c(.7, .33))
+plot_val_legend = plot_grid(plot_validation, p2_validation_all_cells_legend,
+                            nrow=2, 
+                            rel_heights =c(.8, .2))
 
-ggsave("../results/figures/summary.pdf", height = 210, width = WIDTH, units = "mm")
-ggsave("../results/figures/summary.png", height = 210, width = WIDTH, units = "mm", dpi=600)
+p_lower = plot_grid(plots_left[[2]], plot_val_legend,
+                    nrow=1,
+                    labels=c("b"),
+                    label_size=12,
+                    rel_widths = c(.5, .5))
+
+plot_grid(plots_left[[1]], p_lower, align="h", ncol=1, axis="lr", labels = "a", rel_heights = c(.5, .5), label_size = 12)
+
+ggsave("../results/figures/summary.pdf", height = HEIGHT, width = WIDTH, units = "mm")
+ggsave("../results/figures/summary.png", height = HEIGHT, width = WIDTH, units = "mm", dpi=400)
 ```
 
 
@@ -287,7 +300,7 @@ data %>%
     geom_point(size=.2, shape=4) + 
     # geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) + 
     panel_border() + 
-    facet_grid(method_name ~ cell_type_name, scales = "free_y") + 
+    facet_grid(method_abbrev ~ cell_type_name, scales = "free_y") + 
     scale_x_continuous(breaks=c(.0, .2), limits=c(0, 0.25)) +
     scale_y_continuous(breaks=fun_breaks2) +
     geom_hline(mapping=aes(yintercept=0, colour="zero"), linetype="dashed", show.legend=FALSE) + 
@@ -298,7 +311,7 @@ data %>%
     geom_hline(yintercept = 0, mapping = aes(colour="detection limit"), alpha=0) + # fake line to fix legend
     ylab("average estimate") + 
     xlab("fraction of spike-in cells") + 
-    theme(legend.position = "top", strip.text=element_text(size=6), 
+    theme(legend.position = "top", strip.text=element_text(size=8), 
           panel.spacing = unit(1, "mm"), axis.text = element_text(size=8)) + 
     scale_color_manual(values=c("zero"="grey", "minimal detection fraction"="red", "background prediction fraction"="blue"), guide=guide_legend("performance measure", override.aes = list(alpha=1)))  
 

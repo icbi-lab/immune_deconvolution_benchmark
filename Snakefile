@@ -33,7 +33,7 @@ rule book:
     "notebooks/_output.yml"
   output:
     "results/book/index.html",
-    "results/cache/results_for_figures.rda",
+    #"results/cache/results_for_figures.rda",
     "results/figures/schelker_single_cell_tsne.pdf",
     "results/figures/spillover_migration_chart.pdf",
     "results/figures/spillover_migration_all.pdf",

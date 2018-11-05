@@ -25,7 +25,7 @@
 <meta name="author" content="Gregor Sturm (1,2,*), Francesca Finotello (3), Florent Petitprez (4,5), Jitao David Zhang (6), Jan Baumbach (1), Wolf H. Fridman (4), Markus List (7), Tatsiana Aneichyk (2)">
 
 
-<meta name="date" content="2018-11-01">
+<meta name="date" content="2018-11-05">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -185,7 +185,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="7.5" data-path="spillover-analysis.html"><a href="spillover-analysis.html#check-expression-of-markers-in-detection-limit-simulation-dataset."><i class="fa fa-check"></i><b>7.5</b> Check expression of markers in “detection limit” simulation dataset.</a><ul>
 <li class="chapter" data-level="7.5.1" data-path="spillover-analysis.html"><a href="spillover-analysis.html#expression-of-marker-genes-in-the-cell-populations"><i class="fa fa-check"></i><b>7.5.1</b> Expression of marker genes in the cell populations</a></li>
 </ul></li>
-<li class="chapter" data-level="7.6" data-path="spillover-analysis.html"><a href="spillover-analysis.html#deconvolution-results-before-and-after"><i class="fa fa-check"></i><b>7.6</b> Deconvolution results before and after</a></li>
+<li class="chapter" data-level="7.6" data-path="spillover-analysis.html"><a href="spillover-analysis.html#deconvolution-results-before-and-after"><i class="fa fa-check"></i><b>7.6</b> Deconvolution results before and after</a><ul>
+<li class="chapter" data-level="7.6.1" data-path="spillover-analysis.html"><a href="spillover-analysis.html#the-same-analysis-but-for-t-cd4-vs.non-immune-cells."><i class="fa fa-check"></i><b>7.6.1</b> The same analysis, but for T CD4 vs. non-immune cells.</a></li>
+</ul></li>
 </ul></li>
 <li class="chapter" data-level="8" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html"><i class="fa fa-check"></i><b>8</b> Creating publication ready figures</a><ul>
 <li class="chapter" data-level="8.1" data-path="creating-publication-ready-figures.html"><a href="creating-publication-ready-figures.html#predictions-on-simulated-vs.genuine-bulk"><i class="fa fa-check"></i><b>8.1</b> Predictions on simulated vs. genuine bulk</a></li>
@@ -347,7 +349,20 @@ check the ‘spillover’ to B cells.</p>
 Figure 7.6: Predictions on 10 simulated DC samples before and after removal of the six genes.
 </p>
 </div>
+<div id="the-same-analysis-but-for-t-cd4-vs.non-immune-cells." class="section level3">
+<h3><span class="header-section-number">7.6.1</span> The same analysis, but for T CD4 vs. non-immune cells.</h3>
+<p>We suspected, that the same effect might be driving the high level of background predictions
+we observe in CD4+ T cells. We remove the following genes, which we found to be
+expressed in both CD4+ T cells and the non-immune background population (cancer, fibroblasts, endothelial).</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb24-1" data-line-number="1">CD4_nonimmune_genes =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;FHIT&quot;</span>, <span class="st">&quot;GNG2&quot;</span>, <span class="st">&quot;TSPYL1&quot;</span>, <span class="st">&quot;DGKA&quot;</span>, <span class="st">&quot;CD79B&quot;</span>)</a></code></pre></div>
+<div class="figure"><span id="fig:unnamed-chunk-79"></span>
+<img src="_main_files/figure-html/unnamed-chunk-79-1.png" alt="Predictions on 10 simulated DC samples before and after removal of the six genes. " width="1152" />
+<p class="caption">
+Figure 7.7: Predictions on 10 simulated DC samples before and after removal of the six genes.
+</p>
+</div>
 
+</div>
 </div>
 </div>
             </section>

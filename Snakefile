@@ -50,14 +50,12 @@ rule book:
 
 rule data:
    """download data from archive"""
-   input:
-     # TODO change to github once published
-     HTTP.remote("https://github.com/grst/immune_deconvolution_benchmark/releases/download/v1.0.0-rc1/data.tar.gz", allow_redirects=True)
    output:
      DATA_FILES
    shell:
+     "wget 'https://github.com/grst/immune_deconvolution_benchmark/releases/download/v1.0.0-rc1/data.tar.gz' -O data.tar.gz && "
      "mkdir -p data && "
-     "tar -xvzf {input} -C data --strip-components 1"
+     "tar -xvzf data.tar.gz -C data --strip-components 1"
 
 
 rule get_cache:
@@ -67,14 +65,12 @@ rule get_cache:
   Sensitivity and Specificity are very resource-intensive. You can skip this part
   by using our precomputed values.
   """
-  input:
-    # TODO change to github once published
-    HTTP.remote("https://github.com/grst/immune_deconvolution_benchmark/releases/download/v1.0.0-rc1/cache.tar.gz", allow_redirects=True)
   output:
      "results/cache/sensitivity_analysis_dataset.rda",
   shell:
-     "mkdir -p data && "
-     "tar -xvzf {input} -C results/cache --strip-components 2"
+     "wget 'https://github.com/grst/immune_deconvolution_benchmark/releases/download/v1.0.0-rc1/cache.tar.gz' -O cache.tar.gz && "
+     "mkdir -p results/cache && "
+     "tar -xvzf cache.tar.gz -C results/cache --strip-components 2"
 
 
 rule upload_book:

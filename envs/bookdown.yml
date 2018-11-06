@@ -9,6 +9,7 @@ dependencies:
   - r-rcpp=0.12.15
   - r-stringi=1.1.7
   - r-bookdown=0.7
+  - r-rlang=0.2.1
   # tidyverse
   - r-tidyr=0.8.1
   - r-dplyr=0.7.4

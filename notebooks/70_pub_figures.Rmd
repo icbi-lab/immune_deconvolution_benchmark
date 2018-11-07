@@ -29,8 +29,8 @@ method_abbrev = c("mcp_counter"="MCP", "epic"="EPC", "quantiseq"="QTS", "xcell"=
                   "cibersort"="CBS", "cibersort_abs"="CBA", "timer"="TMR")
 
 # fallback if method abbrev is not defined
-method_names %<>% left_join(data.frame(method=names(method_abbrev), method_abbrev=method_abbrev)) %>%
-  mutate(method_abbrev = if_else(is.na(method_abbrev), substr(method, 0, 2), method_abbrev))
+method_names %<>% left_join(tibble(method=names(method_abbrev), method_abbrev=method_abbrev)) %>%
+  mutate(method_abbrev = if_else(is.na(method_abbrev), toupper(substr(method, 0, 3)), method_abbrev))
 
 cell_type_names = tibble(
   cell_type      = c("B cell", "Dendritic cell", "Macrophage/Monocyte",

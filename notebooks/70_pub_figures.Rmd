@@ -21,16 +21,23 @@ tmp_names = names(config$deconvolution_methods)
 tmp_names[tmp_names == "CIBERSORT (abs.)"] = "CIBERSORT abs"
 method_names = tibble(
   method = config$deconvolution_methods,
-  method_name = factor(tmp_names, levels=sort(tmp_names, decreasing = FALSE)),
-  method_abbrev = c("MCP", "EPC", "QTS", "XCL", "CBS", "CBA", "TMR")
+  method_name = factor(tmp_names, levels=sort(tmp_names, decreasing = FALSE))
 ) %>% arrange(method_name)
 
+
+method_abbrev = c("mcp_counter"="MCP", "epic"="EPC", "quantiseq"="QTS", "xcell"="XCL",
+                  "cibersort"="CBS", "cibersort_abs"="CBA", "timer"="TMR")
+
+# fallback if method abbrev is not defined
+method_names %<>% left_join(data.frame(method=names(method_abbrev), method_abbrev=method_abbrev)) %>%
+  mutate(method_abbrev = if_else(is.na(method_abbrev), substr(method, 0, 2), method_abbrev))
+
 cell_type_names = tibble(
-  cell_type      = c("B cell", "Dendritic cell", "Macrophage/Monocyte", 
-                     "NK cell", "T cell CD4+", "T cell CD8+", "T cell CD4+ (non-regulatory)",  "T cell regulatory (Tregs)", 
+  cell_type      = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
+                     "NK cell", "T cell CD4+", "T cell CD8+", "T cell CD4+ (non-regulatory)",  "T cell regulatory (Tregs)",
                      "Monocyte", "T cell", "Cancer associated fibroblast", "Endothelial cell"),
   cell_type_name = c("B",      "DC",             "Mac/Mono",
-                     "NK",      "T CD4+",      "T CD8+" ,     "T CD4+ n.r.",                   "T reg", 
+                     "NK",      "T CD4+",      "T CD8+" ,     "T CD4+ n.r.",                   "T reg",
                      "Mono",     "T",      "CAF",                          "Endo")
 )
 
@@ -92,25 +99,25 @@ fun_breaks3 = function(limits) {
   breaks
 }
 
-tmp_cor = res_methods_validity$all_results_mapped %>% 
-  group_by(method) %>% 
-  do(make_cor(.$bulk, .$simulated)) %>% 
+tmp_cor = res_methods_validity$all_results_mapped %>%
+  group_by(method) %>%
+  do(make_cor(.$bulk, .$simulated)) %>%
   mutate(pearson=round(pearson, 2)) %>%
   inner_join(method_names)
 
-res_methods_validity$all_results_mapped %>% 
-  inner_join(cell_type_names) %>% 
-  inner_join(method_names) %>% 
-  ggplot(aes(x=bulk, y=simulated)) + 
-  geom_point(aes(colour=cell_type_name), size=.5) + 
-  facet_wrap(~method_name, scales="free", nrow=1) + 
-  theme(legend.position = "top") + 
-  geom_text(data=tmp_cor, mapping=aes(label=paste0("r=", pearson), x=0, y=0), hjust=0, vjust=-8, size=2.4) + 
-  panel_border() + 
-  scale_x_continuous(breaks=fun_breaks3) + 
-  scale_y_continuous(breaks=fun_breaks3) + 
-  theme(strip.text=element_text(size=6), 
-        panel.spacing = unit(2, "mm"), axis.text = element_text(size=8)) 
+res_methods_validity$all_results_mapped %>%
+  inner_join(cell_type_names) %>%
+  inner_join(method_names) %>%
+  ggplot(aes(x=bulk, y=simulated)) +
+  geom_point(aes(colour=cell_type_name), size=.5) +
+  facet_wrap(~method_name, scales="free", nrow=1) +
+  theme(legend.position = "top") +
+  geom_text(data=tmp_cor, mapping=aes(label=paste0("r=", pearson), x=0, y=0), hjust=0, vjust=-8, size=2.4) +
+  panel_border() +
+  scale_x_continuous(breaks=fun_breaks3) +
+  scale_y_continuous(breaks=fun_breaks3) +
+  theme(strip.text=element_text(size=6),
+        panel.spacing = unit(2, "mm"), axis.text = element_text(size=8))
 ```
 
 
@@ -121,30 +128,30 @@ fun_breaks = function(limits) {
   breaks
 }
 
-corr_annot = res_mixing_study$correlations %>% 
-  select(method, cell_type, pearson, p_signif) %>% 
-  mutate(pearson = round(pearson, 2)) %>% 
+corr_annot = res_mixing_study$correlations %>%
+  select(method, cell_type, pearson, p_signif) %>%
+  mutate(pearson = round(pearson, 2)) %>%
   inner_join(method_names) %>%
   inner_join(cell_type_names) %>%
-  mutate(cell_type_name_f = factor(cell_type_name, levels=cell_type_names$cell_type_name)) %>% 
+  mutate(cell_type_name_f = factor(cell_type_name, levels=cell_type_names$cell_type_name)) %>%
   distinct()
 
-plot_mixing = res_mixing_study$all_results %>% 
+plot_mixing = res_mixing_study$all_results %>%
   inner_join(method_names) %>%
   inner_join(cell_type_names) %>%
-  mutate(cell_type_name_f = factor(cell_type_name, levels=cell_type_names$cell_type_name)) %>% 
+  mutate(cell_type_name_f = factor(cell_type_name, levels=cell_type_names$cell_type_name)) %>%
   ggplot(aes(x=true_fraction, y=estimate)) +
     geom_point(size=.2) +
-    geom_text(data=corr_annot, mapping=aes(label=paste0("r=", pearson, ", ", p_signif), x=-Inf, y=-Inf), hjust=-0.1, vjust=-6.8, size=2.4) + 
+    geom_text(data=corr_annot, mapping=aes(label=paste0("r=", pearson, ", ", p_signif), x=-Inf, y=-Inf), hjust=-0.1, vjust=-6.8, size=2.4) +
     facet_grid(method_abbrev ~ cell_type_name_f, scales="free") +
     stat_smooth(color="blue", method="lm", size=.4) +
     scale_color_manual(values=color_scales$methods, na.value="grey") +
     scale_x_continuous(breaks=c(.2)) +
     scale_y_continuous(breaks=fun_breaks) +
-    theme(legend.position = "none", strip.text=element_text(size=8), 
+    theme(legend.position = "none", strip.text=element_text(size=8),
           panel.spacing = unit(.5, "mm"), axis.text = element_text(size=8)) +
-    ylab("estimated fraction") + 
-    xlab("true fraction") + 
+    ylab("estimated fraction") +
+    xlab("true fraction") +
     panel_border()
 
 # ggsave("../results/figures/correlations_mixing.pdf", width=WIDTH, height=140, units = "mm")
@@ -155,7 +162,7 @@ plot_mixing = res_mixing_study$all_results %>%
 # Validation Benchmark
 ALL_CELLS = "All cells"
 use_cell_types = c("B cell", "Dendritic cell", "Monocyte", "NK cell", "T cell CD4+", "T cell CD8+", "T cell")
-  
+
 validation = new.env()
 validation$all_results = res_validation$all_results %>% filter(cell_type %in% use_cell_types) %>%
   filter(!(cell_type == "T cell" & dataset != "hoek")) %>% # otherwise t cells are counted twice!
@@ -186,34 +193,34 @@ val_results_all = res_validation$all_results %>%
   inner_join(validation_datasets, by=c("dataset2"="dataset"))
 
 corr_annot = val_results_all %>%
-  group_by(dataset2, method) %>% 
-  do(make_cor(.$true_fraction, .$estimate)) %>% 
-  select(method, dataset2, pearson, p_signif) %>% 
-  mutate(pearson = round(pearson, 2)) %>% 
+  group_by(dataset2, method) %>%
+  do(make_cor(.$true_fraction, .$estimate)) %>%
+  select(method, dataset2, pearson, p_signif) %>%
+  mutate(pearson = round(pearson, 2)) %>%
   inner_join(method_names) %>%
-  inner_join(validation_datasets, by=c("dataset2"="dataset")) %>%  
+  inner_join(validation_datasets, by=c("dataset2"="dataset")) %>%
   distinct()
 
-p_validation_all_cells = val_results_all %>% 
+p_validation_all_cells = val_results_all %>%
   ggplot(aes(x=true_fraction, y=estimate)) +
     geom_point(aes(color=cell_type), size=.4) +
-    geom_text(data=corr_annot, mapping=aes(label=paste0("r=", pearson, ", ", p_signif), x=-Inf, y=-Inf), hjust=-0.1, vjust=-6.8, size=2.4) + 
+    geom_text(data=corr_annot, mapping=aes(label=paste0("r=", pearson, ", ", p_signif), x=-Inf, y=-Inf), hjust=-0.1, vjust=-6.8, size=2.4) +
     scale_color_manual(values=color_scales$validation) +
     facet_grid(method_abbrev~dataset_name, scales = "free_y") +
     scale_x_continuous(breaks=c(.5)) +
     scale_y_continuous(breaks=fun_breaks) +
-    theme(legend.position = "top", strip.text=element_text(size=8), 
+    theme(legend.position = "top", strip.text=element_text(size=8),
           panel.spacing = unit(.5, "mm"), axis.text = element_text(size=8)) +
-    guides(colour = guide_legend(override.aes = list(size=2), nrow=4, title="cell type")) + 
-    ylab("estimated fraction") + 
-    xlab("true fraction") + 
+    guides(colour = guide_legend(override.aes = list(size=2), nrow=4, title="cell type")) +
+    ylab("estimated fraction") +
+    xlab("true fraction") +
     panel_border()
 ```
 
 
 ```{r, fig.height=3.5, include=FALSE}
 p_validation_all_datasets = validation$all_datasets %>%
-  plot_cor_table() 
+  plot_cor_table()
 
 p_validation_hoek = validation$hoek %>%
   plot_cor_table()
@@ -245,7 +252,7 @@ p2_validation_all_datasets = p_validation_all_datasets  +
   theme(plot.margin = margin(t=MT1, b=MB1, r=MR1, unit="cm", l=ML1))
 p2_validation_hoek = p_validation_hoek + theme(plot.margin = margin(t=MT1, b=MB1, r=MR1, l=ML1, unit="cm"))
 
-plot_validation = plot_grid(p2_validation_all_datasets, p2_validation_hoek, 
+plot_validation = plot_grid(p2_validation_all_datasets, p2_validation_hoek,
           align = "v",
           nrow = 2,
           axis="lr",
@@ -255,7 +262,7 @@ plot_validation = plot_grid(p2_validation_all_datasets, p2_validation_hoek,
           rel_heights = c(.5, .5))
 
 plot_val_legend = plot_grid(plot_validation, p2_validation_all_cells_legend,
-                            nrow=2, 
+                            nrow=2,
                             rel_heights =c(.8, .2))
 
 p_lower = plot_grid(plots_left[[2]], plot_val_legend,
@@ -274,18 +281,18 @@ ggsave("../results/figures/summary.png", height = HEIGHT, width = WIDTH, units =
 
 ## detection limit / false positive figure
 ```{r detection-limit-fp, fig.width=6.9, fig.height=6.5, message=FALSE, warning=FALSE, echo=FALSE, fig.cap="Detection limit and false positives."}
-data = res_sensitivity$background_data %>% 
-  inner_join(method_names) %>% 
+data = res_sensitivity$background_data %>%
+  inner_join(method_names) %>%
   inner_join(cell_type_names)
 
-data_detection_limit = res_sensitivity$data_detection_limit %>% 
-  inner_join(method_names) %>% 
-  inner_join(cell_type_names) %>% 
+data_detection_limit = res_sensitivity$data_detection_limit %>%
+  inner_join(method_names) %>%
+  inner_join(cell_type_names) %>%
   ungroup()
 
-data_false_positives = res_sensitivity$data_false_positives %>% 
+data_false_positives = res_sensitivity$data_false_positives %>%
   inner_join(method_names) %>%
-  inner_join(cell_type_names) %>% 
+  inner_join(cell_type_names) %>%
   ungroup()
 
 fun_breaks2 = function(limits) {
@@ -295,25 +302,25 @@ fun_breaks2 = function(limits) {
 }
 
 data %>%
-  ggplot(aes(x=frac_immune_cells, y=mean)) + 
-    geom_ribbon(aes(ymin=mean-ci, ymax=mean+ci), alpha=.2) + 
-    geom_point(size=.2, shape=4) + 
-    # geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) + 
-    panel_border() + 
-    facet_grid(method_abbrev ~ cell_type_name, scales = "free_y") + 
+  ggplot(aes(x=frac_immune_cells, y=mean)) +
+    geom_ribbon(aes(ymin=mean-ci, ymax=mean+ci), alpha=.2) +
+    geom_point(size=.2, shape=4) +
+    # geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) +
+    panel_border() +
+    facet_grid(method_abbrev ~ cell_type_name, scales = "free_y") +
     scale_x_continuous(breaks=c(.0, .2), limits=c(0, 0.25)) +
     scale_y_continuous(breaks=fun_breaks2) +
-    geom_hline(mapping=aes(yintercept=0, colour="zero"), linetype="dashed", show.legend=FALSE) + 
-    geom_vline(mapping=aes(xintercept = 0, color="zero"), linetype="dashed", show.legend=FALSE) + 
+    geom_hline(mapping=aes(yintercept=0, colour="zero"), linetype="dashed", show.legend=FALSE) +
+    geom_vline(mapping=aes(xintercept = 0, color="zero"), linetype="dashed", show.legend=FALSE) +
     # geom_abline(mapping=aes(slope=1, intercept=0), color="grey", linetype="solid", show.legend = FALSE) +
-    geom_vline(data=data_detection_limit, mapping=aes(xintercept=min_frac, colour="minimal detection fraction"), show.legend = FALSE) + 
-    geom_hline(data=data_false_positives, mapping=aes(yintercept=fp_prediction, colour="background prediction fraction")) + 
+    geom_vline(data=data_detection_limit, mapping=aes(xintercept=min_frac, colour="minimal detection fraction"), show.legend = FALSE) +
+    geom_hline(data=data_false_positives, mapping=aes(yintercept=fp_prediction, colour="background prediction fraction")) +
     geom_hline(yintercept = 0, mapping = aes(colour="detection limit"), alpha=0) + # fake line to fix legend
-    ylab("average estimate") + 
-    xlab("fraction of spike-in cells") + 
-    theme(legend.position = "top", strip.text=element_text(size=8), 
-          panel.spacing = unit(1, "mm"), axis.text = element_text(size=8)) + 
-    scale_color_manual(values=c("zero"="grey", "minimal detection fraction"="red", "background prediction fraction"="blue"), guide=guide_legend("performance measure", override.aes = list(alpha=1)))  
+    ylab("average estimate") +
+    xlab("fraction of spike-in cells") +
+    theme(legend.position = "top", strip.text=element_text(size=8),
+          panel.spacing = unit(1, "mm"), axis.text = element_text(size=8)) +
+    scale_color_manual(values=c("zero"="grey", "minimal detection fraction"="red", "background prediction fraction"="blue"), guide=guide_legend("performance measure", override.aes = list(alpha=1)))
 
 ggsave("../results/figures/detection_limit_fp.pdf", width = WIDTH, height=170, units = "mm")
 ggsave("../results/figures/detection_limit_fp.png", width = WIDTH, height=170, units = "mm", dpi=600)
@@ -323,16 +330,16 @@ ggsave("../results/figures/detection_limit_fp.png", width = WIDTH, height=170, u
 summary_table = res_mixing_study$correlations %>%
   inner_join(cell_type_names) %>%
   inner_join(method_names) %>%
-  select(cell_type_name, method_name, pearson) %>% 
+  select(cell_type_name, method_name, pearson) %>%
   full_join(select(data_detection_limit, method_name, cell_type_name, min_frac)) %>%
   full_join(select(data_false_positives, method_name, cell_type_name, fp_prediction)) %>%
   mutate(min_frac=round(min_frac, 3), fp_prediction=round(fp_prediction, 3)) %>%
-  mutate(pearson=if_else(pearson < 0, "< 0", as.character(round(pearson, 2)))) %>% 
-  select(`cell type`=cell_type_name, `method`=method_name, correlation=pearson, 
+  mutate(pearson=if_else(pearson < 0, "< 0", as.character(round(pearson, 2)))) %>%
+  select(`cell type`=cell_type_name, `method`=method_name, correlation=pearson,
          `detection limit`=min_frac, `false positives`=fp_prediction) %>%
   arrange(`cell type`, `method`)
 
-summary_table %>% 
+summary_table %>%
   write_tsv("../results/tables/summary_table.tsv")
 
 ```
@@ -419,7 +426,7 @@ rmgenes_plot_dc = res_spillover$rm_marker_genes_dc %>%
     xlab("signature genes removed") +
     ylab("predicted B cell score") +
     scale_color_brewer(type="qual", palette=6, direction = -1) +
-    ylim(0, .75) + 
+    ylim(0, .75) +
     theme(plot.margin = margin(t=1, unit = "cm"))
 
 ```
@@ -438,9 +445,9 @@ rmgenes_plot_cd4 = res_spillover$rm_marker_genes_cd4 %>%
     xlab("signature genes removed") +
     ylab("predicted CD4⁺ T cell score") +
     scale_color_brewer(type="qual", palette=6, direction = -1) +
-    ylim(0, .5) + 
+    ylim(0, .5) +
     theme(plot.margin = margin(t=1, unit = "cm"))
-    
+
 
 ```
 

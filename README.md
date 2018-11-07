@@ -1,6 +1,6 @@
-# Benchmarking methods for estimating immune cell abundance from bulk RNA-sequencing data
+# Comprehensive evaluation of cell-type quantification methods for immuno-oncology
 
-Sturm, Finotello et al. *Manuscript in preparation.*
+Sturm, Finotello et al. (2018), biorXiv, https://doi.org/10.1101/463828
 
 The source code in this project can be used to reproduce the results
 described in the paper. Additionally, the pipeline can be easily

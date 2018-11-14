@@ -83,6 +83,8 @@ snakemake wipe
 By default, the pipline uses up to 8 cores and requires up to 12GB of
 memory per core. You can adjust the number of cores in `notebooks/config.R`.
 
+The runtime of the pipeline can be multiple hours, depending on the number of cores 
+and if you use the precomputed data or not. 
 
 
 ### Run the pipeline
@@ -99,6 +101,7 @@ Make sure to use the `--use-conda` flag to tell Snakemake to download all depend
 The pipeline will generate a `results` folder.
 The HTML report with all figures and results will be available in
 `results/book`.
+
 
 ### Useful Snakemake targets.
 Have a look at the `Snakefile`, it is self-explanatory.

@@ -11,6 +11,9 @@ Running the pipeline will generate an interactive HTML report using
 to the one available on
 [grst.github.io/immune_deconvolution_benchmark](https://grst.github.io/immune_deconvolution_benchmark)
 
+**All (preprocessed) data needed to reproduce the results**:
+[data.tar.gz](https://github.com/grst/immune_deconvolution_benchmark/releases/download/v1.0.0-rc1/data.tar.gz)
+
 ## Getting started
 Short version:
 ```

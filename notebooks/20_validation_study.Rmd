@@ -43,7 +43,8 @@ all_results = foreach(dataset=datasets, dataset_name=names(datasets), .combine=b
   foreach(method = config$deconvolution_methods, .combine=bind_rows) %do% {
     tumor = (dataset_name != "hoek") # hoek is PBMC, all others are tumor
     timer_indications = rep(timer_cancer_type[[dataset_name]], ncol(dataset$expr_mat))
-    deconvolute(dataset$expr_mat, method, indications=timer_indications, tumor=tumor) %>%
+    deconvolute(dataset$expr_mat, method, indications=timer_indications, tumor=tumor,
+                expected_cell_types = EXPECTED_CELL_TYPES_FACS) %>%
       process_result(method, dataset_name)
 }
 
@@ -78,7 +79,7 @@ We distinguish between three types of comparisons:
 
 ```{r, include=FALSE}
 abs_methods = config$abs_methods_validation
-within_methods = config$methods_within_sample_comparison 
+within_methods = config$methods_within_sample_comparison
 ```
 
 ## Between- and within-sample comparisons
@@ -119,7 +120,7 @@ res_validation$slope = slope
 ### Absolute scores
 Both EPIC and quanTIseq provide scores that can be interpreted as absolute cell fractions. Both methods account for the different mRNA contents of the different cell types by applying a scaling factor. As the expression values of the single cells we use for the simulation have already been normalized, these scaling factors are not appropriate. While this has no effect on the correlations discussed in the previous section, it is crucial for deriving correct absolute values. For this reason, assessing the absolute quantification performance is fair on the validation datasets only, which provide geniune bulk RNA-seq data.
 
-We use two measures to assess the absolute deviation: (1) the slope of a linear model fitted to the estimated versus known fractions and (2) the root mean square error (RMSE). The slope quickly allows to evaluate whether a method over- or under-predicts a certain cell type while RMSE gives insight about the true deviations. 
+We use two measures to assess the absolute deviation: (1) the slope of a linear model fitted to the estimated versus known fractions and (2) the root mean square error (RMSE). The slope quickly allows to evaluate whether a method over- or under-predicts a certain cell type while RMSE gives insight about the true deviations.
 
 ```{r, fig.width=9, fig.height=4, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Comparison of absolute methods. Values indicate the slope of a linear model fitted to predictions vs. true fractions. Values < 1 indicate an under-prediction of the cell type, values > 1 an over-prediction respectively. The error bars have been computed using `confint` on the result of `lm`. "}
 slope %>%
@@ -222,7 +223,7 @@ all_results_ref %>%
     geom_point(aes(color=cell_type, shape=dataset)) +
     scale_color_manual(values=color_scales$validation) +
     facet_grid(method~cell_type, scales = "free_y") +
-    geom_abline(slope = 1, intercept = 0, color="grey") + 
+    geom_abline(slope = 1, intercept = 0, color="grey") +
     theme_bw() +
     theme(legend.position = "top",
           strip.text.x = element_text(size=9)) +

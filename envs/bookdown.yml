@@ -44,7 +44,7 @@ dependencies:
   - r-e1071=1.6
   - r-devtools=1.13.2
   - r-roxygen2=6.0.1
-  - r-xcell =1.12
+  - r-xcell =1.12_c03d44840
   - r-epic =1.1
   - r-mcpcounter
   - r-limsolve =1.5.5.3

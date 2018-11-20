@@ -83,15 +83,17 @@ bulk_eset = make_bulk_eset(eset=single_cell_schelker$eset,
 
 
 ## Run the deconvolution
-We run the methods with `tumor = TRUE` and `scale_mrna = FALSE` where applicable, as 
+We run the methods with `tumor = TRUE` and `scale_mrna = FALSE` where applicable, as
 the mRNA scaling is inappropriate for already normalized single cells. In any case,
 the mRNA scaling factors have no influence on the correlations between estimated and
-known fractions. 
+known fractions.
 ```{r mixing_deconvolution, cache=TRUE, message=FALSE, echo=TRUE, warning=FALSE, results='hide'}
 timer_indications = ifelse(is_melanoma, "SKCM", "OV")
 all_results = foreach(method=config$deconvolution_methods,
                       .final = function(x) {setNames(x, config$deconvolution_methods)}) %dopar% {
-  deconvolute(bulk_eset, method, column="gene_symbol", indications = timer_indications, scale_mrna = FALSE, tumor = TRUE)
+  deconvolute(bulk_eset, method, column="gene_symbol",
+              indications = timer_indications, scale_mrna = FALSE, tumor = TRUE,
+              expected_cell_types = EXPECTED_CELL_TYPES_SC)
 }
 ```
 
@@ -113,8 +115,8 @@ show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
                     "Cancer associated fibroblast", "Endothelial cell")
 ```
 
-The following methods do not have signatures to quantify "Macrophages/Monocytes". EPIC and TIMER only provide a Macrophage signature, while MCP-counter only provides a signature "Monocytic lineage", which also includes myeloid dendritic cells. 
-Unfortunately, our single cell dataset does not distinguish between Macrophages and Monocytes. 
+The following methods do not have signatures to quantify "Macrophages/Monocytes". EPIC and TIMER only provide a Macrophage signature, while MCP-counter only provides a signature "Monocytic lineage", which also includes myeloid dendritic cells.
+Unfortunately, our single cell dataset does not distinguish between Macrophages and Monocytes.
 As we are only comparing correlations here, the subsitute signatures should still yield appropriate results, yet, we label the results
 accordingly
 
@@ -230,7 +232,7 @@ xCell and CIBERSORT abs. scale the output score to be 'absolute':
 accurate for quanTIseq and EPIC, which account for the different mRNA contents
 of different cell types.* As single cell data is already normalized on
 a per-cell level, the scaling factors are most likely not appropriate with the
-simulated data. We generated the same plots on the validation data sets (geniune bulk RNA-seq + FACS), 
+simulated data. We generated the same plots on the validation data sets (geniune bulk RNA-seq + FACS),
 which we expect to be more representative!
 
 ```{r mixing_abs, echo=FALSE, cache=TRUE}

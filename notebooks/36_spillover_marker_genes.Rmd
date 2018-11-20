@@ -101,8 +101,8 @@ alldata2 %>% filter(gene %in% allmarkers) %>%
   ggplot(aes(x=ncell, y=TPM)) +
     geom_point(aes(colour=gene)) +
     facet_grid(markers_for+gene~celltype, scales = "free_y") +
-    scale_color_brewer(palette="Set3") + stat_cor() + 
-    panel_border() + 
+    scale_color_brewer(palette="Set3") + stat_cor() +
+    panel_border() +
     scale_x_continuous(breaks = c(250, 750))
 ```
 
@@ -202,7 +202,7 @@ dc_expression = foreach(i=1:10,
         }
 rownames(dc_expression) = rownames(exprs(single_cell_schelker$eset))
 
-# intersection because CIBERSORT (or other methods) might not be available. 
+# intersection because CIBERSORT (or other methods) might not be available.
 use_methods = intersect(c("epic", "quantiseq", "cibersort"), config$deconvolution_methods)
 show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
                     "NK cell", "T cell CD4+", "T cell CD8+")
@@ -210,7 +210,8 @@ timer_indications = rep("OV", ncol(dc_expression))
 
 res_before = foreach(method=use_methods,
                      .combine=bind_rows) %do% {
-                       deconvolute(dc_expression, method=method, indications=timer_indications) %>%
+                       deconvolute(dc_expression, method=method, indications=timer_indications,
+                                   expected_cell_types = EXPECTED_CELL_TYPES_SC) %>%
                          map_result_to_celltypes(show_cell_types, method) %>%
                          as_tibble(rownames = "cell_type") %>%
                          mutate(method=method, dataset="before")
@@ -218,7 +219,9 @@ res_before = foreach(method=use_methods,
 
 res_after = foreach(method=use_methods,
                      .combine=bind_rows) %do% {
-                       deconvolute(dc_expression, method=method, indications=timer_indications, rmgenes=B_pDC_genes) %>%
+                       deconvolute(dc_expression, method=method, indications=timer_indications,
+                                   rmgenes=B_pDC_genes,
+                                   expected_cell_types = EXPECTED_CELL_TYPES_SC) %>%
                          map_result_to_celltypes(show_cell_types, method) %>%
                          as_tibble(rownames = "cell_type") %>%
                          mutate(method=method, dataset="after")
@@ -245,9 +248,9 @@ res_all %>%
 
 
 
-### The same analysis, but for T CD4 vs. non-immune cells. 
-We suspected, that the same effect might be driving the high level of background predictions 
-we observe in CD4+ T cells. We remove the following genes, which we found to be 
+### The same analysis, but for T CD4 vs. non-immune cells.
+We suspected, that the same effect might be driving the high level of background predictions
+we observe in CD4+ T cells. We remove the following genes, which we found to be
 expressed in both CD4+ T cells and the non-immune background population (cancer, fibroblasts, endothelial).
 
 ```{r}
@@ -265,15 +268,15 @@ background_expression = foreach(i=1:10,
         }
 rownames(background_expression) = rownames(exprs(single_cell_schelker$eset))
 
-# test if predictions on random samplese are affected 
-# -> they are not, T cell level remains constant. 
-# won't show results.  
-# 
+# test if predictions on random samplese are affected
+# -> they are not, T cell level remains constant.
+# won't show results.
+#
 # bulk_eset = make_bulk_eset(eset=single_cell_schelker$eset,
 #                            cell_fractions = cell_fractions[1:10, ],
 #                            n_cells=500)
 
-# intersection because CIBERSORT (or other methods) might not be available. 
+# intersection because CIBERSORT (or other methods) might not be available.
 use_methods = intersect(c("epic", "quantiseq", "cibersort"), config$deconvolution_methods)
 show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
                     "NK cell", "T cell CD4+", "T cell CD8+")
@@ -281,7 +284,8 @@ timer_indications = rep("OV", ncol(background_expression))
 
 res_before = foreach(method=use_methods,
                      .combine=bind_rows) %do% {
-                       deconvolute(background_expression, method=method, indications=timer_indications) %>%
+                       deconvolute(background_expression, method=method, indications=timer_indications,
+                                   expected_cell_types=EXPECTED_CELL_TYPES_SC) %>%
                          map_result_to_celltypes(show_cell_types, method) %>%
                          as_tibble(rownames = "cell_type") %>%
                          mutate(method=method, dataset="before")
@@ -289,7 +293,9 @@ res_before = foreach(method=use_methods,
 
 res_after = foreach(method=use_methods,
                      .combine=bind_rows) %do% {
-                       deconvolute(background_expression, method=method, indications=timer_indications, rmgenes=CD4_nonimmune_genes) %>%
+                       deconvolute(background_expression, method=method, indications=timer_indications,
+                                   rmgenes=CD4_nonimmune_genes,
+                                   expected_cell_types = EXPECTED_CELL_TYPES_SC) %>%
                          map_result_to_celltypes(show_cell_types, method) %>%
                          as_tibble(rownames = "cell_type") %>%
                          mutate(method=method, dataset="after")

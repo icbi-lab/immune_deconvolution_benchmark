@@ -43,7 +43,10 @@ The data has been preprocessed elsewhere, and we obtain the estimates from our d
 
 ```{r, cache=TRUE, echo=FALSE}
 # Obtain the data from database
+# only primary tumor and omit Thymoma
 tcga_infiltration = tbl(tcga_db, "infiltration") %>%
+  inner_join(tbl(tcga_db, "sample")) %>%
+  filter(sample_type == "TP", cohort != "THYM") %>% 
   collect() %>% 
   filter(method != "cibersort") %>% # cibersort does not make senes here, as it only compares relative fractions. 
   mutate(method_cell_type = paste0(cell_type, " [", method, "]")) %>%

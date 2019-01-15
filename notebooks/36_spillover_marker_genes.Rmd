@@ -60,9 +60,9 @@ show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
 ```{r, echo=FALSE}
 n_immune_cells = rep(c(seq(0, 50, 5)
                      , seq(60, 100, 10)
-                     , seq(150, 500, 50)
-                     , seq(600, 1000, 100)
-                     ), 5)
+                     , seq(120, 300, 20)
+                     , seq(350, 500, 50)
+                     ), N_BATCH)
 ```
 
 
@@ -146,7 +146,7 @@ if(exists("lm22")) matrices$cibersort = lm22
 foreach(method = names(matrices)) %do% {
   markers = rownames(matrices[[method]])
   alldata3 = alldata2 %>% filter(gene %in% markers) %>%
-    filter(ncell > 600)
+    filter(ncell > 400)
   gene_rank = alldata3 %>%
     spread(celltype, TPM) %>%
     mutate(rank = `B cell` * `Dendritic cell`) %>%

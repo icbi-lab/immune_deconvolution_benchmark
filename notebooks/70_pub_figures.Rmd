@@ -142,7 +142,7 @@ plot_mixing = res_mixing_study$all_results %>%
   mutate(cell_type_name_f = factor(cell_type_name, levels=cell_type_names$cell_type_name)) %>%
   ggplot(aes(x=true_fraction, y=estimate)) +
     geom_point(size=.2) +
-    geom_text(data=corr_annot, mapping=aes(label=paste0("r=", pearson, ", ", p_signif), x=-Inf, y=-Inf), hjust=-0.1, vjust=-6.8, size=2.4) +
+    geom_text(data=corr_annot, mapping=aes(label=paste0("r=", pearson, ", ", p_signif), x=-Inf, y=-Inf), hjust=-0.1, vjust=-5.4, size=2.4) +
     facet_grid(method_abbrev ~ cell_type_name_f, scales="free") +
     stat_smooth(color="blue", method="lm", size=.4) +
     scale_color_manual(values=color_scales$methods, na.value="grey") +
@@ -204,7 +204,7 @@ corr_annot = val_results_all %>%
 p_validation_all_cells = val_results_all %>%
   ggplot(aes(x=true_fraction, y=estimate)) +
     geom_point(aes(color=cell_type), size=.4) +
-    geom_text(data=corr_annot, mapping=aes(label=paste0("r=", pearson, ", ", p_signif), x=-Inf, y=-Inf), hjust=-0.1, vjust=-6.8, size=2.4) +
+    geom_text(data=corr_annot, mapping=aes(label=paste0("r=", pearson, ", ", p_signif), x=-Inf, y=-Inf), hjust=-0.1, vjust=-5.2, size=2.4) +
     scale_color_manual(values=color_scales$validation) +
     facet_grid(method_abbrev~dataset_name, scales = "free_y") +
     scale_x_continuous(breaks=c(.5)) +
@@ -232,14 +232,14 @@ print(p_validation_hoek)
 
 
 ## Benchmark results
-```{r, fig.height=8.5, fig.width=7, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Benchmark results main figure. "}
+```{r, fig.height=8.27, fig.width=7, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Benchmark results main figure. "}
 # combine heatmaps
 
 ## margins
-MT1 = 0
+MT1 = -.3
 MB1 = .5
 MR1 = .3
-ML1 = .5
+ML1 = .2
 
 p2_validation_all_cells = p_validation_all_cells + theme(legend.position = "none")
 p2_validation_all_cells_legend = get_legend(p_validation_all_cells)
@@ -273,8 +273,9 @@ p_lower = plot_grid(plots_left[[2]], plot_val_legend,
 
 plot_grid(plots_left[[1]], p_lower, align="h", ncol=1, axis="lr", labels = "a", rel_heights = c(.5, .5), label_size = 12)
 
-ggsave("../results/figures/summary.pdf", height = HEIGHT, width = WIDTH, units = "mm")
-ggsave("../results/figures/summary.png", height = HEIGHT, width = WIDTH, units = "mm", dpi=400)
+# ggsave("../results/figures/summary.pdf", height = HEIGHT, width = WIDTH, units = "mm")
+ggsave("../results/figures/summary.eps", height = 210, width = WIDTH, units = "mm")
+ggsave("../results/figures/summary.jpg", height = 210, width = WIDTH, units = "mm", dpi=400)
 ```
 
 
@@ -350,7 +351,7 @@ methods = config$deconvolution_methods
 
 # cibersort and cibersort abs are identical in this analysis, no need to include both.
 methods = sort(methods[methods != "cibersort_abs"])
-tmp_method_names = as.list(method_names %>% pull(method_name))
+tmp_method_names = as.list(method_names %>% pull(method_abbrev))
 names(tmp_method_names) = method_names$method
 
 migration = res_spillover$all_results %>%
@@ -386,8 +387,8 @@ x = lapply(methods, function(method) {
                    annotationTrackHeight = uh(5, "mm")
                    )
 
-      text(0, 0, tmp_method_names[[method]], cex = 2.3)
-      text(0, -0.25, as.character(round(filter(noise_ratio, method == !!method) %>% pull(noise_ratio), 2)), cex=2.2)
+      text(0, 0, tmp_method_names[[method]], cex = 2.)
+      text(0, -0.3, as.character(round(filter(noise_ratio, method == !!method) %>% pull(noise_ratio), 2)), cex=1.8)
 })
 
 grid.echo()
@@ -404,8 +405,8 @@ tmp_barplot_data = migration %>%
 p = tmp_barplot_data %>%
   ggplot(aes(x=`cell type`, y=value, fill=`cell type`)) +
   geom_bar(stat='identity') +
-  scale_fill_manual(values=color_scales$immune_cells) +
-  theme(legend.position = "top", legend.justification = "center")
+  scale_fill_manual(values=color_scales$immune_cells, guide=guide_legend(ncol=2)) +
+  theme(legend.position = "top", legend.justification = "center") 
 p
 
 migration_legend = cowplot::get_legend(p)
@@ -420,16 +421,17 @@ rmgenes_data_dc = res_spillover$rm_marker_genes_dc %>%
 
 rmgenes_plot_dc = rmgenes_data_dc %>%
   ggplot(aes(x=dataset, y=predicted_fraction, colour=dataset)) +
-    geom_quasirandom() +
+    geom_quasirandom(size=.5) +
     stat_summary(fun.y=mean, geom="crossbar", fun.ymin=mean, fun.ymax=mean, width=.5, color="black") +
-    facet_wrap(~method_name, drop = TRUE) +
-    stat_compare_means(paired = TRUE, method = "t.test", label="p") +
-    theme(legend.position = "none") +
+    facet_wrap(~method_abbrev, drop = TRUE) +
+    stat_compare_means(paired = TRUE, method = "t.test", label="p", size=2.5) +
+    theme(legend.position = "none", strip.text=element_text(size=9),
+          panel.spacing = unit(.5, "mm"), axis.text = element_text(size=8)) + 
     xlab("signature genes removed") +
-    ylab("predicted B cell score") +
+    ylab("B cell score") +
     scale_color_brewer(type="qual", palette=6, direction = -1) +
     ylim(0, .75) +
-    theme(plot.margin = margin(t=1, unit = "cm"))
+    theme(plot.margin = margin(t=0.5, l=1, r=1, unit = "cm")) 
 
 
 ```
@@ -442,16 +444,17 @@ rmgenes_data_cd4 = res_spillover$rm_marker_genes_cd4 %>%
 
 rmgenes_plot_cd4 = rmgenes_data_cd4 %>% 
   ggplot(aes(x=dataset, y=predicted_fraction, colour=dataset)) +
-    geom_quasirandom() +
+    geom_quasirandom(size=.5) +
     stat_summary(fun.y=mean, geom="crossbar", fun.ymin=mean, fun.ymax=mean, width=.5, color="black") +
-    facet_wrap(~method_name, drop = TRUE) +
-    stat_compare_means(paired = TRUE, method = "t.test", label="p") +
-    theme(legend.position = "none") +
+    facet_wrap(~method_abbrev, drop = TRUE) +
+    stat_compare_means(paired = TRUE, method = "t.test", label="p", size=2.5) +
+    theme(legend.position = "none", strip.text=element_text(size=9),
+          panel.spacing = unit(.5, "mm"), axis.text = element_text(size=8)) + 
     xlab("signature genes removed") +
-    ylab("predicted CD4⁺ T cell score") +
+    ylab("CD4⁺ T cell score") +
     scale_color_brewer(type="qual", palette=6, direction = -1) +
     ylim(0, .5) +
-    theme(plot.margin = margin(t=1, unit = "cm"))
+    theme(plot.margin = margin(t=0, l=1, r=1, unit = "cm")) 
 
 
 ```
@@ -469,14 +472,16 @@ lapply(names(tmp_datas), function(which_data) {
 })
 ```
 
-```{r fig.width = 8, fig.height=9, echo=FALSE, message=FALSE, fig.cap="Migration chart figure for paper. "}
+```{r fig.width = 6.69, fig.height=3.93, echo=FALSE, message=FALSE, fig.cap="Migration chart figure for paper. "}
 # combine legend and plot
-plot_lower = plot_grid(rmgenes_plot_cd4, rmgenes_plot_dc,
-                       nrow=1, rel_widths = c(0.5, 0.5), align = "h", labels = c("b", "c"))
+plot_right = plot_grid(rmgenes_plot_cd4, rmgenes_plot_dc,
+                       nrow=2, rel_heights = c(0.5, 0.5), align = "v", labels = c("b", "c"))
 
-plot_grid(migration_plot, migration_legend, plot_lower,
-          nrow=3, rel_heights = c(0.7, .15, .4), align = "v", labels = c("a", "", ""), axis="t")
+plot_left = plot_grid(migration_plot, NULL, migration_legend, NULL, nrow=4, rel_heights = c(.65, .03, .15, 0.03), align = 'v', labels=c("a", ""), axis='t')
 
-ggsave("../results/figures/spillover_migration_chart.pdf", width=WIDTH, height=205, units = "mm")
-ggsave("../results/figures/spillover_migration_chart.png", width=WIDTH, height=205, units = "mm", dpi=600)
+plot_grid(plot_left, plot_right,
+          nrow=1, rel_widths = c(.65, .5), align = "h", axis="t")
+
+ggsave("../results/figures/spillover_migration_chart.tiff", width=WIDTH, height=90, units = "mm", dpi=600)
+ggsave("../results/figures/spillover_migration_chart.jpg", width=WIDTH, height=90, units = "mm", dpi=600)
 ```

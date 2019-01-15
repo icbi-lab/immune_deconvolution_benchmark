@@ -33,8 +33,9 @@ rule book:
     "notebooks/_output.yml"
   output:
     "results/book/index.html",
-    "results/cache/input_data.rda",
-    "results/cache/results_for_figures.rda",
+    "results/cache/.dir",
+    # "results/cache/input_data.rda",
+    # "results/cache/results_for_figures.rda",
     "results/figures/schelker_single_cell_tsne.pdf",
     "results/figures/spillover_migration_chart.pdf",
     "results/figures/spillover_migration_all.pdf",
@@ -53,6 +54,7 @@ rule data:
    output:
      DATA_FILES
    shell:
+     "touch results/cache/.dir; "
      "wget 'https://github.com/grst/immune_deconvolution_benchmark/releases/download/v1.0.0-rc1/data.tar.gz' -O data.tar.gz && "
      "mkdir -p data && "
      "tar -xvzf data.tar.gz -C data --strip-components 1"

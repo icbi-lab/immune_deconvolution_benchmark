@@ -252,6 +252,21 @@ with(schelker_ovarian, {
 
 ```
 
+The two technical replicates are highly consistent: 
+```{r}
+with(schelker_ovarian, {
+  bulk_replicates2 = lapply(names(samples), function(id) {
+    expr = bulk_replicates[, c("Row", samples[[id]])] %>% mutate("sample"=id)
+    colnames(expr) = c("gene", "rep1", "rep2", "sample")
+    expr
+  }) %>% bind_rows()
+})
+
+schelker_ovarian$bulk_replicates2 %>%
+  ggplot(aes(x=rep1, y=rep2)) + geom_point() + stat_cor() + facet_wrap(~sample)
+
+```
+
 ```{r echo=FALSE, results="asis"}
 dt_caption("Flow cytometry estimates of Schelker et al. ")
 schelker_ovarian$ref %>% DT::datatable()

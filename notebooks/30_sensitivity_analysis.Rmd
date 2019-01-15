@@ -20,7 +20,10 @@ We use the following cell types:
 ```{r}
 show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
                     "NK cell", "T cell CD4+", "T cell CD8+", 
-                    "T cell CD4+ (non-regulatory)", "T cell regulatory (Tregs)")
+                    "T cell CD4+ (non-regulatory)", "T cell regulatory (Tregs)", 
+                    "Cancer associated fibroblast", "Endothelial cell")
+cancer_background = c("Melanoma cell"=700, "Ovarian carcinoma cell"=300)
+N_BACKGROUND = 1000
 ```
 
 ```{r, echo=FALSE}
@@ -29,21 +32,23 @@ show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
 N_BATCH = 5
 n_immune_cells = rep(c(seq(0, 50, 5)
                      , seq(60, 100, 10)
-                     , seq(150, 500, 50)
-                     , seq(600, 1000, 100)
+                     , seq(120, 300, 20)
+                     , seq(350, 500, 50)
                      ), N_BATCH)
 ```
 
 
+Generate dataset with only cancer cells as background: 
 ```{r sens_generate_data, cache=FALSE, echo=FALSE}
 sensitivity_analysis_file = "../results/cache/sensitivity_analysis_dataset.rda"
 if(!file.exists(sensitivity_analysis_file)) {
   set.seed(42)
   res = foreach(input_cell_type = show_cell_types,
                 .final = function(x) setNames(x, show_cell_types)) %dopar% {
-
+                    background=cancer_background
+                    assert(sum(background) == N_BACKGROUND)
                     expr_mat = lapply(n_immune_cells, function(k) {
-                      cell_n = make_cell_fraction_vector(input_cell_type, k)
+                      cell_n = make_cell_fraction_vector(input_cell_type, k, background)
                       cell_frac = cell_n/sum(cell_n)
                       make_random_bulk(eset=single_cell_schelker$eset, cell_fractions = cell_frac, n_cells = sum(cell_n))
                     }) %>% bind_cols() %>% as.matrix()
@@ -59,49 +64,96 @@ if(!file.exists(sensitivity_analysis_file)) {
 }
 ```
 
-```{r sens_deconvolute, fig.height=18, fig.width=25, cache=TRUE, echo=FALSE, message=FALSE}
-tmp_cell_types = names(sensitivity_analysis_dataset)
-expr_mat = do.call(cbind, sensitivity_analysis_dataset)
-input_cell_types = unlist(lapply(tmp_cell_types, function(cell_type) {
-  rep(cell_type, length(n_immune_cells))
-}))
-colnames(expr_mat) = unlist(lapply(tmp_cell_types, function(cell_type) {
-  paste0(cell_type, "_", seq(1, length(n_immune_cells)))
-}))
-res = foreach(
-  method = config$deconvolution_methods,
-  .final = function(x)
-    setNames(x, config$deconvolution_methods)
-) %:%
-  foreach(i = 1:N_BATCH,
-          .combine = full_join) %dopar% {
-            batch_length = length(unique(n_immune_cells))   # number of samplese per batch
-            n_samples = length(n_immune_cells)              # number of samples per cell type
-            ind = ((i - 1) * batch_length + 1):(i * batch_length) # indices for first cell type
-            ind_ct = lapply(seq(0, length(tmp_cell_types) - 1), function(k) {
-              (k * n_samples) + ind
-            }) %>% unlist()                                 # indices for all cell types
-            # use SKCM, although samples will also contain ovarian cancer acsites cells.
-            timer_indications = rep("SKCM", ncol(expr_mat))
-            deconvolute(expr_mat[,ind_ct], method, indications = timer_indications[ind_ct])
-          }
+Generate dataset with cancer and all other immune cells as background: 
+```{r sens_generate_data_immune_bg, cache=FALSE, echo=FALSE}
+sensitivity_analysis_file = "../results/cache/sensitivity_analysis_dataset_immune_background.rda"
+if(!file.exists(sensitivity_analysis_file)) {
+  set.seed(42)
+  res = foreach(input_cell_type = show_cell_types,
+                .final = function(x) setNames(x, show_cell_types)) %dopar% {
+                    background_cts = c(cell_types$immune_cells, cell_types$other)
+                    # for CD4+, which is a supercategory, exclude both child cell types. 
+                    if(input_cell_type == "T cell CD4+") {
+                      exclude_cell_types = c("T cell regulatory (Tregs)", "T cell CD4+ (non-regulatory)") 
+                    } else {
+                      exclude_cell_types = input_cell_type
+                    }
+                    background_cts = background_cts[!background_cts %in% exclude_cell_types]
+                    n_cancer = N_BACKGROUND - 100 * length(background_cts)
+                    background = c(rep(100, length(background_cts)), n_cancer/N_BACKGROUND * cancer_background)
+                    names(background) = c(background_cts, names(cancer_background))
+                    assert("1000 cells in background", sum(background) == N_BACKGROUND)
+                    expr_mat = lapply(n_immune_cells, function(k) {
+                      cell_n = make_cell_fraction_vector(input_cell_type, k, background)
+                      cell_frac = cell_n/sum(cell_n)
+                      make_random_bulk(eset=single_cell_schelker$eset, cell_fractions = cell_frac, n_cells = sum(cell_n))
+                    }) %>% bind_cols() %>% as.matrix()
 
-sensitivity_analysis_res = res
+                    rownames(expr_mat) = rownames(single_cell_schelker$eset %>% exprs())
+                    expr_mat
+    }
+
+  sensitivity_analysis_dataset_immune_bg = res
+  save(sensitivity_analysis_dataset_immune_bg, file=sensitivity_analysis_file)
+} else {
+  load(sensitivity_analysis_file)
+}
+```
+
+```{r sens_deconvolute, fig.height=18, fig.width=25, cache=TRUE, echo=FALSE, message=FALSE}
+deconvolute_dataset = function(dataset, n_immune_cells) {
+  tmp_cell_types = names(dataset)
+  expr_mat = do.call(cbind, dataset)
+  
+  input_cell_types = unlist(lapply(tmp_cell_types, function(cell_type) {
+    rep(cell_type, length(n_immune_cells))
+  }))
+  colnames(expr_mat) = unlist(lapply(tmp_cell_types, function(cell_type) {
+    paste0(cell_type, "_", seq(1, length(n_immune_cells)))
+  }))
+  
+  res = foreach(
+    method = config$deconvolution_methods,
+    .final = function(x)
+      setNames(x, config$deconvolution_methods)
+  ) %:%
+    foreach(i = 1:N_BATCH,
+            .combine = full_join) %dopar% {
+              batch_length = length(unique(n_immune_cells))   # number of samplese per batch
+              n_samples = length(n_immune_cells)              # number of samples per cell type
+              ind = ((i - 1) * batch_length + 1):(i * batch_length) # indices for first cell type
+              ind_ct = lapply(seq(0, length(tmp_cell_types) - 1), function(k) {
+                (k * n_samples) + ind
+              }) %>% unlist()                                 # indices for all cell types
+              # use SKCM, although samples will also contain ovarian cancer acsites cells.
+              timer_indications = rep("SKCM", ncol(expr_mat))
+              deconvolute(expr_mat[,ind_ct], method, indications = timer_indications[ind_ct])
+            }
+  
+  res
+
+}
+
+sensitivity_analysis_res = deconvolute_dataset(sensitivity_analysis_dataset, n_immune_cells)
+sensitivity_analysis_res_immune_background = deconvolute_dataset(sensitivity_analysis_dataset_immune_bg, n_immune_cells)
+
+save(sensitivity_analysis_res, sensitivity_analysis_res_immune_background, file = "../results/cache/sensitivity_analysis_res.rda")
 ```
 
 ```{r sens_process_data, cache=TRUE, echo=FALSE, message=FALSE}
 # post process the deconvolution results
-all_results = foreach(method = config$deconvolution_methods,
+post_process_deconvolution_results = function(result) {
+ all_results = foreach(method = config$deconvolution_methods,
                       .combine=bind_rows) %do% {
-                        tmp_res = sensitivity_analysis_res[[method]] %>%
+                        tmp_res = result[[method]] %>%
                           map_result_to_celltypes(show_cell_types, method) %>%
                           na.omit()
-                        
+                       
                         cell_type_sample_id = str_split_fixed(colnames(tmp_res), "_", 2)
                         n_cell_df = tibble(sample=colnames(tmp_res),
                                            input_cell_type = cell_type_sample_id[,1],
                                            n_immune_cells = n_immune_cells[as.numeric(cell_type_sample_id[,2])],
-                                           n_background_cells = sum(cell_types$n_background_cells))
+                                           n_background_cells = N_BACKGROUND)
                         
                         tmp_res %>%
                           as_tibble(rownames = "cell_type") %>%
@@ -109,19 +161,31 @@ all_results = foreach(method = config$deconvolution_methods,
                           mutate(method=method) %>%
                           inner_join(n_cell_df, by="sample")
                       } %>%
-  mutate(frac_immune_cells = n_immune_cells/sum(cell_types$n_background_cells))
+  mutate(frac_immune_cells = n_immune_cells/N_BACKGROUND)
+ 
+  all_results
+}
 
-all_results_ci = all_results %>%
+compute_conf_int = function(all_results) {
+ all_results %>%
   select(-sample) %>%
   group_by_at(vars(-estimate)) %>%
   summarise_all(funs(mean, sd, n=length)) %>%
   mutate(ci=qt(0.975,df=n-1)*sd/sqrt(n)) %>%
-  ungroup()
+  ungroup() 
+}
+
+all_results = list(
+  "cancer_bg" = post_process_deconvolution_results(sensitivity_analysis_res),
+  "immune_bg" = post_process_deconvolution_results(sensitivity_analysis_res_immune_background)
+)
+
+all_results_ci = lapply(all_results, compute_conf_int)
 ```
 
 ## Predictions with increasing immune cell content
 ```{r, fig.height=18, fig.width=32, echo=FALSE, fig.cap="We add an increasing amount of each cell type independently to the 1,800 background cells. The figure shows the predictions for each cell type and method at increasing infiltration levels. Tip: right-click, 'open in new tab' to enlarge!"}
-all_results_ci %>%
+all_results_ci$cancer_bg %>%
   ggplot(aes(x=frac_immune_cells, y=mean, colour=cell_type)) +
   #   geom_line() +
     geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) +
@@ -129,46 +193,76 @@ all_results_ci %>%
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
         legend.position="top") +
     facet_grid(method~input_cell_type, scales = "free_y") +
-    scale_color_manual(values = color_scales$immune_cells)
+    scale_color_manual(values = color_scales$immune_cells) +
+    ggtitle("cancer background")
+
+all_results_ci$immune_bg %>%
+  ggplot(aes(x=frac_immune_cells, y=mean, colour=cell_type)) +
+  #   geom_line() +
+    geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) +
+    theme_bw() +
+    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position="top") +
+    facet_grid(method~input_cell_type, scales = "free_y") +
+    scale_color_manual(values = color_scales$immune_cells) + 
+    ggtitle("immune background")
 ```
 
 
 ## Detection Limit and False positives
 ```{r detection-limit, include=FALSE}
-prediction_at_zero = all_results %>% filter(frac_immune_cells == 0) %>%
-  filter(cell_type == input_cell_type) %>% 
-  select(method, cell_type, background=estimate) %>% 
-  group_by(method, cell_type) %>% 
-  mutate(sample_n = 1:n()) %>% 
-  arrange(method, cell_type)
-
 t_test = function(x, y) {
   res = t.test(x, y, paired=FALSE, alternative = "greater")
   res$p.value
 }
 
-background_data = all_results %>%
-  filter(cell_type == input_cell_type) %>% 
-  select(method, cell_type, estimate, frac_immune_cells) %>% 
-  group_by(method, cell_type, frac_immune_cells) %>% 
-  mutate(sample_n = 1:n()) %>% 
-  arrange(method, cell_type, frac_immune_cells) %>% 
-  inner_join(prediction_at_zero) %>% 
-  group_by(method, cell_type, frac_immune_cells) %>%
-  summarise(n=n(), mean=mean(estimate), sd=sd(estimate), p_value=t_test(estimate, background)) %>%
-  mutate(ci=qt(0.975,df=n-1)*sd/sqrt(n))
-```
+make_prediction_at_zero_data = function(all_results) {
+  all_results %>% filter(frac_immune_cells == 0) %>%
+    filter(cell_type == input_cell_type) %>% 
+    select(method, cell_type, background=estimate) %>% 
+    group_by(method, cell_type) %>% 
+    mutate(sample_n = 1:n()) %>% 
+    arrange(method, cell_type)
+}
 
-```{r, warning=FALSE, message=FALSE, echo=FALSE, warning=FALSE, fig.width=10, fig.height=10, fig.cap="Detection limit and false positive predictions. The plots show the average estimate of each method for five simulated bulk RNA-seq datasets randomly sampled from ~1,800 non-immune cells and an increasing fraction of a specific immune cell type. The grey ribbon indicates the standard deviation. The red line refers to the detection limit, i.e. the minimal fraction of an immune cell type needed for a method to reliably detect its abundance as significantly different from zero (p-value < 0.05, two-sided t-test). The blue line refers to the false-positive prediction rate, i.e. the average estimate of a method with no immune cells present. "}
-data_detection_limit = background_data %>% 
+make_background_prediction_data = function(all_results, prediction_at_zero) {
+  background_data = all_results %>%
+  filter(cell_type == input_cell_type) %>% 
+    select(method, cell_type, estimate, frac_immune_cells) %>% 
+    group_by(method, cell_type, frac_immune_cells) %>% 
+    mutate(sample_n = 1:n()) %>% 
+    arrange(method, cell_type, frac_immune_cells) %>% 
+    inner_join(prediction_at_zero) %>% 
+    group_by(method, cell_type, frac_immune_cells) %>%
+    summarise(n=n(), mean=mean(estimate), sd=sd(estimate), p_value=t_test(estimate, background)) %>%
+    mutate(ci=qt(0.975,df=n-1)*sd/sqrt(n))
+  
+  background_data
+}
+
+make_detection_limit_data = function(background_data) {
+  background_data %>% 
   group_by(method, cell_type) %>% 
   # we look for the minimal fraction, at which the prediction is significantly different from the background. 
   filter(p_value < 0.05) %>% 
   summarise(min_frac = min(frac_immune_cells))
+}
 
-data_false_positives = prediction_at_zero %>% 
-  group_by(method, cell_type) %>% 
-  summarise(fp_prediction = mean(background)) 
+make_false_positive_data = function(prediction_at_zero) {
+  prediction_at_zero %>% 
+    group_by(method, cell_type) %>% 
+    summarise(n=n(), mean = mean(background), sd=sd(background)) %>%
+    mutate(ci=qt(0.975,df=n-1)*sd/sqrt(n))
+}
+
+prediction_at_zero = lapply(all_results, make_prediction_at_zero_data)
+background_data = mapply(make_background_prediction_data, all_results, prediction_at_zero, SIMPLIFY=FALSE) 
+data_detection_limit = lapply(background_data, make_detection_limit_data)
+data_false_positives = lapply(prediction_at_zero, make_false_positive_data)
+```
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE, warning=FALSE, fig.width=12, fig.height=9, fig.cap="Detection limit and false positive predictions. The plots show the average estimate of each method for five simulated bulk RNA-seq datasets randomly sampled from ~1,800 non-immune cells and an increasing fraction of a specific immune cell type. The grey ribbon indicates the standard deviation. The red line refers to the detection limit, i.e. the minimal fraction of an immune cell type needed for a method to reliably detect its abundance as significantly different from zero (p-value < 0.05, two-sided t-test). The blue line refers to the false-positive prediction rate, i.e. the average estimate of a method with no immune cells present. "}
+
 
 fun_breaks2 = function(limits) {
   breaks = signif(max(limits) * c(0, 0.5),1)
@@ -176,10 +270,17 @@ fun_breaks2 = function(limits) {
   breaks
 }
 
+bind_dataframes = function(data_list, name_column="dataset") {
+  lapply(names(data_list), function(i) {
+    data_list[[i]] %>% mutate(!!name_column := i)
+  }) %>% bind_rows()
+}
+
 background_data %>%
+  bind_dataframes() %>% 
   ggplot(aes(x=frac_immune_cells, y=mean)) + 
-    geom_ribbon(aes(ymin=mean-ci, ymax=mean+ci), alpha=.2) + 
-    geom_point(size=.2, shape=4) + 
+    geom_ribbon(aes(ymin=mean-ci, ymax=mean+ci, fill=dataset), alpha=.2) + 
+    geom_point(aes(colour=dataset), size=.2, shape=4) + 
     # geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) + 
     panel_border() + 
     facet_grid(method ~ cell_type, scales = "free_y") + 
@@ -187,14 +288,15 @@ background_data %>%
     scale_y_continuous(breaks=fun_breaks2) +
     geom_hline(mapping=aes(yintercept=0, colour="zero"), linetype="dashed", show.legend=FALSE) + 
     geom_vline(mapping=aes(xintercept = 0, color="zero"), linetype="dashed", show.legend=FALSE) + 
-    geom_vline(data=data_detection_limit, mapping=aes(xintercept=min_frac, colour="detection limit"), show.legend = FALSE) + 
-    geom_hline(data=data_false_positives, mapping=aes(yintercept=fp_prediction, colour="false positive fraction")) + 
+    # geom_vline(data=data_detection_limit$cancer_bg, mapping=aes(xintercept=min_frac, colour="detection limit"), show.legend = FALSE) + 
+    geom_errorbar(data=bind_dataframes(data_false_positives), mapping=aes(ymin=mean-ci, ymax=mean+ci, x=-0.03, colour=dataset), width=0.04, position="dodge") + 
+    # geom_crossbar(data=bind_dataframes(data_false_positives), mapping=aes(y=mean, x=0, ymin=mean, ymax=mean, colour=dataset), width=0.05, position="dodge") + 
     geom_hline(yintercept = 0, mapping = aes(colour="detection limit"), alpha=0) + # fake line to fix legend
     ylab("average estimate") + 
     xlab("fraction of spike-in cells") + 
     theme(legend.position = "top", strip.text=element_text(size=8), 
           panel.spacing = unit(1, "mm"), axis.text = element_text(size=10)) + 
-    scale_color_manual(values=c("zero"="grey", "detection limit"="red", "false positive fraction"="blue"), guide=guide_legend("performance measure", override.aes = list(alpha=1)))  
+    scale_color_manual(values=c("zero"="grey", "detection limit"="red", "false positive fraction"="blue", "cancer_bg"="#1f78b4", "immune_bg"="#33a02c"), guide=guide_legend("performance measure", override.aes = list(alpha=1)))  
 ```
 
 ```{r, include=FALSE}
@@ -206,16 +308,15 @@ res_sensitivity$data_false_positives = data_false_positives
 ```
 
 
-```{r, sens-spec-plot, fig.height=3, fig.width=12, echo=FALSE, fig.cap="Predicted amount of a certain cell type while it is actually absent. This analysis is based on all of the data above where only background cells are present, i.e. fraction of immune cells = 0."}
+```{r, sens-spec-plot, fig.height=5, fig.width=12, echo=FALSE, fig.cap="Predicted amount of a certain cell type while it is actually absent. This analysis is based on all of the data above where only background cells are present, i.e. fraction of immune cells = 0."}
 prediction_at_zero %>%
+  bind_dataframes() %>% 
   filter(method != "mcp_counter") %>% 
-  ggplot(aes(x=cell_type, y=background)) +
+  ggplot(aes(x=cell_type, y=background, colour=dataset)) +
     geom_boxplot(position="dodge") +
-    facet_wrap(~method, nrow=1) +
-    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
-          legend.position="top",
-          strip.text.x = element_text(size=9)) +
-    scale_color_manual(values=color_scales$methods, na.value="grey") +
-    coord_flip()
+    facet_wrap(~cell_type, nrow=1) 
+    # theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
+    #       legend.position="top",
+    #       strip.text.x = element_text(size=9)) 
 ```
 

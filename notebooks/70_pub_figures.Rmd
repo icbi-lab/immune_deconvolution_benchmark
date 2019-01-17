@@ -281,20 +281,29 @@ ggsave("../results/figures/summary.jpg", height = 210, width = WIDTH, units = "m
 
 
 ## detection limit / false positive figure
-```{r detection-limit-fp, fig.width=6.9, fig.height=6.5, message=FALSE, warning=FALSE, echo=FALSE, fig.cap="Detection limit and false positives."}
-data = res_sensitivity$background_data %>%
-  inner_join(method_names) %>%
-  inner_join(cell_type_names)
+```{r detection-limit-fp, fig.width=6.9, fig.height=5, message=FALSE, warning=FALSE, echo=FALSE, fig.cap="Detection limit and false positives."}
+ct_order = c("B", "DC", "Mac/Mono", "NK", "T CD4+", "T CD8+", "T CD4+ n.r.", "T reg", "CAF", "Endo")
 
-data_detection_limit = res_sensitivity$data_detection_limit %>%
+
+data = res_sensitivity$background_data$immune_bg %>%
   inner_join(method_names) %>%
   inner_join(cell_type_names) %>%
-  ungroup()
+    mutate(cell_type_name = factor(cell_type_name, levels=ct_order))
 
-data_false_positives = res_sensitivity$data_false_positives %>%
+data_detection_limit = res_sensitivity$data_detection_limit$immune_bg %>%
   inner_join(method_names) %>%
   inner_join(cell_type_names) %>%
-  ungroup()
+  ungroup() %>% 
+  mutate(cell_type_name = factor(cell_type_name, levels=ct_order))
+
+
+data_false_positives = res_sensitivity$data_false_positives$immune_bg %>%
+  inner_join(method_names) %>%
+  inner_join(cell_type_names) %>%
+  ungroup() %>%
+  rename(fp_prediction=mean) %>%
+  mutate(cell_type_name = factor(cell_type_name, levels=ct_order))
+
 
 fun_breaks2 = function(limits) {
   breaks = signif(max(limits) * c(0, 0.5),1)
@@ -302,29 +311,91 @@ fun_breaks2 = function(limits) {
   breaks
 }
 
+
 data %>%
   ggplot(aes(x=frac_immune_cells, y=mean)) +
     geom_ribbon(aes(ymin=mean-ci, ymax=mean+ci), alpha=.2) +
-    geom_point(size=.2, shape=4) +
-    # geom_errorbar(aes(ymin=mean-ci, ymax=mean+ci)) +
+    geom_point(size=.1, shape=20) +
     panel_border() +
     facet_grid(method_abbrev ~ cell_type_name, scales = "free_y") +
     scale_x_continuous(breaks=c(.0, .2), limits=c(0, 0.25)) +
     scale_y_continuous(breaks=fun_breaks2) +
-    geom_hline(mapping=aes(yintercept=0, colour="zero"), linetype="dashed", show.legend=FALSE) +
-    geom_vline(mapping=aes(xintercept = 0, color="zero"), linetype="dashed", show.legend=FALSE) +
-    # geom_abline(mapping=aes(slope=1, intercept=0), color="grey", linetype="solid", show.legend = FALSE) +
-    geom_vline(data=data_detection_limit, mapping=aes(xintercept=min_frac, colour="minimal detection fraction"), show.legend = FALSE) +
-    geom_hline(data=data_false_positives, mapping=aes(yintercept=fp_prediction, colour="background prediction fraction")) +
-    geom_hline(yintercept = 0, mapping = aes(colour="detection limit"), alpha=0) + # fake line to fix legend
+    geom_hline(mapping=aes(yintercept=0, colour="zero"), linetype="dashed", show.legend=FALSE, size=.2) +
+    geom_vline(mapping=aes(xintercept = 0, color="zero"), linetype="dashed", show.legend=FALSE, size=.2) +
+    geom_vline(data=data_detection_limit, mapping=aes(xintercept=min_frac, colour="minimal detection fraction"), show.legend = FALSE, size=.2) +
+    geom_hline(data=data_false_positives, mapping=aes(yintercept=fp_prediction, colour="background prediction fraction"), size=.2) +
+    geom_hline(yintercept = 0, mapping = aes(colour="detection limit"), linetype="dashed", alpha=0) + # fake line to fix legend
     ylab("average estimate") +
     xlab("fraction of spike-in cells") +
     theme(legend.position = "top", strip.text=element_text(size=8),
           panel.spacing = unit(1, "mm"), axis.text = element_text(size=8)) +
-    scale_color_manual(values=c("zero"="grey", "minimal detection fraction"="red", "background prediction fraction"="blue"), guide=guide_legend("performance measure", override.aes = list(alpha=1)))
+    scale_color_manual(values=c("zero"="grey", "minimal detection fraction"="red", "background prediction fraction"="blue"), guide=guide_legend("performance measure", override.aes = list(alpha=1, linetype=c("solid", "solid", "dashed"))))
 
-ggsave("../results/figures/detection_limit_fp.pdf", width = WIDTH, height=170, units = "mm")
-ggsave("../results/figures/detection_limit_fp.png", width = WIDTH, height=170, units = "mm", dpi=600)
+ggsave("../results/figures/detection_limit_fp.eps", width = WIDTH, height=130, units = "mm", fallback_resolution = 600, device = cairo_ps(fallback_resolution = 600))
+ggsave("../results/figures/detection_limit_fp.jpg", width = WIDTH, height=130, units = "mm", dpi=400)
+```
+
+## detection limit / false positive figure (cancer only background)
+```{r detection-limit-fp-cancer-bg, fig.width=6.9, fig.height=5, message=FALSE, warning=FALSE, echo=FALSE, fig.cap="Detection limit and false positives."}
+data = res_sensitivity$background_data$cancer_bg %>%
+  inner_join(method_names) %>%
+  inner_join(cell_type_names) %>%
+    mutate(cell_type_name = factor(cell_type_name, levels=ct_order))
+
+data_immune_bg = res_sensitivity$background_data$immune_bg %>%
+  inner_join(method_names) %>%
+  inner_join(cell_type_names) %>%
+    mutate(cell_type_name = factor(cell_type_name, levels=ct_order))
+
+data_detection_limit = res_sensitivity$data_detection_limit$cancer_bg %>%
+  inner_join(method_names) %>%
+  inner_join(cell_type_names) %>%
+  ungroup() %>% 
+  mutate(cell_type_name = factor(cell_type_name, levels=ct_order))
+
+
+data_false_positives = res_sensitivity$data_false_positives$cancer_bg %>%
+  inner_join(method_names) %>%
+  inner_join(cell_type_names) %>%
+  ungroup() %>%
+  rename(fp_prediction=mean) %>%
+  mutate(cell_type_name = factor(cell_type_name, levels=ct_order))
+
+
+fun_breaks2 = function(limits) {
+  breaks = signif(max(limits) * c(0, 0.5),1)
+  names(breaks) = attr(breaks, "labels")
+  breaks
+}
+
+
+data %>%
+  ggplot(aes(x=frac_immune_cells, y=mean)) +
+    geom_ribbon(aes(ymin=mean-ci, ymax=mean+ci), alpha=.2) +
+    geom_point(size=.1, shape=20, show.legend = TRUE, aes(color="cancer background")) +
+    geom_point(data=data_immune_bg, aes(x=frac_immune_cells, y=mean, color="immune background"), size=.1, shape=20) + 
+    panel_border() +
+    facet_grid(method_abbrev ~ cell_type_name, scales = "free_y") +
+    scale_x_continuous(breaks=c(.0, .2), limits=c(0, 0.25)) +
+    scale_y_continuous(breaks=fun_breaks2) +
+    geom_hline(mapping=aes(yintercept=0, colour="zero"), linetype="dashed", show.legend=FALSE, size=.2) +
+    geom_vline(mapping=aes(xintercept = 0, color="zero"), linetype="dashed", show.legend=FALSE, size=.2) +
+    geom_vline(data=data_detection_limit, mapping=aes(xintercept=min_frac, colour="minimal detection fraction"), show.legend = FALSE, size=.2) +
+    geom_hline(data=data_false_positives, mapping=aes(yintercept=fp_prediction, colour="background prediction fraction"), size=.2) +
+    geom_hline(yintercept = 0, mapping = aes(colour="detection limit"), linetype="dashed", alpha=0) + # fake line to fix legend
+    ylab("average estimate") +
+    xlab("fraction of spike-in cells") +
+    theme(legend.position = "top", strip.text=element_text(size=8),
+          panel.spacing = unit(1, "mm"), axis.text = element_text(size=8)) +
+    scale_color_manual(values=c("zero"="grey", "minimal detection fraction"="red", "background prediction fraction"="blue",
+                                "immune background"="grey", "cancer background"="black"),
+                       guide=guide_legend("performance measure", nrow=2,
+                                          override.aes = list(alpha=1,
+                                                              linetype=c("solid", "blank", "blank", "solid", "dashed"),
+                                                              shape=c(NA, 20, 20, NA, NA))))
+
+ggsave("../results/figures/detection_limit_fp_cancer_bg.eps", width = WIDTH, height=130, units = "mm")
+ggsave("../results/figures/detection_limit_fp_cancer_bg.jpg", width = WIDTH, height=130, units = "mm", dpi=400)
 ```
 
 ```{r summary-table-tsv, include=FALSE}

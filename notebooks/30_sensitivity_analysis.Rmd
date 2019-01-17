@@ -71,7 +71,7 @@ if(!file.exists(sensitivity_analysis_file)) {
   set.seed(42)
   res = foreach(input_cell_type = show_cell_types,
                 .final = function(x) setNames(x, show_cell_types)) %dopar% {
-                    background_cts = c(cell_types$immune_cells, cell_types$other)
+                    background_cts = c(cell_types$immune_cells, cell_types$other, cell_types$cancer)
                     # for CD4+, which is a supercategory, exclude both child cell types. 
                     if(input_cell_type == "T cell CD4+") {
                       exclude_cell_types = c("T cell regulatory (Tregs)", "T cell CD4+ (non-regulatory)") 
@@ -79,10 +79,10 @@ if(!file.exists(sensitivity_analysis_file)) {
                       exclude_cell_types = input_cell_type
                     }
                     background_cts = background_cts[!background_cts %in% exclude_cell_types]
-                    n_cancer = N_BACKGROUND - 100 * length(background_cts)
-                    background = c(rep(100, length(background_cts)), n_cancer/N_BACKGROUND * cancer_background)
-                    names(background) = c(background_cts, names(cancer_background))
-                    assert("1000 cells in background", sum(background) == N_BACKGROUND)
+                    rnd = sample(0:100, length(background_cts), TRUE)
+                    background = round(rnd / sum(rnd) * 1000, 0)
+                    names(background) = background_cts
+                    assert("1000 cells in background", abs(sum(background) - 1000) <= length(background))
                     expr_mat = lapply(n_immune_cells, function(k) {
                       cell_n = make_cell_fraction_vector(input_cell_type, k, background)
                       cell_frac = cell_n/sum(cell_n)

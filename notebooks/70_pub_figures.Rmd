@@ -598,7 +598,7 @@ rmgenes_plot_dc = rmgenes_data_dc %>%
     stat_compare_means(paired = TRUE, method = "t.test", label="p", size=2.5) +
     theme(legend.position = "none", strip.text=element_text(size=9),
           panel.spacing = unit(.5, "mm"), axis.text = element_text(size=8)) + 
-    xlab("signature genes removed") +
+    xlab(" ") +
     ylab("B cell score") +
     scale_color_brewer(type="qual", palette=6, direction = -1) +
     ylim(0, .75) +
@@ -608,12 +608,12 @@ rmgenes_plot_dc = rmgenes_data_dc %>%
 ```
 
 ```{r, include=FALSE}
-rmgenes_data_cd4 = res_spillover$rm_marker_genes_cd4 %>%
+rmgenes_data_mac = res_spillover$rm_marker_genes_caf %>%
   inner_join(method_names) %>%
-  filter(cell_type == "T cell CD4+") %>%
+  filter(cell_type == "Macrophage/Monocyte") %>%
   mutate(dataset = if_else(dataset == "before", "no", "yes"))
 
-rmgenes_plot_cd4 = rmgenes_data_cd4 %>% 
+rmgenes_plot_mac = rmgenes_data_mac %>% 
   ggplot(aes(x=dataset, y=predicted_fraction, colour=dataset)) +
     geom_quasirandom(size=.5) +
     stat_summary(fun.y=mean, geom="crossbar", fun.ymin=mean, fun.ymax=mean, width=.5, color="black") +
@@ -621,8 +621,8 @@ rmgenes_plot_cd4 = rmgenes_data_cd4 %>%
     stat_compare_means(paired = TRUE, method = "t.test", label="p", size=2.5) +
     theme(legend.position = "none", strip.text=element_text(size=9),
           panel.spacing = unit(.5, "mm"), axis.text = element_text(size=8)) + 
-    xlab("signature genes removed") +
-    ylab("CD4⁺ T cell score") +
+    xlab(" ") +
+    ylab("T CD4+ score") +
     scale_color_brewer(type="qual", palette=6, direction = -1) +
     ylim(0, .5) +
     theme(plot.margin = margin(t=0, l=1, r=1, unit = "cm")) 
@@ -630,15 +630,10 @@ rmgenes_plot_cd4 = rmgenes_data_cd4 %>%
 
 ```
 
-```{r spillover_correction_pvalues, include=FALSE}
-tmp_datas = list("cd4_background"=rmgenes_data_cd4, "b_dc_spillover"=rmgenes_data_dc)
-lapply(names(tmp_datas), function(which_data) {
-  lapply(c("epic", "quantiseq", "cibersort"), function(method) {
-    tmp_data = tmp_datas[[which_data]] %>% filter(method == !!method) %>% 
-      spread(dataset, predicted_fraction)
-    cat(sprintf("## Testing before/after filtering unspecific genes for %s for method %s", which_data, method))
-    print(t.test(tmp_data$yes, tmp_data$no, paired = TRUE, alternative = "two.sided"))
-    cat(sprintf("-> Reduction by %f", (mean(tmp_data$no)-mean(tmp_data$yes))/mean(tmp_data$no) ), "\n\n")
-  })
-})
+```{r spillover-reduction-plot, width=3.5, height=2.5}
+p = plot_grid(rmgenes_plot_mac, rmgenes_plot_dc, align = 'h', nrow=1, rel_widths=c(.4, .7), labels=c("a", "b"))
+ggdraw(p) + draw_label("signature genes removed", x = .7, y = 0.06,
+            vjust = 1, hjust = 1, size = 14)
+ggsave("../results/figures/spillover_reduction.jpg", width=WIDTH*.75, height=79, units = "mm", dpi=300)
+ggsave("../results/figures/spillover_reduction.eps", width=WIDTH*.75, height=79, units = "mm")
 ```

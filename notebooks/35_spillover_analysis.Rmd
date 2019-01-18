@@ -16,7 +16,7 @@ To this end, we use three datasets
 We test the following cell types:
 ```{r}
 show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
-                    "NK cell", "T cell CD4+", "T cell CD8+")
+                    "NK cell", "T cell CD4+", "T cell CD8+", "Cancer associated fibroblast", "Endothelial cell")
 ```
 
 
@@ -25,9 +25,10 @@ show_cell_types = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
 
 set.seed(42)
 
-sample_types = rep(show_cell_types, 5)
+sample_types = rep(c(show_cell_types, "cancer cell"), 5)
 ## make artificial bulk sample
 artificial_bulk = lapply(sample_types, function(cell_type) {
+  cell_type = ifelse(cell_type == "cancer cell", cell_types$cancer, cell_type)
   cell_n = make_cell_fraction_vector(cell_type, k=500, background=NULL)
   cell_frac = cell_n/sum(cell_n)
   make_random_bulk(single_cell_schelker$eset, cell_frac, n_cells=500)
@@ -36,16 +37,16 @@ artificial_bulk = lapply(sample_types, function(cell_type) {
 rownames(artificial_bulk) = rownames(single_cell_schelker$eset %>% exprs())
 
 
-## make artificial bulk samples with background
-artificial_bulk_bg = lapply(sample_types, function(cell_type) {
-  cell_n = make_cell_fraction_vector(cell_type, k=100,
-                                     background=round(400*(cell_types$n_background_cells/sum(cell_types$n_background_cells))))
-  assert("sample has 500 cells", sum(cell_n) >= 499 & sum(cell_n) <= 501)
-  cell_frac = cell_n/sum(cell_n)
-  make_random_bulk(single_cell_schelker$eset, cell_frac, n_cells=500)
-}) %>% bind_cols() %>% as.matrix()
-
-rownames(artificial_bulk_bg) = rownames(single_cell_schelker$eset %>% exprs())
+# ## make artificial bulk samples with background
+# artificial_bulk_bg = lapply(sample_types, function(cell_type) {
+#   cell_n = make_cell_fraction_vector(cell_type, k=100,
+#                                      background=round(400*(cell_types$n_background_cells/sum(cell_types$n_background_cells))))
+#   assert("sample has 500 cells", sum(cell_n) >= 499 & sum(cell_n) <= 501)
+#   cell_frac = cell_n/sum(cell_n)
+#   make_random_bulk(single_cell_schelker$eset, cell_frac, n_cells=500)
+# }) %>% bind_cols() %>% as.matrix()
+# 
+# rownames(artificial_bulk_bg) = rownames(single_cell_schelker$eset %>% exprs())
 ```
 
 
@@ -53,14 +54,14 @@ rownames(artificial_bulk_bg) = rownames(single_cell_schelker$eset %>% exprs())
 # Run the deconvolution
 datasets = list(
   immune_reference = immune_cell_reference$expr_mat,
-  artificial_bulk = artificial_bulk,
-  artificial_bulk_bg = artificial_bulk_bg
+  artificial_bulk = artificial_bulk #,
+#  artificial_bulk_bg = artificial_bulk_bg
 )
 dataset_gold_standard = list(
   immune_reference = immune_cell_reference$sample_description %>%
     select(sample, true_cell_type=cell_type),
-  artificial_bulk = tibble(sample=colnames(artificial_bulk), true_cell_type=sample_types),
-  artificial_bulk_bg = tibble(sample=colnames(artificial_bulk), true_cell_type=sample_types)
+  artificial_bulk = tibble(sample=colnames(artificial_bulk), true_cell_type=sample_types) #,
+#  artificial_bulk_bg = tibble(sample=colnames(artificial_bulk), true_cell_type=sample_types)
 )
 
 all_results = foreach(dataset = names(datasets),
@@ -191,7 +192,7 @@ x = lapply(names(datasets), function(dataset) {
       ungroup()
 
     chordDiagram(migration_mat, directional = TRUE, transparency = .5,
-                 grid.col = color_scales$immune_cells
+                 grid.col = color_scales$spillover
                  # annotationTrack = c("track", "grid")
                  )
 

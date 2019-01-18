@@ -312,11 +312,11 @@ res_sensitivity$data_false_positives = data_false_positives
 prediction_at_zero %>%
   bind_dataframes() %>% 
   filter(method != "mcp_counter") %>% 
-  ggplot(aes(x=cell_type, y=background, colour=dataset)) +
+  ggplot(aes(x=method, y=background, colour=dataset)) +
     geom_boxplot(position="dodge") +
-    facet_wrap(~cell_type, nrow=1) 
-    # theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
-    #       legend.position="top",
-    #       strip.text.x = element_text(size=9)) 
+    facet_wrap(~cell_type, nrow=1) +
+    theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1),
+          legend.position="top",
+          strip.text.x = element_text(size=9))
 ```
 

@@ -35,10 +35,10 @@ method_names %<>% left_join(tibble(method=names(method_abbrev), method_abbrev=me
 cell_type_names = tibble(
   cell_type      = c("B cell", "Dendritic cell", "Macrophage/Monocyte",
                      "NK cell", "T cell CD4+", "T cell CD8+", "T cell CD4+ (non-regulatory)",  "T cell regulatory (Tregs)",
-                     "Monocyte", "T cell", "Cancer associated fibroblast", "Endothelial cell"),
+                     "Monocyte", "T cell", "Cancer associated fibroblast", "Endothelial cell", "cancer cell"),
   cell_type_name = c("B",      "DC",             "Mac/Mono",
                      "NK",      "T CD4+",      "T CD8+" ,     "T CD4+ n.r.",                   "T reg",
-                     "Mono",     "T",      "CAF",                          "Endo")
+                     "Mono",     "T",      "CAF",                          "Endo",             "Cancer")
 )
 
 validation_datasets = tibble(
@@ -331,7 +331,7 @@ data %>%
           panel.spacing = unit(1, "mm"), axis.text = element_text(size=8)) +
     scale_color_manual(values=c("zero"="grey", "minimal detection fraction"="red", "background prediction fraction"="blue"), guide=guide_legend("performance measure", override.aes = list(alpha=1, linetype=c("solid", "solid", "dashed"))))
 
-ggsave("../results/figures/detection_limit_fp.eps", width = WIDTH, height=130, units = "mm", fallback_resolution = 600, device = cairo_ps(fallback_resolution = 600))
+ggsave("../results/figures/detection_limit_fp.eps", width = WIDTH, height=130, units = "mm", device = cairo_ps, fallback_resolution=600)
 ggsave("../results/figures/detection_limit_fp.jpg", width = WIDTH, height=130, units = "mm", dpi=400)
 ```
 
@@ -394,7 +394,7 @@ data %>%
                                                               linetype=c("solid", "blank", "blank", "solid", "dashed"),
                                                               shape=c(NA, 20, 20, NA, NA))))
 
-ggsave("../results/figures/detection_limit_fp_cancer_bg.eps", width = WIDTH, height=130, units = "mm")
+# ggsave("../results/figures/detection_limit_fp_cancer_bg.eps", width = WIDTH, height=130, units = "mm")
 ggsave("../results/figures/detection_limit_fp_cancer_bg.jpg", width = WIDTH, height=130, units = "mm", dpi=400)
 ```
 
@@ -417,11 +417,11 @@ summary_table %>%
 ```
 
 ## Migration charts for Spillover analysis
-```{r, fig.width = 16, fig.height=10, include=FALSE}
+```{r, fig.width = 13, fig.height=6, include=FALSE}
 methods = config$deconvolution_methods
 
 # cibersort and cibersort abs are identical in this analysis, no need to include both.
-methods = sort(methods[methods != "cibersort_abs"])
+methods = sort(methods)
 tmp_method_names = as.list(method_names %>% pull(method_abbrev))
 names(tmp_method_names) = method_names$method
 
@@ -440,8 +440,8 @@ noise_ratio = migration %>%
   mutate(noise_ratio = noise/(signal+noise)) %>%
   ungroup()
 
-layout(matrix(seq(1, 6), 2, 3))
-par(mar=rep(0.5, 4))
+layout(matrix(seq(1, 8), 2, 4))
+par(mar=rep(0.1, 4))
 circos.par(cell.padding = rep(0, 4))
 x = lapply(methods, function(method) {
       tmp_migration = migration %>%
@@ -453,7 +453,7 @@ x = lapply(methods, function(method) {
         as.matrix()
 
       chordDiagram(tmp_migration, directional = TRUE, transparency = .5,
-                   grid.col = color_scales$immune_cells,
+                   grid.col = color_scales$spillover,
                    annotationTrack = c("grid"),
                    annotationTrackHeight = uh(5, "mm")
                    )
@@ -469,19 +469,119 @@ migration_plot = grid.grab()
 ```{r, include=FALSE}
 # make legend using ggplot
 tmp_barplot_data = migration %>%
-  select("cell type" = cell_type) %>%
+  inner_join(cell_type_names, by=c("true_cell_type"="cell_type")) %>% 
+  select("cell type" = cell_type_name) %>%
   # add arbitrary value
   mutate(value = 1)
 
 p = tmp_barplot_data %>%
   ggplot(aes(x=`cell type`, y=value, fill=`cell type`)) +
   geom_bar(stat='identity') +
-  scale_fill_manual(values=color_scales$immune_cells, guide=guide_legend(ncol=2)) +
-  theme(legend.position = "top", legend.justification = "center") 
+  scale_fill_manual(values=color_scales$spillover, guide=guide_legend(ncol=1)) +
+  guides(fill=guide_legend(title.position="top", 
+                                     title.hjust =0.5, 
+                                     ncol=2,
+                                     label.theme=element_text(size=12))) + 
+  theme(legend.position = "top", legend.justification = "center")  
 p
 
 migration_legend = cowplot::get_legend(p)
 ```
+
+```{r spillover-plot-row, fig.width = 6.69, fig.height=3.93, echo=FALSE, message=FALSE, fig.cap="Migration chart figure for paper. "}
+ggdraw(migration_plot) + draw_plot(migration_legend, x=.37, y=-.25)
+ggsave("../results/figures/spillover_migration_chart.jpg", width=WIDTH*1.5, height=130, units = "mm", dpi=600)
+ggsave("../results/figures/spillover_migration_chart.eps", width=WIDTH*1.5, height=130, units = "mm", dpi=600, device = cairo_ps, fallback_resolution=600)
+```
+
+### migration chart figure with FACS samples
+```{r, fig.width = 13, fig.height=6, include=FALSE}
+methods = config$deconvolution_methods
+
+# cibersort and cibersort abs are identical in this analysis, no need to include both.
+methods = sort(methods)
+tmp_method_names = as.list(method_names %>% pull(method_abbrev))
+names(tmp_method_names) = method_names$method
+
+migration = res_spillover$all_results %>%
+  filter(dataset == "immune_reference") %>%
+  filter(true_cell_type != "Neutrophil") %>%
+  group_by(method, cell_type, true_cell_type) %>%
+  summarise(estimate = mean(estimate)) %>%
+  ungroup()
+
+ noise_ratio = migration %>%
+      # aggregate macro/mono into a single category
+      mutate(true_cell_type = ifelse(true_cell_type %in% c("Macrophage M1", "Macrophage M2", "Monocyte"), "Macrophage/Monocyte", true_cell_type)) %>%
+      mutate(true_cell_type = ifelse(true_cell_type == "T cell regulatory (Tregs)", "T cell CD4+", true_cell_type)) %>%
+      group_by(method, cell_type, true_cell_type) %>%
+      summarise(estimate = mean(estimate)) %>%
+      group_by(method) %>%
+      mutate(type = ifelse(cell_type == true_cell_type, "signal", "noise")) %>%
+      group_by(method, type) %>%
+      summarise(estimate = sum(estimate)) %>%
+      spread(type, estimate) %>%
+      mutate(noise_ratio = noise/(signal+noise)) %>%
+      ungroup()
+
+
+layout(matrix(seq(1, 8), 2, 4))
+par(mar=rep(0.1, 4))
+circos.par(cell.padding = rep(0, 4))
+x = lapply(methods, function(method) {
+      tmp_migration = migration %>%
+        filter(method == !!method) %>%
+        select(-method) %>%
+        spread(cell_type, estimate) %>%
+        as.data.frame() %>%
+        column_to_rownames("true_cell_type") %>%
+        as.matrix()
+
+      chordDiagram(tmp_migration, directional = TRUE, transparency = .5,
+                   grid.col = color_scales$spillover,
+                   annotationTrack = c("grid"),
+                   annotationTrackHeight = uh(5, "mm")
+                   )
+
+      text(0, 0, tmp_method_names[[method]], cex = 2.)
+      text(0, -0.3, as.character(round(filter(noise_ratio, method == !!method) %>% pull(noise_ratio), 2)), cex=1.8)
+})
+
+grid.echo()
+migration_plot = grid.grab()
+```
+
+```{r, include=FALSE}
+# make legend using ggplot
+tmp_barplot_data = migration %>%
+#   inner_join(cell_type_names, by=c("true_cell_type"="cell_type")) %>% 
+  select("cell type" = true_cell_type) %>%
+  bind_rows(migration %>% select("cell type"=cell_type)) %>%
+  filter(`cell type` != "Neutrophil") %>%
+  distinct() %>% 
+  # add arbitrary value
+  mutate(value = 1)
+
+p = tmp_barplot_data %>%
+  ggplot(aes(x=`cell type`, y=value, fill=`cell type`)) +
+  geom_bar(stat='identity') +
+  scale_fill_manual(values=color_scales$spillover, guide=guide_legend(ncol=1)) +
+  guides(fill=guide_legend(title.position="top", 
+                                     title.hjust =0.5, 
+                                     ncol=3,
+                                     label.theme=element_text(size=12))) + 
+  theme(legend.position = "top", legend.justification = "center")  
+p
+
+migration_legend = cowplot::get_legend(p)
+```
+
+```{r spillover-plot-row, fig.width = 6.69, fig.height=3.93, echo=FALSE, message=FALSE, fig.cap="Migration chart figure for paper. "}
+plot_grid(migration_plot, migration_legend, align = "v", axis="t", labels=NULL, ncol=1, rel_heights = c(1, .3)) 
+ggsave("../results/figures/spillover_migration_chart_facs.jpg", width=WIDTH*1.5, height=160, units = "mm", dpi=300)
+# ggsave("../results/figures/spillover_migration_chart.eps", width=WIDTH*1.5, height=130, units = "mm", dpi=600, device = cairo_ps, fallback_resolution=600)
+```
+
 
 ```{r, include=FALSE}
 # Plot differences with removed marker genes
@@ -541,18 +641,4 @@ lapply(names(tmp_datas), function(which_data) {
     cat(sprintf("-> Reduction by %f", (mean(tmp_data$no)-mean(tmp_data$yes))/mean(tmp_data$no) ), "\n\n")
   })
 })
-```
-
-```{r fig.width = 6.69, fig.height=3.93, echo=FALSE, message=FALSE, fig.cap="Migration chart figure for paper. "}
-# combine legend and plot
-plot_right = plot_grid(rmgenes_plot_cd4, rmgenes_plot_dc,
-                       nrow=2, rel_heights = c(0.5, 0.5), align = "v", labels = c("b", "c"))
-
-plot_left = plot_grid(migration_plot, NULL, migration_legend, NULL, nrow=4, rel_heights = c(.65, .03, .15, 0.03), align = 'v', labels=c("a", ""), axis='t')
-
-plot_grid(plot_left, plot_right,
-          nrow=1, rel_widths = c(.65, .5), align = "h", axis="t")
-
-ggsave("../results/figures/spillover_migration_chart.tiff", width=WIDTH, height=90, units = "mm", dpi=600)
-ggsave("../results/figures/spillover_migration_chart.jpg", width=WIDTH, height=90, units = "mm", dpi=600)
 ```

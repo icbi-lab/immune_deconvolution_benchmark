@@ -477,11 +477,11 @@ tmp_barplot_data = migration %>%
 p = tmp_barplot_data %>%
   ggplot(aes(x=`cell type`, y=value, fill=`cell type`)) +
   geom_bar(stat='identity') +
-  scale_fill_manual(values=color_scales$spillover, guide=guide_legend(ncol=1)) +
+  scale_fill_manual(values=color_scales$spillover) +
   guides(fill=guide_legend(title.position="top", 
                                      title.hjust =0.5, 
                                      ncol=2,
-                                     label.theme=element_text(size=12))) + 
+                                     label.theme=element_text(size=12, angle=0))) + 
   theme(legend.position = "top", legend.justification = "center")  
 p
 
@@ -565,18 +565,18 @@ tmp_barplot_data = migration %>%
 p = tmp_barplot_data %>%
   ggplot(aes(x=`cell type`, y=value, fill=`cell type`)) +
   geom_bar(stat='identity') +
-  scale_fill_manual(values=color_scales$spillover, guide=guide_legend(ncol=1)) +
+  scale_fill_manual(values=color_scales$spillover) +
   guides(fill=guide_legend(title.position="top", 
                                      title.hjust =0.5, 
                                      ncol=3,
-                                     label.theme=element_text(size=12))) + 
+                                     label.theme=element_text(size=12, angle=0))) + 
   theme(legend.position = "top", legend.justification = "center")  
 p
 
 migration_legend = cowplot::get_legend(p)
 ```
 
-```{r spillover-plot-row, fig.width = 6.69, fig.height=3.93, echo=FALSE, message=FALSE, fig.cap="Migration chart figure for paper. "}
+```{r spillover-plot-row-validation, fig.width = 6.69, fig.height=3.93, echo=FALSE, message=FALSE, fig.cap="Migration chart figure for paper. "}
 plot_grid(migration_plot, migration_legend, align = "v", axis="t", labels=NULL, ncol=1, rel_heights = c(1, .3)) 
 ggsave("../results/figures/spillover_migration_chart_facs.jpg", width=WIDTH*1.5, height=160, units = "mm", dpi=300)
 # ggsave("../results/figures/spillover_migration_chart.eps", width=WIDTH*1.5, height=130, units = "mm", dpi=600, device = cairo_ps, fallback_resolution=600)
@@ -622,7 +622,7 @@ rmgenes_plot_mac = rmgenes_data_mac %>%
     theme(legend.position = "none", strip.text=element_text(size=9),
           panel.spacing = unit(.5, "mm"), axis.text = element_text(size=8)) + 
     xlab(" ") +
-    ylab("T CD4+ score") +
+    ylab("Mac/Mono score") +
     scale_color_brewer(type="qual", palette=6, direction = -1) +
     ylim(0, .5) +
     theme(plot.margin = margin(t=0, l=1, r=1, unit = "cm")) 

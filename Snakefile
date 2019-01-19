@@ -37,7 +37,7 @@ rule book:
     # "results/cache/input_data.rda",
     # "results/cache/results_for_figures.rda",
     "results/figures/schelker_single_cell_tsne.pdf",
-    "results/figures/spillover_migration_chart.pdf",
+    "results/figures/spillover_migration_chart.jpg",
     "results/figures/spillover_migration_all.pdf",
     "results/tables/mixing_study_correlations.tsv",
     "results/tables/spillover_signal_noise.tsv"
@@ -45,6 +45,7 @@ rule book:
     "envs/bookdown.yml"
   shell:
     """
+    touch results/cache/.dir
     rm -f results/book/figures && ln -s ../figures results/book/figures
     cd notebooks && Rscript -e "bookdown::render_book('index.Rmd')"
     """
@@ -54,7 +55,6 @@ rule data:
    output:
      DATA_FILES
    shell:
-     "touch results/cache/.dir; "
      "wget 'https://github.com/grst/immune_deconvolution_benchmark/releases/download/v1.0.0-rc1/data.tar.gz' -O data.tar.gz && "
      "mkdir -p data && "
      "tar -xvzf data.tar.gz -C data --strip-components 1"

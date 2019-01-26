@@ -624,7 +624,7 @@ rmgenes_plot_mac = rmgenes_data_mac %>%
     xlab(" ") +
     ylab("Mac/Mono score") +
     scale_color_brewer(type="qual", palette=6, direction = -1) +
-    ylim(0, .5) +
+    ylim(0, .20) +
     theme(plot.margin = margin(t=0, l=1, r=1, unit = "cm")) 
 
 

@@ -1,3 +1,3 @@
 [submodule "immunedeconv"]
 	path = immunedeconv
-	url = git@github.com:grst/immundeconv.git
+	url = https://github.com/grst/immunedeconv

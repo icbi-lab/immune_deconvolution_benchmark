@@ -17,7 +17,7 @@ to the one available on
 ## Getting started
 Short version:
 ```
-conda install snakemake
+conda install -c conda-forge snakemake
 git clone --recurse-submodules git@github.com:grst/immune_deconvolution_benchmark.git
 cd immune_deconvolution_benchmark
 #<add CIBERSORT source code; see below (optional)>

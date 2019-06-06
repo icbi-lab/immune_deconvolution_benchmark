@@ -1,5 +1,6 @@
 channels:
-  - conda-forge
+  #- conda-forge
+  - conda-forge/label/cf201901
   - r
   - bioconda
   - grst

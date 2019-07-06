@@ -122,6 +122,15 @@ Calls: <Anonymous> ... getResult -> getResult.iforeach -> <Anonymous> -> setName
 ```
 which does not really hint at a lack of memory. Others might be possible if the pipeline fails at other stages. 
 
+### 2. Can I test my own method?
+Yes, you need to write a small wrapper function. 
+See [below](#test-your-own-method). 
+
+### 3. Can I use my own dataset (FACS or scRNA-seq) in the pipeline?
+No, not out-of-the-box. 
+Feel free to use the Rmarkdown notebooks in [notebooks](notebooks) as a template. It should be fairly easy
+to edit them e.g. in Rstudio and adjust the datasets. 
+
 
 ## Test your own method
 

@@ -27,6 +27,8 @@ snakemake --use-conda
 
 For details, see below.
 
+If you have trouble running the pipeline first, see the [FAQ](#FAQ) then report an issue on GitHub. 
+
 ### Prerequisites
 This pipeline uses [Anaconda](https://conda.io/miniconda.html) and
 [Snakemake](https://snakemake.readthedocs.io/en/stable/).
@@ -68,23 +70,16 @@ analysis (see `notebooks/config.R` for more details).
 Running the full pipeline can take a lot of time and computational resources.
 In particular the sensitivity and specificity analysis do a lot of simulations.
 
-We provide a precomputed dataset for sensitivity/specificity
-which you can obtain using
-```
-snakemake get_cache
-```
-
-Additionally, the pipeline internally generates caches to speed up repetitive builds.
+The pipeline internally generates caches to speed up repetitive builds.
 To eradicate all caches, use
 ```
 snakemake wipe
 ```
 
-By default, the pipline uses up to 8 cores and requires up to 12GB of
-memory per core. You can adjust the number of cores in `notebooks/config.R`.
+By default, the pipline uses up to 16 cores and requires up to 8GB of
+memory per core. You can adjust the number of cores in [notebooks/config.R](https://github.com/grst/immune_deconvolution_benchmark/blob/ce5684bae11a16784547b00719f1ab51795dbf2c/notebooks/config.R#L3).
 
-The runtime of the pipeline can be multiple hours, depending on the number of cores 
-and if you use the precomputed data or not. 
+The runtime of the pipeline can be several hours, depending on the number of cores.
 
 
 ### Run the pipeline
@@ -109,11 +104,23 @@ Have a look at the `Snakefile`, it is self-explanatory.
 A list of the most useful targets
 ```
 snakemake --use-conda book       # generate a HTML-book in `results/book`
-snakemake --use conda            # default target (= book)
+snakemake --use-conda            # default target (= book)
 snakemake clean                  # cleans the HTML book
 snakemake wipe                   # cleans everything, including all caches.
 snakemake get_cache              # downloads precomputed results for sensitivity and specificity
 ```
+
+## FAQ
+### 1. The pipeline fails with a weird error message. 
+A likely reason for that is that you don't have enough RAM per core. Try to reduce the maximum number of cores in [notebooks/config.R](https://github.com/grst/immune_deconvolution_benchmark/blob/ce5684bae11a16784547b00719f1ab51795dbf2c/notebooks/config.R#L3) until you have at least 8GB of RAM per core. 
+
+This happens when the pipeline breaks out of a parallel for loop. A possible error message is 
+```
+Error in names(object) <- nm : 
+  'names' attribute [10] must be the same length as the vector [0]
+Calls: <Anonymous> ... getResult -> getResult.iforeach -> <Anonymous> -> setNames
+```
+which does not really hint at a lack of memory. Others might be possible if the pipeline fails at other stages. 
 
 
 ## Test your own method

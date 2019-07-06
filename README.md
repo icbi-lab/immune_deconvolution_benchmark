@@ -76,7 +76,7 @@ To eradicate all caches, use
 snakemake wipe
 ```
 
-By default, the pipline uses up to 16 cores and requires up to 8GB of
+By default, the pipline uses up to 16 cores and requires up to 12GB of
 memory per core. You can adjust the number of cores in [notebooks/config.R](https://github.com/grst/immune_deconvolution_benchmark/blob/ce5684bae11a16784547b00719f1ab51795dbf2c/notebooks/config.R#L3).
 
 The runtime of the pipeline can be several hours, depending on the number of cores.
@@ -112,7 +112,7 @@ snakemake get_cache              # downloads precomputed results for sensitivity
 
 ## FAQ
 ### 1. The pipeline fails with a weird error message. 
-A likely reason for that is that you don't have enough RAM per core. Try to reduce the maximum number of cores in [notebooks/config.R](https://github.com/grst/immune_deconvolution_benchmark/blob/ce5684bae11a16784547b00719f1ab51795dbf2c/notebooks/config.R#L3) until you have at least 8GB of RAM per core. 
+A likely reason for that is that you don't have enough RAM per core. Try to reduce the maximum number of cores in [notebooks/config.R](https://github.com/grst/immune_deconvolution_benchmark/blob/ce5684bae11a16784547b00719f1ab51795dbf2c/notebooks/config.R#L3) until you have at least 12GB of RAM per core. 
 
 This happens when the pipeline breaks out of a parallel for loop. A possible error message is 
 ```

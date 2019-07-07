@@ -1,0 +1,33 @@
+---
+title: "presentation plots"
+output: html_document
+---
+
+```{r}
+load("../results/cache/results_for_figures.rda")
+```
+
+
+```{r}
+res_mixing_study$correlations %>%
+  ggplot(aes(x=cell_type, y=pearson)) + 
+  facet_wrap(~method) + 
+  geom_errorbar(aes(ymin=conf_int_lower, ymax=conf_int_upper)) + 
+  geom_point(aes(fill=cell_type), shape=23, size=3) +
+  scale_fill_manual(values=color_scales$cell_types) + 
+  theme(legend.position="none")
+
+```
+
+
+
+```{r, fig.width=12, fig.height=8}
+res_mixing_study$correlations %>%
+  ggplot(aes(x=method, y=pearson)) + 
+  facet_wrap(~cell_type, ncol=5) + 
+  geom_point(aes(fill=method), shape=23, size=5) +
+  geom_errorbar(aes(ymin=conf_int_lower, ymax=conf_int_upper)) + 
+  scale_fill_manual(values=color_scales$methods) + 
+  theme(legend.position="none")
+
+```

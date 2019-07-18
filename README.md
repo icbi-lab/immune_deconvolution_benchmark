@@ -1,7 +1,7 @@
 # Comprehensive evaluation of cell-type quantification methods for immuno-oncology
 
-Sturm, Finotello et al. (2018), biorXiv, https://doi.org/10.1101/463828
-
+> Sturm, G., Finotello, F., Petitprez, F., Zhang, J. D., Baumbach, J., Fridman, W. H., ..., List, M., Aneichyk, T. (2019). Comprehensive evaluation of transcriptome-based cell-type quantification methods for immuno-oncology. Bioinformatics, 35(14), i436-i445. https://doi.org/10.1093/bioinformatics/btz363
+ 
 The source code in this project can be used to reproduce the results
 described in the paper. Additionally, the pipeline can be easily
 extended to test novel methods against the state-of-the art.
@@ -49,7 +49,14 @@ If you have problems retrieving the submodule, read this [question on
 stackoverflow](https://stackoverflow.com/questions/3796927/how-to-git-clone-including-submodules).
 
 
-### CIBERSORT
+### Licenses
+While this pipeline is free software, you may require a license to run the individual methods. 
+Please see [this table](https://github.com/grst/immunedeconv/blob/master/README.md#available-methods-licenses-citations) for more information. In particular, CIBERSORT and EPIC are free for non-commercial use only. Additional steps are required to include CIBERSORT into the pipeline (see below). 
+
+#### EPIC
+EPIC is published under an [Academic License](https://github.com/GfellerLab/EPIC/blob/master/LICENSE) restricting its use to non-commercial applications. If you plan to use this pipeline in a commerical setting, you need to obtain a license [from the authors](https://github.com/GfellerLab/EPIC#contact-information). If you with to exclude EPIC from the pipeline, you can do so in `notebooks/config.R`. 
+
+#### CIBERSORT
 Due to licensing restrictions, CIBERSORT could not be included in this repo.
 You have to go to the [CIBERSORT website](https://cibersort.stanford.edu),
 obtain a license and download the source code.

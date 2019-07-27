@@ -17,7 +17,7 @@ to the one available on
 ## Getting started
 Short version:
 ```
-conda install -c conda-forge snakemake
+conda install -c conda-forge -c bioconda snakemake
 git clone --recurse-submodules git@github.com:grst/immune_deconvolution_benchmark.git
 cd immune_deconvolution_benchmark
 #<add CIBERSORT source code; see below (optional)>
@@ -36,7 +36,7 @@ This pipeline uses [Anaconda](https://conda.io/miniconda.html) and
 1. **Download and install [Miniconda](https://conda.io/miniconda.html)**
 2. **Install snakemake**
 ```
-conda install snakemake
+conda install -c conda-forge -c bioconda snakemake
 ```
 
 3. **Clone this repo.** We use a [git submodule](https://git-scm.com/docs/git-submodule) to import

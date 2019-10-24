@@ -9,16 +9,16 @@ extended to test novel methods against the state-of-the art.
 Running the pipeline will generate an interactive HTML report using
 [bookdown](https://bookdown.org/yihui/bookdown/), which is equivalent
 to the one available on
-[grst.github.io/immune_deconvolution_benchmark](https://grst.github.io/immune_deconvolution_benchmark)
+[icbi-lab.github.io/immune_deconvolution_benchmark](https://icbi-lab.github.io/immune_deconvolution_benchmark)
 
 **All (preprocessed) data needed to reproduce the results**:
-[data.tar.gz](https://github.com/grst/immune_deconvolution_benchmark/releases/download/v1.0.0-rc1/data.tar.gz)
+[data.tar.gz](https://github.com/icbi-lab/immune_deconvolution_benchmark/releases/download/v1.0.0-rc1/data.tar.gz)
 
 ## Getting started
 Short version:
 ```
 conda install -c conda-forge -c bioconda snakemake
-git clone --recurse-submodules git@github.com:grst/immune_deconvolution_benchmark.git
+git clone --recurse-submodules git@github.com:icbi-lab/immune_deconvolution_benchmark.git
 cd immune_deconvolution_benchmark
 #<add CIBERSORT source code; see below (optional)>
 snakemake get_cache  # download some precomputed files to speed up the build process (optional)
@@ -40,9 +40,9 @@ conda install -c conda-forge -c bioconda snakemake
 ```
 
 3. **Clone this repo.** We use a [git submodule](https://git-scm.com/docs/git-submodule) to import
-the source code for the [immundeconv](https://github.com/grst/immunedeconv) R package.
+the source code for the [immundeconv](https://github.com/icbi-lab/immunedeconv) R package.
 ```
-git clone --recurse-submodules git@github.com:grst/immune_deconvolution_benchmark.git
+git clone --recurse-submodules git@github.com:icbi-lab/immune_deconvolution_benchmark.git
 ```
 
 If you have problems retrieving the submodule, read this [question on
@@ -51,7 +51,7 @@ stackoverflow](https://stackoverflow.com/questions/3796927/how-to-git-clone-incl
 
 ### Licenses
 While this pipeline is free software, you may require a license to run the individual methods. 
-Please see [this table](https://github.com/grst/immunedeconv/blob/master/README.md#available-methods-licenses-citations) for more information. In particular, CIBERSORT and EPIC are free for non-commercial use only. Additional steps are required to include CIBERSORT into the pipeline (see below). 
+Please see [this table](https://github.com/icbi-lab/immunedeconv/blob/master/README.md#available-methods-licenses-citations) for more information. In particular, CIBERSORT and EPIC are free for non-commercial use only. Additional steps are required to include CIBERSORT into the pipeline (see below). 
 
 #### EPIC
 EPIC is published under an [Academic License](https://github.com/GfellerLab/EPIC/blob/master/LICENSE) restricting its use to non-commercial applications. If you plan to use this pipeline in a commerical setting, you need to obtain a license [from the authors](https://github.com/GfellerLab/EPIC#contact-information). If you with to exclude EPIC from the pipeline, you can do so in `notebooks/config.R`. 
@@ -84,7 +84,7 @@ snakemake wipe
 ```
 
 By default, the pipline uses up to 16 cores and requires up to 12GB of
-memory per core. You can adjust the number of cores in [notebooks/config.R](https://github.com/grst/immune_deconvolution_benchmark/blob/ce5684bae11a16784547b00719f1ab51795dbf2c/notebooks/config.R#L3).
+memory per core. You can adjust the number of cores in [notebooks/config.R](https://github.com/icbi-lab/immune_deconvolution_benchmark/blob/ce5684bae11a16784547b00719f1ab51795dbf2c/notebooks/config.R#L3).
 
 The runtime of the pipeline can be several hours, depending on the number of cores.
 
@@ -119,7 +119,7 @@ snakemake get_cache              # downloads precomputed results for sensitivity
 
 ## FAQ
 ### 1. The pipeline fails with a weird error message. 
-A likely reason for that is that you don't have enough RAM per core. Try to reduce the maximum number of cores in [notebooks/config.R](https://github.com/grst/immune_deconvolution_benchmark/blob/ce5684bae11a16784547b00719f1ab51795dbf2c/notebooks/config.R#L3) until you have at least 12GB of RAM per core. 
+A likely reason for that is that you don't have enough RAM per core. Try to reduce the maximum number of cores in [notebooks/config.R](https://github.com/icbi-lab/immune_deconvolution_benchmark/blob/ce5684bae11a16784547b00719f1ab51795dbf2c/notebooks/config.R#L3) until you have at least 12GB of RAM per core. 
 
 This happens when the pipeline breaks out of a parallel for loop. A possible error message is 
 ```

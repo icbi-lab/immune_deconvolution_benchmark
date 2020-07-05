@@ -83,7 +83,7 @@ To eradicate all caches, use
 snakemake wipe
 ```
 
-By default, the pipline uses up to 16 cores and requires up to 12GB of
+By default, the pipeline uses up to 16 cores and requires up to 12GB of
 memory per core. You can adjust the number of cores in [notebooks/config.R](https://github.com/icbi-lab/immune_deconvolution_benchmark/blob/ce5684bae11a16784547b00719f1ab51795dbf2c/notebooks/config.R#L3).
 
 The runtime of the pipeline can be several hours, depending on the number of cores.
